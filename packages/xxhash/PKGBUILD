@@ -1,0 +1,56 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Fabien Dubosson <fabien.dubosson@gmail.com>
+# Contributor: Konstantin Gizdov <arch@kge.com>
+
+pkgname=xxhash
+pkgver=0.8.1
+pkgrel=4
+pkgdesc='Extremely fast non-cryptographic hash algorithm'
+arch=('x86_64' 'arm64')
+url=https://cyan4973.github.io/xxHash/
+license=(
+  GPL2
+  BSD
+)
+depends=(glibc)
+makedepends=(git)
+provides=(libxxhash.dylib)
+_tag=35b0373c697b5f160d3db26b1cbb45a0d5ba788c
+source=(
+  "git+https://github.com/Cyan4973/xxHash.git#tag=${_tag}"
+  "xxhash-man-symlinks.patch"
+)
+b2sums=(
+  'SKIP'
+  '83236ec7363f98842a5c8deb52e0a200321a722748a69b472b42b65eb85fa06ac5490926ea7612c0c455bf4998e109567706cf0f03e2c52c1e497abf258e5219'
+)
+
+local _dispatch
+if [ $(uname -m) = "x86_64" ]; then
+  _dispatch=1
+else
+  _dispatch=0
+fi
+
+prepare() {
+  cd xxHash
+  patch -Np1 -i ../xxhash-man-symlinks.patch
+}
+
+pkgver() {
+  cd xxHash
+  git describe --tags | sed 's/^v//'
+}
+
+build() {
+  export CFLAGS="${CFLAGS//-march=native/}"
+
+  make PREFIX=${pacman_root}/usr DISPATCH=${_dispatch} -C xxHash
+}
+
+package() {
+  make PREFIX=${pacman_root}/usr DISPATCH=${_dispatch} DESTDIR="${pkgdir}" -C xxHash install
+  install -Dm 644 xxHash/LICENSE -t "${pkgdir}/${pacman_root}"/usr/share/licenses/xxhash
+}
+
+# vim: ts=2 sw=2 et:
