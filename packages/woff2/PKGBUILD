@@ -1,0 +1,35 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+
+pkgname=woff2
+pkgver=1.0.2
+pkgrel=4
+pkgdesc="Web Open Font Format 2 reference implementation"
+url="https://github.com/google/woff2"
+arch=('x86_64' 'arm64')
+license=(custom:MIT)
+depends=(brotli gcc-libs)
+makedepends=(git cmake ninja)
+provides=(libwoff2{common,dec,enc}.dylib)
+_commit=1bccf208bca986e53a647dfe4811322adb06ecf8  # tags/v1.0.2
+source=("git+$url#commit=$_commit")
+sha512sums=('SKIP')
+
+prepare() {
+  cd woff2
+
+  # Install binaries
+  sed -i 's/NOT BUILD_SHARED_LIBS/TRUE/' CMakeLists.txt
+}
+
+build() {
+  cmake -S woff2 -B build -G Ninja \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DCMAKE_INSTALL_LIBDIR=${pacman_root}/usr/lib \
+    -DCMAKE_BUILD_TYPE=Release
+  cmake --build build
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 woff2/LICENSE
+}
