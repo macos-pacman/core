@@ -1,0 +1,33 @@
+# Maintainer: Jelle van der Waa <jelle@vdwaa.nl>
+# Maintainer: Daurnimator <daurnimator@archlinux.org>
+# Maintainer: T.J. Townsend <blakkheim@archlinux.org>
+# Contributor: Bartłomiej Piotrowski
+# Contributor: Renato Garcia <fgar.renatoATgmailDOTcom>
+# Contributor: Gerson E. Ruotolo <gersonruotolo@globo.com>
+
+pkgname=dos2unix
+pkgver=7.4.4
+pkgrel=1
+pkgdesc='Text file format converter'
+arch=('x86_64' 'arm64')
+url='https://waterlan.home.xs4all.nl/dos2unix.html'
+license=('BSD')
+depends=('glibc')
+makedepends=('perl')
+conflicts=('hd2u')
+source=(https://waterlan.home.xs4all.nl/${pkgname}/${pkgname}-${pkgver}.tar.gz{,.asc})
+validpgpkeys=('F8F1BEA490496A09CCA328CC38C1F572B12725BE')
+sha256sums=('28a841db0bd5827d645caba9d8015e3a71983dc6e398070b5287ee137ae4436e'
+            'SKIP')
+
+build() {
+  cd $pkgname-$pkgver
+  make LDFLAGS_USER="${LDFLAGS}" prefix=${pacman_root}/usr
+}
+
+package() {
+  cd $pkgname-$pkgver
+
+  make DESTDIR="$pkgdir" prefix=${pacman_root}/usr install
+  install -D -m644 COPYING.txt "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+}
