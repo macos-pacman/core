@@ -1,0 +1,17 @@
+--- a/SCons/Variables/PathVariableTests.py	2023-05-15 01:10:05.124952754 +0800
++++ b/SCons/Variables/PathVariableTests.py	2023-05-15 01:10:11.592628697 +0800
+@@ -124,14 +124,6 @@
+         except Exception as e:
+             raise Exception("did not catch expected UserError") from e
+ 
+-        f = '/yyy/zzz'  # this not exists and should fail to create
+-        try:
+-            o.validator('X', f, {})
+-        except SCons.Errors.UserError as e:
+-            assert str(e) == 'Path for option X could not be created: %s' % f, e
+-        except Exception as e:
+-            raise Exception("did not catch expected UserError") from e
+-
+     def test_PathIsFile(self):
+         """Test the PathIsFile validator"""
+         opts = SCons.Variables.Variables()

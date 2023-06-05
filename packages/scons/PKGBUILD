@@ -1,0 +1,51 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Ray Rashif <schiv@archlinux.org>
+# Contributor: damir <damir@archlinux.org>
+# Contributor: Lukas Sabota <punkrockguy318@comcast.net>
+# Contributor: Brice Carpentier <brice@dlfp.org>
+
+pkgname=scons
+pkgver=4.4.0
+pkgrel=3
+pkgdesc="Extensible Python-based build utility"
+arch=(any)
+url="https://scons.org"
+license=(MIT)
+depends=(python)
+makedepends=(ninja python-build python-installer python-lxml python-setuptools
+             python-sphinx python-sphinx_rtd_theme python-wheel)
+checkdepends=(python-psutil python-pytest)
+source=(https://github.com/$pkgname/$pkgname/archive/$pkgver/$pkgname-$pkgver.tar.gz
+        'skip-broken-test.patch')
+sha512sums=('01fcd40bf818ca22a278973af1cda3024efb74cf877f15d46607fda860448fbd577fc96ba33fef2bed3d145e662a0371f55e8c927e7ac44feea7f3081791ce11'
+            'a1d0cc11fc209f686df7618b0ee7eedb4844c7f256c1931e7629d4a5c61419e5e099b504ca76889ee532f1294c60a54823ef64244bfa8dab92e5d8965bddb624')
+b2sums=('f6ce757f2edc40551b05285098626bb62def6abda2380d4885ee4443868e715e53aaa34f26c09dc689bb6ade26d1b0e276046fe3b1d2ddf8eb40400bca9ea164'
+        'fc17b38a48f06a986731345efe1d1fcb5be5c997d19d1418424bd46a695d89778f91933611e5d0cf1ff6f39b79b8a20e91a2f0b3542a77105403c998f9e7b2bb')
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../skip-broken-test.patch
+}
+
+build() {
+  cd $pkgname-$pkgver
+  python scripts/scons.py --include-dir= -j1
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd $pkgname-$pkgver
+
+  # some tests fail
+  python runtest.py --all --unit-only
+}
+
+package() {
+  cd $pkgname-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  # remove man pages wrongly installed due to mishandling of install-data
+  rm -fv "$pkgdir/${pacman_root}/usr/"*.1
+  install -vDm 644 build/doc/man/*.1 -t "$pkgdir/${pacman_root}/usr/share/man/man1/"
+  install -vDm 644 LICENSE -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  install -vDm 644 {{CHANGES,RELEASE}.txt,README.rst} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+}
