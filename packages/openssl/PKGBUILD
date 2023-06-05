@@ -1,0 +1,53 @@
+# Maintainer: Pierre Schmitz <pierre@archlinux.de>
+
+pkgname=openssl
+pkgver=3.1.0
+pkgrel=1
+pkgdesc='The Open Source toolkit for Secure Sockets Layer and Transport Layer Security'
+arch=('x86_64' 'arm64')
+url='https://www.openssl.org'
+license=('Apache')
+depends=('glibc')
+makedepends=('perl')
+optdepends=('ca-certificates' 'perl')
+replaces=('openssl-perl' 'openssl-doc')
+provides=('libcrypto.dylib' 'libssl.dylib')
+source=("https://www.openssl.org/source/${pkgname}-${pkgver}.tar.gz"{,.asc})
+sha256sums=('aaa925ad9828745c4cad9d9efeb273deca820f2cdcf2c3ac7d7c1212b7c497b4'
+            'SKIP')
+validpgpkeys=('8657ABB260F056B1E5190839D9C4D26D0E604491'
+              '7953AC1FBC3DC8B3B292393ED5E9E43F7DF9EE8C'
+              'A21FAB74B0088AA361152586B8EF1A6BA9DA2D5C')
+
+build() {
+	cd "$srcdir/$pkgname-$pkgver"
+
+	./Configure --prefix=${pacman_root}/usr --openssldir=${pacman_root}/etc/ssl --libdir=lib \
+		shared enable-ktls enable-ec_nistp_64_gcc_128 darwin64-$(uname -m)-cc \
+		enable-ssl3 enable-ssl3-method
+
+	make depend
+	make
+}
+
+check() {
+	cd "$srcdir/$pkgbase-$pkgver"
+
+	# the test fails due to missing write permissions in /etc/ssl
+	# revert this patch for make test
+	# patch -Rp1 -i "$srcdir/ca-dir.patch"
+
+	make HARNESS_JOBS=$(sysctl -n hw.logicalcpu) test
+
+	# patch -Np1 -i "$srcdir/ca-dir.patch"
+	# re-run make to re-generate CA.pl from the patched .in file.
+	# make apps/CA.pl
+}
+
+package() {
+	cd "$srcdir/$pkgname-$pkgver"
+
+	make DESTDIR="$pkgdir" install_sw install_ssldirs
+	rm -f ${pkgdir}/${pacman_root}/etc/ssl/cert.pem
+	install -D -m644 LICENSE.txt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE.txt"
+}
