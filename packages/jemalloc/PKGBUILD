@@ -1,0 +1,41 @@
+# Maintainer:  Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+# Contributor: Kovivchak Evgen <oneonfire@gmail.com>
+
+pkgname=jemalloc
+epoch=1
+pkgver=5.3.0
+pkgrel=1
+pkgdesc='General-purpose scalable concurrent malloc implementation'
+arch=('x86_64' 'arm64')
+license=('BSD')
+url='http://www.canonware.com/jemalloc/'
+depends=('glibc')
+options=('!lto')
+provides=('libjemalloc.dylib')
+optdepends=('perl: for jeprof')
+source=("https://github.com/jemalloc/jemalloc/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.bz2")
+sha256sums=('2db82d1e7119df3e71b7640219b6dfe84789bc0537983c3b7ac4f7189aecfeaa')
+
+build() {
+  cd $pkgname-$pkgver
+
+  # FS#71745: GCC-built jemalloc causes telegram-desktop to crash a lot. The reason is still not clear.
+  # on macos we always have clang, but the user might have set CC=gcc or something, so we still export.
+  export CC=clang
+  export CXX=clang++
+
+  ./configure \
+    --enable-autogen \
+    --prefix=${pacman_root}/usr
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver
+
+  make DESTDIR="$pkgdir" install
+
+  install -Dm644 COPYING "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/COPYING"
+  chmod 644 "$pkgdir/${pacman_root}/usr/lib/libjemalloc_pic.a"
+}
