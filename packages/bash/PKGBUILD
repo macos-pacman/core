@@ -6,7 +6,7 @@
 
 pkgname=bash
 pkgver=5.2.15
-pkgrel=1
+pkgrel=2
 pkgdesc='The GNU Bourne Again shell'
 arch=(x86_64 arm64)
 license=(GPL)
@@ -22,7 +22,7 @@ source=(https://ftp.gnu.org/gnu/bash/bash-$pkgver.tar.gz{,.sig}
 validpgpkeys=('7C0135FB088AAF6C66C650B9BB5869F064EA74AB') # Chet Ramey
 sha256sums=('13720965b5f4fc3a0d4b61dd37e7565c741da9a5be24edc2ae00182fc1b3588c'
             'SKIP'
-            'd73d271a0123f5a05422b3acd9f45efd76c36f9be3e4eaeac9207c8084ae7be7'
+            '15ac64c965cbb4626ec43035fa3c3b9c9b171e112ec507afcd3f3aa8375de421'
             '025bccfb374a3edce0ff8154d990689f30976b78f7a932dc9a6fcef81821811e'
 )
 

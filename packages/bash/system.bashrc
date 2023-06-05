@@ -26,3 +26,6 @@ fi
 if [[ -r $(pacman-root-dir)/usr/share/bash-completion/bash_completion ]]; then
   . $(pacman-root-dir)/usr/share/bash-completion/bash_completion
 fi
+
+export XDG_DATA_DIRS="$(pacman-root-dir)/usr/share:${XDG_DATA_DIRS}"
+export XDG_CONFIG_DIRS="$(pacman-root-dir)/etc/xdg:${XDG_CONFIG_DIRS}"
