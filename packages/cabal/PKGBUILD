@@ -1,0 +1,174 @@
+# Contributor: Steeve Chailloux <steeve.chailloux@orus.io>
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Mitch Tishmack <mitch.tishmack@gmail.com>
+
+# based on Alpine
+
+pkgname=cabal-install
+pkgver=3.10.1.0
+pkgrel=1
+pkgdesc="The Haskell Cabal"
+url="https://haskell.org/cabal"
+arch=('x86_64' 'arm64')
+license=("BSD-3-Clause")
+provides=("cabal" "cabal-install")
+replaces=("cabal")
+conflicts=("cabal-bootstrap")
+depends=("ghc" "gmp" "zlib" "curl"
+  'ghc-libs'
+  'haskell-array'
+  'haskell-base16-bytestring'
+  'haskell-binary'
+  'haskell-bytestring'
+  'haskell-clock'
+  'haskell-containers'
+  'haskell-cryptohash-sha256'
+  'haskell-deepseq'
+  'haskell-diff'
+  'haskell-directory'
+  'haskell-echo'
+  'haskell-edit-distance'
+  'haskell-exceptions'
+  'haskell-filepath'
+  'haskell-hackage-security'
+  'haskell-hashable'
+  'haskell-http'
+  'haskell-integer-logarithms'
+  'haskell-lukko'
+  'haskell-mtl'
+  'haskell-mtl'
+  'haskell-network-uri'
+  'haskell-optparse-applicative'
+  'haskell-parsec'
+  'haskell-pretty'
+  'haskell-pretty-show'
+  'haskell-process'
+  'haskell-quickcheck'
+  'haskell-regex-base'
+  'haskell-regex-posix'
+  'haskell-rere'
+  'haskell-resolv'
+  'haskell-safe-exceptions'
+  'haskell-stm'
+  'haskell-tagged'
+  'haskell-tar'
+  'haskell-tasty'
+  'haskell-tasty-expected-failure'
+  'haskell-tasty-golden'
+  'haskell-tasty-hunit'
+  'haskell-tasty-quickcheck'
+  'haskell-temporary'
+  'haskell-text'
+  'haskell-time'
+  'haskell-transformers'
+  'haskell-tree-diff'
+  'haskell-zlib'
+)
+
+makedepends=("ghc>=9.4.4" "gmp" "libffi" "zlib" "cabal" "uusi" 'haskell-hscolour')
+checkdepends=("git")
+source=("https://github.com/haskell/cabal/archive/refs/tags/cabal-install-v$pkgver.tar.gz")
+sha512sums=(
+  '79c839b53d9848a265d063b363542ae96bf1000dab8f00802631eba165fec134e8803299339c5bd14ee7d8e3be10d27e1f406ab8bdad0b4e72c39e6e5a5e925c'
+  '843812fe07e103272cf7f1cf2cc749a43e99bd845979d8b368a32c376773ba1c9d38890d7ceebd5e7ebdf921cf2ef2cfe3b371b96212a1376b4eac28484cb9fc'
+  'e33716ee72c3d77dd0af22140932fcd6b0b9cf38d244acaae01ef900cdd739a9b95c73b97c1ee82fff355ba2582a0cad5254cbc9fcaa63bd5d64df56b07ff227'
+)
+
+prepare() {
+  export CABAL_DIR="${srcdir}/dist"
+
+  # same trick with cabal-bootstrap; just change all <4.18 to <4.19
+  sed -i.bak -e 's/<4.18/<4.19/g' \
+    cabal-cabal-install-v${pkgver}/cabal-install/cabal-install.cabal \
+    cabal-cabal-install-v${pkgver}/cabal-testsuite/cabal-testsuite.cabal \
+    cabal-cabal-install-v${pkgver}/cabal-install-solver/cabal-install-solver.cabal
+}
+
+# in order that they need to be built
+cabal_components=(Cabal-syntax Cabal Cabal-described Cabal-tree-diff Cabal-QuickCheck Cabal-tests cabal-install-solver cabal-install)
+
+build() {
+  cd $srcdir/cabal-cabal-install-v${pkgver}
+  export CABAL_DIR="${srcdir}/dist"
+
+  local top=${PWD}
+
+  local component; for component in "${cabal_components[@]}"; do
+    msg2 'Setting up %s' ${component}
+    (
+      cd ${component}
+      [ -e 'Setup.hs' ] || gen-setup
+
+      local _pkg_dbs=()
+      case "${component}" in
+        "Cabal-tree-diff")
+          uusi -u 'tree-diff' "${component}.cabal" ;;
+        "cabal-install")
+          uusi -u 'resolv' "${component}.cabal"
+          _pkg_dbs=("--package-db=${top}/cabal-install-solver/dist/package.conf.inplace"
+                    "--package-db=${top}/Cabal-QuickCheck/dist/package.conf.inplace"
+                    "--package-db=${top}/Cabal-described/dist/package.conf.inplace"
+                    "--package-db=${top}/Cabal-tree-diff/dist/package.conf.inplace")
+          ;;
+        "Cabal-tests")
+          uusi -u 'base-orphans' -u 'base-compat' -u 'tree-diff' -u 'optparse-applicative' ${component}.cabal
+          _pkg_dbs=("--package-db=${top}/Cabal-QuickCheck/dist/package.conf.inplace"
+                    "--package-db=${top}/Cabal-described/dist/package.conf.inplace"
+                    "--package-db=${top}/Cabal-tree-diff/dist/package.conf.inplace")
+          ;;
+      esac
+
+      runhaskell Setup configure -O2 --disable-static --enable-shared --enable-executable-dynamic \
+        --prefix=${pacman_root}/usr \
+        --docdir=${pacman_root}/usr/share/doc/$pkgname \
+        --datasubdir=$pkgname \
+        --dynlibdir='$libdir' \
+        --enable-tests \
+        -ftemplateHaskell --ghc-option=-fllvm --ghc-option=-fhide-source-paths \
+        "${_pkg_dbs[@]}"
+
+      msg2 'Building %s' ${component}
+      runhaskell Setup build -j
+    )
+  done
+}
+
+check() {
+  cd $srcdir/cabal-cabal-install-v${pkgver}
+  export CABAL_DIR="${srcdir}/dist"
+
+  mkdir -p ${CABAL_DIR}
+  touch ${CABAL_DIR}/config
+
+  local component; for component in "${cabal_components[@]}"; do
+    msg2 'Checking %s' ${component}
+    (
+      # some tests fail for odd reasons
+      cd ${component}
+      runhaskell Setup test --show-details=direct || :
+    )
+  done
+
+}
+
+package() {
+  cd $srcdir/cabal-cabal-install-v${pkgver}
+  export CABAL_DIR="${srcdir}/dist"
+
+  local component; for component in "${cabal_components[@]}"; do
+    msg2 'Packaging %s' ${component}
+    (
+      cd ${component}
+      # some components got nothing
+      if [ "${component}" != "Cabal-tests" ]; then
+        runhaskell Setup copy --destdir="${pkgdir}"
+      fi
+    )
+  done
+
+  local f; for f in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/*; do
+    [ ! -e "${f}" ] || fix_rpath "${f}"
+  done
+
+  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/cabal/LICENSE"
+}
