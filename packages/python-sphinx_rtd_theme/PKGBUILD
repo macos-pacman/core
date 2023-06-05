@@ -1,0 +1,29 @@
+# Maintainer: Johannes Löthberg <johannes@kyriasis.com>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+# Contributor: Daniel M. Capella <polyzen@archlinux.org>
+# Contributor: eolianoe <eolianoe [at] gmail [DoT] com>
+# Contributor: Romain Schmitz <slopjong .at. slopjong .dot. de>
+
+
+### NOTE:
+### this shit is broken on python3 due to fucked up locked package versions
+### deep in nodejs that depend on python 2. so, we just fetch the wheel and
+### call it a day.
+
+pkgname=python-sphinx_rtd_theme
+pkgver=1.2.0
+pkgrel=4
+pkgdesc='Read the Docs theme for Sphinx'
+arch=('any')
+url=https://github.com/readthedocs/sphinx_rtd_theme
+license=('MIT')
+depends=('python-sphinx' 'python-sphinxcontrib-jquery')
+makedepends=('python-setuptools-scm' 'python-build' 'python-installer' 'python-wheel')
+source=(https://files.pythonhosted.org/packages/b3/46/c167351699e5dc126798385cf37c26ba9df7a26c6f8855661d9f966d6ced/sphinx_rtd_theme-${pkgver}-py2.py3-none-any.whl)
+b2sums=('5ef1acaa103c8b106b5e5c3838e00ad52f8124fcfabf61644df0f634b565f8ef8f383a6632389dad47fef69345e2c46a172a54e4f4e538c34f7f5a0c6d0b84c8')
+
+package() {
+  python -m installer --destdir="$pkgdir" $srcdir/*.whl
+}
+
+# vim:set ts=2 sw=2 et:
