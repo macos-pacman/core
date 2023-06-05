@@ -1,0 +1,55 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Gaetan Bisson <bisson@archlinux.org>
+
+pkgname=pinentry-mac
+pkgver=1.1.1.1
+pkgrel=1
+pkgdesc='Pinentry for GPG on Mac'
+url='https://gnupg.org/related_software/pinentry/'
+arch=('x86_64' 'arm64')
+license=('GPL')
+depends=('glibc' 'ncurses' 'libassuan')
+makedepends=('autoconf')
+provides=('pinentry')
+source=("https://github.com/GPGTools/pinentry/archive/v${pkgver}.tar.gz")
+sha256sums=('1a414f2e172cf8c18a121e60813413f27aedde891c5955151fbf8d50c46a9098')
+validpgpkeys=(
+  'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6' # Werner Koch (dist sig)
+  '6DAA6E64A76D2840571B4902528897B826403ADA' # Werner Koch (dist signing 2020)
+  'AC8E115BF73E2D8D47FA9908E98E9B2D19C6C8BD' # Niibe Yutaka (GnuPG Release Key)
+)
+
+prepare() {
+	cd pinentry-${pkgver}
+
+	autoreconf -fiv
+	autoconf
+}
+
+build() {
+  cd "pinentry-${pkgver}"
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --disable-ncurses \
+    --disable-pinentry-curses \
+    --enable-maintainer-mode \
+
+  make
+}
+
+package() {
+  cd "pinentry-${pkgver}"
+
+  install -d ${pkgdir}/${pacman_root}/usr/{bin,share}
+  make DESTDIR="${pkgdir}" install
+
+  rm ${pkgdir}/${pacman_root}/usr/bin/pinentry
+  rm -rf ${pkgdir}/${pacman_root}/usr/share/{info,man}
+
+  cp -R macosx/pinentry-mac.app ${pkgdir}/${pacman_root}/usr/share/
+  echo -e "#!/bin/sh\nexec ${pacman_root}/usr/share/pinentry-mac.app/Contents/MacOS/pinentry-mac" > ${pkgdir}/${pacman_root}/usr/bin/pinentry-mac
+  chmod +x ${pkgdir}/${pacman_root}/usr/bin/pinentry-mac
+}
+
+# vim: ts=2 sw=2 et:
