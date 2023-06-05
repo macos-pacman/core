@@ -1,0 +1,180 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+# Contributor: Tom Newsom <Jeepster@gmx.co.uk>
+# Contributor: Paul Mattal <paul@archlinux.org>
+
+pkgname=ffmpeg
+pkgver=6.0
+pkgrel=8
+epoch=2
+pkgdesc='Complete solution to record, convert and stream audio and video'
+arch=('x86_64' 'arm64')
+url=https://ffmpeg.org/
+license=(GPL3)
+depends=(
+  aom
+  bzip2
+  fontconfig
+  fribidi
+  gmp
+  gnutls
+  gsm
+  lame
+  libass.dylib
+  libbluray.dylib
+  libbs2b.dylib
+  libdav1d.dylib
+  libfreetype.dylib
+  libjxl.dylib
+  libmodplug
+  libopenmpt.dylib
+  librav1e.dylib
+  librsvg-2.dylib
+  libsoxr
+  libssh
+  libtheora
+  libvidstab.dylib
+  libvorbisenc.dylib
+  libvorbis.dylib
+  libvpx.dylib
+  libwebp
+  libx264.dylib
+  libx265.dylib
+  libxml2
+  libxvidcore.dylib
+  libzimg.dylib
+  ocl-icd
+  opencore-amr
+  openjpeg2
+  opus
+  sdl2
+  speex
+  srt
+  svt-av1
+  vmaf
+  xz
+  zlib
+)
+makedepends=(
+  clang
+  git
+  opencl-headers
+)
+optdepends=(
+)
+provides=(
+  libavcodec.dylib
+  libavdevice.dylib
+  libavfilter.dylib
+  libavformat.dylib
+  libavutil.dylib
+  libpostproc.dylib
+  libswresample.dylib
+  libswscale.dylib
+)
+options=(
+)
+_tag=3949db4d261748a9f34358a388ee255ad1a7f0c0
+source=(
+  git+https://git.ffmpeg.org/ffmpeg.git?signed#tag=${_tag}
+  add-av_stream_get_first_dts-for-chromium.patch
+)
+b2sums=('SKIP'
+        '555274228e09a233d92beb365d413ff5c718a782008075552cafb2130a3783cf976b51dfe4513c15777fb6e8397a34122d475080f2c4483e8feea5c0d878e6de')
+validpgpkeys=(DD1EC9E8DE085C629B3E1846B18E8928B3948D64) # Michael Niedermayer <michael@niedermayer.cc>
+
+if [ $CARCH = "x86_64" ]; then
+  makedepends+=(nasm)
+fi
+
+prepare() {
+  cd ffmpeg
+  patch -Np1 -i ../add-av_stream_get_first_dts-for-chromium.patch # https://crbug.com/1251779
+}
+
+pkgver() {
+  cd ffmpeg
+  git describe --tags | sed 's/^n//'
+}
+
+build() {
+  cd ffmpeg
+
+  local asdf=()
+  if [ $CARCH = "arm64" ]; then
+    asdf=('--enable-neon')
+  fi
+
+  ./configure \
+    --cc=clang \
+    --cxx=clang++ \
+    --objcc=clang \
+    --prefix=${pacman_root}/usr \
+    --disable-debug \
+    --disable-static \
+    --disable-stripping \
+    --enable-ffplay \
+    --enable-lto \
+    --enable-fontconfig \
+    --enable-gmp \
+    --enable-gnutls \
+    --enable-gpl \
+    --enable-libaom \
+    --enable-libass \
+    --enable-libbluray \
+    --enable-libbs2b \
+    --enable-libdav1d \
+    --enable-libfreetype \
+    --enable-libfribidi \
+    --enable-libgsm \
+    --enable-libjxl \
+    --enable-libmodplug \
+    --enable-libmp3lame \
+    --enable-libopencore_amrnb \
+    --enable-libopencore_amrwb \
+    --enable-libopenjpeg \
+    --enable-libopenmpt \
+    --enable-libopus \
+    --enable-librav1e \
+    --enable-librsvg \
+    --enable-libsoxr \
+    --enable-libspeex \
+    --enable-libsrt \
+    --enable-libssh \
+    --enable-libsvtav1 \
+    --enable-libtheora \
+    --enable-libvidstab \
+    --enable-libvmaf \
+    --enable-libvorbis \
+    --enable-libvpx \
+    --enable-libwebp \
+    --enable-libx264 \
+    --enable-libx265 \
+    --enable-libxml2 \
+    --enable-libxvid \
+    --enable-libzimg \
+    --enable-opencl \
+    --enable-opengl \
+    --enable-shared \
+    --enable-version3 \
+    --enable-videotoolbox \
+    --enable-audiotoolbox \
+    "${asdf[@]}"
+
+  make
+  make tools/qt-faststart
+  make doc/ff{mpeg,play}.1
+}
+
+package() {
+  make DESTDIR="${pkgdir}" -C ffmpeg install install-man
+  install -Dm 755 ffmpeg/tools/qt-faststart "${pkgdir}"/${pacman_root}/usr/bin/
+
+  # fix stuff
+  local _f; for _f in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/{ffmpeg,ffprobe,ffplay}; do
+    fix_rpath "${_f}"
+  done
+}
+
+# vim: ts=2 sw=2 et:
