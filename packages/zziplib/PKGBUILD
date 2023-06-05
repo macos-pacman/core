@@ -5,7 +5,7 @@
 
 pkgname=zziplib
 pkgver=0.13.72
-pkgrel=2
+pkgrel=3
 pkgdesc="A lightweight library that offers the ability to easily extract data from files archived in a single zip file"
 arch=('x86_64' 'arm64')
 url="https://github.com/gdraheim/zziplib"
@@ -13,8 +13,15 @@ license=('LGPL' 'MPL')
 depends=('zlib')
 makedepends=('python' 'xmlto' 'zip' 'cmake' 'ninja')
 checkdepends=('unzip')
-source=($pkgname-$pkgver.tar.gz::"https://github.com/gdraheim/zziplib/archive/v$pkgver.tar.gz")
-sha512sums=('4bb089e74813c6fac9657cd96e44e4a6469bf86aba3980d885c4573e8db45e74fd07bbdfcec9f36297c72227c8c0b2c37dab1bc4326cef8529960e482fe501c8')
+source=($pkgname-$pkgver.tar.gz::"https://github.com/gdraheim/zziplib/archive/v$pkgver.tar.gz"
+        'fix-dylib-names.patch')
+sha512sums=('4bb089e74813c6fac9657cd96e44e4a6469bf86aba3980d885c4573e8db45e74fd07bbdfcec9f36297c72227c8c0b2c37dab1bc4326cef8529960e482fe501c8'
+            '4478a1b606ff3519607809af63ca3bc614ddc9782a6ee907a26d91f4613c3a10115489d4820df82d524d19ffe31c319799308cfde81122133f801e29e3df42c1')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  patch -Np1 -i ../fix-dylib-names.patch
+}
 
 build() {
   cd ${pkgname}-${pkgver}
@@ -22,6 +29,8 @@ build() {
     -Bbuild \
     -GNinja \
     -DZZIPDOCS=OFF \
+    -DZZIPTEST=OFF \
+    -DZZIPSDL=OFF \
     -DCMAKE_C_FLAGS=" -Wno-int-conversion " \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
   ninja -C build
