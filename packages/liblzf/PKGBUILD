@@ -1,0 +1,47 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgname=liblzf
+pkgver=3.6
+pkgrel=4
+pkgdesc="A very small data compression library"
+arch=('x86_64' 'arm64')
+url="http://software.schmorp.de/pkg/liblzf.html"
+license=(BSD)
+depends=(glibc)
+provides=(liblzf.dylib)
+makedepends=(libtool)
+source=(
+  http://dist.schmorp.de/$pkgname/$pkgname-$pkgver.tar.gz
+  $pkgname-$pkgver.tar.gz.signature::http://dist.schmorp.de/$pkgname/$pkgname-$pkgver.tar.gz.sig
+  liblzf-3.6-autoconf-20140314.patch
+)
+sha512sums=('701f70245a11e7cf3412b14ed26bf7b1464512d5b0cf3f913e70ebfdfe20574b8ebbae5a78f4b56ac0034d54830380309cac3057ca00a8028edbde3d091141f5'
+            '8558e81f619010a974e45d295df5ca8ae3a039932d062e8f9b78250fa842623075ca4529287a88e543bf1806022fdab56d69546f5f57de92bd24de0782226617'
+            'b68bfd8b5ff56a1e0cd2ed1a1827bc14cde5d65f8d8654a2354d3dd9c6527532d801f675998ba8d2a72babbf6e6bcced1c3a25d5aa1be452c09bd3621a2f20d3')
+b2sums=('b84494706c97861f1cbf9e70129ee25df05e873225bd8a971d6e874822c84532528d04186847cced0a8c13322d1bab7578e48552bd2fa196ca8f9b5d0576b692'
+        '1816d200b96eb4d2c5fb4c3bed6fd309c7a7d1c2bc857365cd80ecad77e86c11e7a73ffc9458cbb0c7100fea82282d77d091346709270ccc676b82b24cece163'
+        '1ff8cd4554bafb3b5273206b6ab8c9de4a4af81d82fef1d3aeccc0bc47bfc5e2ef97f8f7c4d3734f2be3734dc8f8bcfbf3e9a4f924046f89ee425f95f86f745a')
+
+prepare() {
+  # taking autoconf patch from Fedora (which upstream never included, because..)
+  # https://src.fedoraproject.org/rpms/liblzf/blob/master/f/liblzf-3.6-autoconf-20140314.patch
+  patch -Np1 -d $pkgname-$pkgver -i ../$pkgname-3.6-autoconf-20140314.patch
+
+  cd $pkgname-$pkgver
+  sed -i.bak -e 's/libtoolize/glibtoolize/g' bootstrap.sh
+  bash ./bootstrap.sh
+}
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure --prefix=${pacman_root}/usr --disable-static
+  make
+}
+
+package() {
+  make DESTDIR="$pkgdir/" install -C $pkgname-$pkgver
+  # the binary does different things, being called by a different name
+  ln -sv lzf "$pkgdir/${pacman_root}/usr/bin/unlzf"
+  install -vDm 644 $pkgname-$pkgver/LICENSE -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  install -vDm 644 $pkgname-$pkgver/{Changes,README} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+}
