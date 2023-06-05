@@ -1,0 +1,70 @@
+pkgname=wezterm-git
+pkgver=20230517.r6bcb8ee
+pkgrel=1
+pkgdesc="A GPU-accelerated cross-platform terminal emulator and multiplexer"
+arch=(any)
+url="https://wezfurlong.org/wezterm/"
+license=('MIT')
+depends=('fontconfig' 'freetype2' 'harfbuzz' 'openssl' 'libssh2')
+makedepends=('rust' 'cargo' 'git' 'cargo-nextest')
+source=("wezterm::git+https://github.com/wez/wezterm.git"
+        'https://patch-diff.githubusercontent.com/raw/wez/wezterm/pull/3579.diff')    # upstream doesn't even want to comment on this PR
+sha512sums=('SKIP'
+            '29ff217648db78ea4faf0708f76de5d38d7789eccd136a61c5d1c9213d626a642fd2058411d12da3d707f52da6c558dc71a0bf60827294e76570b08fbbd1fe05')
+
+build() {
+  cd wezterm
+  patch -Np1 -i ../3579.diff
+
+  cargo build --release --locked --target-dir target
+}
+
+check() {
+  cd wezterm
+  cargo nextest run --all --release --no-fail-fast
+}
+
+package() {
+  # following https://github.com/wez/wezterm/blob/main/ci/deploy.sh
+  [ ! -d dist ] || rm -r dist
+
+  mkdir dist
+  pushd dist > /dev/null
+    cp -r $srcdir/wezterm/assets/macos/WezTerm.app .
+
+    # Omit MetalANGLE for now; it's a bit laggy compared to CGL,
+    # and on M1/Big Sur, CGL is implemented in terms of Metal anyway
+    rm ./WezTerm.app/*.dylib
+
+    mkdir -p ./WezTerm.app/Contents/MacOS
+    mkdir -p ./WezTerm.app/Contents/Resources
+    cp -r $srcdir/wezterm/assets/shell-integration/* ./WezTerm.app/Contents/Resources
+
+    mkdir -p ${pkgdir}/${pacman_root}/usr/bin/
+
+    local _bin
+    for _bin in wezterm wezterm-mux-server wezterm-gui strip-ansi-escapes ; do
+      cp $srcdir/wezterm/target/release/$_bin ./WezTerm.app/Contents/MacOS/$_bin
+
+      # create symlinks to /usr/bin so it's accessible on $PATH
+      ln -sf /Applications/WezTerm.app/Contents/MacOS/$_bin ${pkgdir}/${pacman_root}/usr/bin/${_bin}
+    done
+  popd > /dev/null
+
+  # move to distribution
+  mkdir -p ${pkgdir}/Applications/
+  mv $srcdir/dist/WezTerm.app ${pkgdir}/Applications/
+
+  # see if we can codesign this thing
+  if ! (security find-identity -v -p codesigning | grep -s "0 valid"); then
+    msg "Codesigning WezTerm.app"
+    codesign -vvvv -f -s - ${pkgdir}/Applications/WezTerm.app
+  fi
+}
+
+
+
+
+
+
+# vim: ts=2 sw=2 et:
