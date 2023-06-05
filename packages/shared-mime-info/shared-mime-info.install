@@ -1,0 +1,7 @@
+post_remove() {
+  if [ -d opt/pacman/usr/share/mime ]; then
+    rm -f opt/pacman/usr/share/mime/{globs,globs2,icons,treemagic,generic-icons,types,magic,XMLnamespaces,subclasses,aliases,mime.cache}
+    rm -rf opt/pacman/usr/share/mime/{application,audio,image,inode,message,model,multipart,text,video,x-content,x-epoc}
+    rmdir opt/pacman/usr/share/mime || :
+  fi
+}

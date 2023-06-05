@@ -1,0 +1,11 @@
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = %%PACMAN_ROOT_REL%%/usr/share/mime/packages/*.xml
+
+[Action]
+Description = Updating the MIME type database...
+When = PostTransaction
+Exec = /usr/bin/env PKGSYSTEM_ENABLE_FSYNC=0 %%PACMAN_ROOT%%/usr/bin/update-mime-database %%PACMAN_ROOT%%/usr/share/mime

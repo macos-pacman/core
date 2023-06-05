@@ -1,0 +1,7 @@
+post_remove() {
+  if [ -d %%PACMAN_ROOT_REL%%/usr/share/mime ]; then
+    rm -f %%PACMAN_ROOT_REL%%/usr/share/mime/{globs,globs2,icons,treemagic,generic-icons,types,magic,XMLnamespaces,subclasses,aliases,mime.cache}
+    rm -rf %%PACMAN_ROOT_REL%%/usr/share/mime/{application,audio,image,inode,message,model,multipart,text,video,x-content,x-epoc}
+    rmdir %%PACMAN_ROOT_REL%%/usr/share/mime || :
+  fi
+}
