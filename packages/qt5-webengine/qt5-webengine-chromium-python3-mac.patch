@@ -1,0 +1,81 @@
+diff --git a/chromium/sandbox/policy/mac/package_sb_file.py b/chromium/sandbox/policy/mac/package_sb_file.py
+index 934fd2261b5..596df05c045 100755
+--- a/chromium/sandbox/policy/mac/package_sb_file.py
++++ b/chromium/sandbox/policy/mac/package_sb_file.py
+@@ -3,6 +3,8 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++from __future__ import print_function
++
+ import os
+ import sys
+ 
+@@ -28,7 +30,7 @@ def escape_for_c(line):
+ 
+ def pack_file(argv):
+   if len(argv) != 2:
+-    print >> sys.stderr, 'usage: package_sb_file.py input_filename output_dir'
++    print('usage: package_sb_file.py input_filename output_dir', file=sys.stderr)
+     return 1
+   input_filename = argv[0]
+   output_directory = argv[1]
+@@ -37,14 +39,14 @@ def pack_file(argv):
+   output_h_file = output_directory + '/' + input_basename + '.h'
+   output_cc_file = output_directory + '/' + input_basename + '.cc'
+   try:
+-    with open(input_filename, 'rb') as infile:
+-      with open(output_h_file, 'wb') as outfile:
++    with open(input_filename, 'r') as infile:
++      with open(output_h_file, 'w') as outfile:
+         outfile.write(header)
+         outfile.write(h_include)
+         outfile.write(namespace)
+         outfile.write(h_definition % module_name)
+         outfile.write(namespace_end)
+-      with open(output_cc_file, 'wb') as outfile:
++      with open(output_cc_file, 'w') as outfile:
+         outfile.write(header)
+         outfile.write(cc_include % module_name)
+         outfile.write(namespace)
+@@ -56,7 +58,7 @@ def pack_file(argv):
+         outfile.write(cc_definition_end)
+         outfile.write(namespace_end)
+   except IOError:
+-    print >> sys.stderr, 'Failed to process %s' % input_filename
++    print('Failed to process %s' % input_filename, file = sys.stderr)
+     return 1
+   return 0
+
+diff --git a/chromium/third_party/perfetto/gn/standalone/toolchain/mac_find_llvm.py b/chromium/third_party/perfetto/gn/standalone/toolchain/mac_find_llvm.py
+index 3511f29c3d0..a5f6ad02f42 100644
+--- a/chromium/third_party/perfetto/gn/standalone/toolchain/mac_find_llvm.py
++++ b/chromium/third_party/perfetto/gn/standalone/toolchain/mac_find_llvm.py
+@@ -12,6 +12,8 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
++from __future__ import print_function
++
+ import glob
+ import os
+ import subprocess
+@@ -24,14 +26,14 @@ def main():
+                          stderr=subprocess.STDOUT)
+   out, err = job.communicate()
+   if job.returncode != 0:
+-    print >> sys.stderr, out
+-    print >> sys.stderr, err
++    print(out, file=sys.stderr)
++    print(err, file=sys.stderr)
+     return job.returncode
+   sdk_dir = os.path.dirname(os.path.dirname(out.rstrip()))
+-  print sdk_dir
++  print(sdk_dir)
+   clang_dir = glob.glob(
+       os.path.join(sdk_dir, 'lib', 'clang', '*', 'lib', 'darwin'))
+-  print clang_dir[0] if clang_dir else 'CLANG_DIR_NOT_FOUND'
++  print(clang_dir[0] if clang_dir else 'CLANG_DIR_NOT_FOUND')
+ 
+ 
+ if __name__ == '__main__':

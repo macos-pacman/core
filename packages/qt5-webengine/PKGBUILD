@@ -1,0 +1,73 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+
+pkgname=qt5-webengine
+_basever=5.15.9
+pkgver=5.15.14
+pkgrel=1
+arch=('x86_64' 'arm64')
+url='https://www.qt.io'
+license=('LGPL3' 'LGPL2.1' 'BSD')
+pkgdesc='Provides support for web applications using the Chromium browser project'
+depends=('qt5-webchannel' 'qt5-location' 'libevent' 'snappy' 'nss' 'libxslt' 'minizip' 're2' 'libvpx')
+makedepends=('git' 'python' 'gperf' 'jsoncpp' 'ninja' 'qt5-tools' 'poppler' 'nodejs')
+groups=('qt' 'qt5')
+_pkgfqn=${pkgname/5-/}
+source=(git+https://code.qt.io/qt/qtwebengine.git#tag=v${pkgver}-lts
+        git+https://code.qt.io/qt/qtwebengine-chromium.git
+        qt5-webengine-python3.patch
+        qt5-webengine-chromium-python3.patch
+        qt5-webengine-chromium-python3-mac.patch)
+sha256sums=('SKIP'
+            'SKIP'
+            '0ad5d1660886f7bbf5108b071bf5d7bbbabf1cd1258ce9d4587a01dec4a1aa89'
+            'd8beb3d65a1aaf927285e6f055a9d1facd0f9c3fd851f91ba568389fb3137399'
+            'd14f7347105bb4c9cea4424753b9af3b93da7657d0568eb039feb47d395c5526')
+
+prepare() {
+  mkdir -p build
+
+  cd ${_pkgfqn}
+  git submodule init
+  git submodule set-url src/3rdparty "$srcdir"/qtwebengine-chromium
+  git submodule set-branch --branch 87-based src/3rdparty
+  git -c protocol.file.allow=always submodule update
+
+  patch -Np1 -i "$srcdir"/qt5-webengine-python3.patch # Fix build with Python 3
+  patch -Np1 -d src/3rdparty -i "$srcdir"/qt5-webengine-chromium-python3.patch
+  patch -Np1 -d src/3rdparty -i "$srcdir"/qt5-webengine-chromium-python3-mac.patch
+
+  # note: chromium build on mac always uses vendored libs for whatever fuck reason
+  # so there's no point patching ffmpeg (it actually just fucks it up more)
+}
+
+build() {
+  cd build
+  qmake ../${_pkgfqn} CONFIG+=force_debug_info -- \
+    -proprietary-codecs \
+    -system-ffmpeg \
+    -webp \
+    -spellchecker \
+    -webengine-icu \
+    -webengine-kerberos \
+    -webengine-printing-and-pdf
+  make
+}
+
+package() {
+  cd build
+  make INSTALL_ROOT="$pkgdir" install
+
+  # Drop QMAKE_PRL_BUILD_DIR because reference the build dir
+  find "$pkgdir/${pacman_root}/usr/lib" -type f -name '*.prl' \
+    -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;
+
+  install -Dm644 "$srcdir"/${_pkgfqn}/src/3rdparty/chromium/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE.chromium
+
+  # Fix cmake dependency versions
+  sed -e "s|$pkgver\ |$_basever |" -i "$pkgdir"/${pacman_root}/usr/lib/cmake/*/*Config.cmake
+
+  local _f; for _f in $(find ${pkgdir}/${pacman_root}/usr/lib/qt/ -name "*.dylib"); do
+    fix_rpath "${_f}"
+  done
+}
