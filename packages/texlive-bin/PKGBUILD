@@ -1,0 +1,142 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Rémy Oudompheng <remy@archlinux.org>
+# Contributor: francois <francois.archlinux.org>
+
+pkgname=(texlive-bin libsynctex)
+pkgver=2023.66984
+pkgrel=1
+license=(GPL)
+arch=('x86_64' 'arm64')
+makedepends=(git cairo pixman graphite t1lib gd libsigsegv zziplib libpng libjpeg freetype2
+             icu harfbuzz-icu mpfr potrace libpaper perl clisp ffcall libxcrypt)
+url='https://tug.org/texlive/'
+_commit=871c7a2856d70e1a9703d1f72f0587b9995dba5f # tags/texlive-2023.0
+source=(git+https://github.com/Tex-Live/texlive-source.git#commit=${_commit}
+        ptex-debug-print.patch)
+sha256sums=('SKIP'
+            'aa838f09003c62c2efb5770a8de66f99b409df049fbd65098d80fd1957d06c50')
+
+prepare() {
+  cd texlive-source
+
+# bibtex-x needs kpathsea flags
+  sed -i '/AC_SEARCH_LIBS/a KPSE_KPATHSEA_FLAGS' texk/bibtex-x/configure.ac
+  (cd texk/bibtex-x && autoreconf)
+# t4ht expects to be un /usr/share/texmf/bin/t4ht (FS#27251)
+  sed -i s/SELFAUTOPARENT/TEXMFROOT/ texk/tex4htk/t4ht.c
+# remove spurious ptex "guessed encoding" print
+  patch -Np1 -i ../ptex-debug-print.patch
+}
+
+build() {
+  cd texlive-source
+
+  mkdir -p builddir
+  cd builddir
+  ax_cv_c_float_words_bigendian=no \
+  ../configure --prefix=${pacman_root}/usr -C \
+    --sysconfdir=${pacman_root}/etc \
+    --datarootdir=${pacman_root}/usr/share \
+    --datadir=${pacman_root}/usr/share \
+    --mandir=${pacman_root}/usr/share/man \
+    --disable-native-texlive-build \
+    --disable-multiplatform \
+    --disable-dialog \
+    --disable-psutils \
+    --disable-t1utils \
+    --disable-bibtexu \
+    --disable-xz \
+    --enable-shared \
+    --disable-static \
+    --with-system-zlib \
+    --with-system-zziplib \
+    --with-system-pnglib \
+    --with-system-ncurses \
+    --with-system-t1lib \
+    --with-system-gd \
+    --with-system-freetype2 \
+    --with-system-pixman \
+    --with-system-cairo \
+    --with-system-harfbuzz \
+    --with-system-graphite \
+    --with-system-icu \
+    --with-system-gmp \
+    --with-system-mpfr \
+    --with-system-potrace \
+    --with-system-libpaper \
+    --with-freetype2-libdir=${pacman_root}/usr/lib \
+    --with-freetype2-include=${pacman_root}/usr/include/freetype2 \
+    --disable-dump-share \
+    --disable-aleph \
+    --enable-luatex \
+    --with-clisp-runtime=default \
+    --enable-xindy --disable-xindy-rules --disable-xindy-docs \
+    --without-x
+
+  # fucking clowns in the makefile
+  make OBJCXX=clang++
+}
+
+package_libsynctex() {
+  pkgdesc='Library for synchronization between TeX files and resulting file'
+  depends=(glibc zlib)
+
+  cd texlive-source/builddir
+  make -C texk/web2c DESTDIR="$pkgdir" \
+    install-data-am install-libLTLIBRARIES
+
+  rm "$pkgdir"/${pacman_root}/usr/share/man/man1/hi*.*
+}
+
+package_texlive-bin() {
+  pkgdesc='TeX Live binaries'
+  depends=(cairo pixman graphite t1lib gd poppler ffcall libsigsegv zziplib libpng libjpeg freetype2 libxcrypt
+           harfbuzz-icu mpfr potrace libpaper libsynctex)
+  provides=(lcdf-typetools kpathsea xindy)
+  optdepends=('ed: for texconfig'
+              'dialog: for texconfig'
+              'biber: for bibliography processing'
+              'ghostscript: for epstopdf, epspdf and other ConTeXt tools'
+              'java-runtime: for utilities like arara, texplate'
+              'perl-tk: for texdoctk'
+              'psutils: to manipulate the output of dvips'
+              'python: for de-macro, dviasm, pythontex'
+              'ruby: for old ConTeXT MkII and epspdf'
+              't1utils: can be useful when installing Type1 fonts'
+              'wdiff: for texdiff'
+              'fontforge: for scripts from the lilyglyphs package')
+
+  cd texlive-source
+
+# fixes for xindy
+  find utils/xindy -name Makefile -exec sed -i -e "s|^prefix =.\+$|prefix = $pkgdir/${pacman_root}/usr|" -e "s|^mandir =.\+$|mandir = \${prefix}/share/man|" -e "s|^datadir =.\+$|datadir = \${datarootdir}/texmf|" -e "s|^docdir =.\+$|docdir = \${datadir}/doc/xindy|" '{}' \;
+
+  # in order to run this, we need to hack the install_path
+  cd builddir
+  install_name_tool -change ${pacman_root}/usr/lib/libkpathsea.6.dylib ${PWD}/texk/kpathsea/.libs/libkpathsea.6.dylib texk/kpathsea/.libs/kpsewhich
+
+  make DESTDIR="$pkgdir" texmf="$pkgdir"/${pacman_root}/usr/share/texmf install
+  DYLD_LIBRARY_PATH="$pkgdir"/${pacman_root}/usr/lib \
+    make DESTDIR="$pkgdir" texlinks
+
+# install old ConTeXt stubs
+  cd "$srcdir"/texlive-source
+  for _stub in `ls texk/texlive/linked_scripts/context/stubs/unix`; do
+    install -m755 texk/texlive/linked_scripts/context/stubs/unix/$_stub "$pkgdir"/${pacman_root}/usr/bin/$_stub
+  done
+
+# needed by updmap
+  install -Dm644 texk/tests/TeXLive/*.pm -t "$pkgdir"/${pacman_root}/usr/share/perl5/vendor_perl/TeXLive/
+
+# remove stuff included in texlive-core
+  rm -rf "$pkgdir"/${pacman_root}/usr/share/texmf-dist/{bibtex,chktex,dvipdfmx,dvips,fonts,hbf2gf,texconfig,ttf2pk,web2c,xdvi,xindy}
+
+# remove libsynctex
+  rm "$pkgdir"/${pacman_root}/usr/include/synctex/*
+  rm "$pkgdir"/${pacman_root}/usr/lib/libsynctex.*
+  rm "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/synctex.pc
+  rm "$pkgdir"/${pacman_root}/usr/share/man/man*/synctex.*
+
+  # fix it again
+  fix_rpath ${pkgdir}/${pacman_root}/usr/bin/kpsewhich
+}
