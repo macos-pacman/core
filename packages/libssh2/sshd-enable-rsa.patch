@@ -1,0 +1,12 @@
+--- a/tests/ssh2.sh	2023-05-01 22:53:17.317648853 +0800
++++ b/tests/ssh2.sh	2023-05-01 22:53:36.008130288 +0800
+@@ -25,7 +25,8 @@
+     -o 'Port 4711' \
+     -o 'Protocol 2' \
+     -o "AuthorizedKeysFile $srcdir/etc/user.pub" \
+-    -o 'UsePrivilegeSeparation no' \
++    -o 'HostkeyAlgorithms +ssh-rsa' \
++    -o 'PubkeyAcceptedAlgorithms +ssh-rsa' \
+     -o 'StrictModes no' \
+     -D \
+     $libssh2_sshd_params &
