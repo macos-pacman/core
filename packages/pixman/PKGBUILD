@@ -1,0 +1,64 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Alexander Baldeck <alexander@archlinux.org>
+
+pkgname=pixman
+pkgver=0.42.2
+pkgrel=1
+pkgdesc="The pixel-manipulation library for X and cairo"
+arch=('x86_64' 'arm64')
+url="https://cgit.freedesktop.org/pixman/"
+license=('custom')
+depends=('glibc')
+makedepends=('meson' 'libpng')
+source=(https://xorg.freedesktop.org/releases/individual/lib/${pkgname}-${pkgver}.tar.xz)
+sha512sums=('3476e2676e66756b1af61b1e532cd80c985c191fb7956eb01702b419726cce99e79163b7f287f74f66414680e7396d13c3fee525cd663f12b6ac4877070ff4e8')
+#validpgpkeys=('') # Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+
+build() {
+  local _arch_args
+  local _arm_defs
+  local _x86_defs
+
+  _arm_defs=(
+    "-Dmmx=disabled"
+    "-Dsse2=disabled"
+    "-Dssse3=disabled"
+    "-Darm-simd=disabled"
+    "-Dneon=disabled"
+    "-Da64-neon=disabled"
+  )
+
+  _x86_defs=(
+    "-Darm-simd=disabled"
+    "-Dneon=disabled"
+    "-Da64-neon=disabled"
+  )
+
+  if [ $(uname -m) = 'x86_64' ]; then
+    _arch_args=${_x86_defs[@]}
+  else
+    _arch_args=${_arm_defs[@]}
+  fi
+
+  # note: we cannot build with a64-neon on M1.
+  # https://gitlab.freedesktop.org/pixman/pixman/-/issues/59
+  # https://gitlab.freedesktop.org/pixman/pixman/-/merge_requests/71 (possible fix -- very fresh, still doesn't work)
+
+  arch-meson $pkgbase-$pkgver build \
+    -D loongson-mmi=disabled \
+    -D vmx=disabled \
+    -D iwmmxt=disabled \
+    -D mips-dspr2=disabled \
+    -D gtk=disabled ${_arch_args[@]}
+  ninja -C build
+}
+
+check() {
+  meson test -C build
+}
+
+package() {
+  DESTDIR="$pkgdir" meson install -C build
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 $pkgname-$pkgver/COPYING
+}
