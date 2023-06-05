@@ -1,0 +1,59 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: DrZaius <lou[at]fakeoutdoorsman[dot]com>
+# Contributor: pumbur
+
+pkgname=opus
+pkgver=1.4
+pkgrel=1
+pkgdesc="Totally open, royalty-free, highly versatile audio codec"
+url="https://www.opus-codec.org/"
+arch=('x86_64' 'arm64')
+license=(BSD)
+depends=(
+  glibc
+)
+makedepends=(
+  git
+  meson
+)
+_commit=82ac57d9f1aaf575800cf17373348e45b7ce6c0d  # tags/v1.4^0
+source=("git+https://github.com/xiph/opus#commit=$_commit"
+        'https://github.com/xiph/opus/pull/267.patch')
+b2sums=('SKIP'
+        'df0731c18eaebc87743a585c47add278f52f01a9f692f304f305cc8b9d3644f9d05c1d71e5fe51f9d9590b5b883a25338f341edb697a0a3a9fa4234014af1032')
+
+pkgver() {
+  cd opus
+  git describe --tags | sed 's/^v//;s/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd opus
+  patch -Np1 -i ../267.patch
+}
+
+build() {
+  local meson_options=(
+    -D asm=disabled
+    -D custom-modes=true
+    -D docs=disabled
+  )
+
+  arch-meson opus build "${meson_options[@]}"
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package() {
+  provides=(libopus.dylib)
+
+  meson install -C build --destdir "$pkgdir"
+  install -Dt "$pkgdir/${pacman_root}/usr/share/aclocal" -m644 opus/opus.m4
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 opus/COPYING
+}
+# vim:set sw=2 sts=-1 et:
