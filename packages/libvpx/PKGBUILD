@@ -1,0 +1,66 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+
+pkgname=libvpx
+pkgver=1.13.0
+pkgrel=1
+pkgdesc='VP8 and VP9 codec'
+arch=('x86_64' 'arm64')
+url=https://www.webmproject.org/
+license=(BSD)
+depends=(gcc-libs)
+makedepends=(
+  git
+)
+provides=(libvpx.dylib)
+_tag=d6eb9696aa72473c1a11d34d928d35a3acc0c9a9
+source=(git+https://chromium.googlesource.com/webm/libvpx#tag=${_tag})
+sha256sums=(SKIP)
+
+if [ $CARCH = "x86_64" ]; then
+  makedepends+=(nasm)
+fi
+
+pkgver() {
+  cd libvpx
+
+  git describe --tags | sed 's/^v//'
+}
+
+build() {
+  cd libvpx
+
+  local asdf=()
+  if [ $CARCH = "x86_64" ]; then
+    asdf=('--enable-runtime-cpu-detect')
+  fi
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --disable-install-docs \
+    --disable-install-srcs \
+    --disable-unit-tests \
+    --enable-pic \
+    --enable-postproc \
+    --enable-shared \
+    --enable-vp8 \
+    --enable-vp9 \
+    --enable-vp9-highbitdepth \
+    --enable-vp9-temporal-denoising \
+    "${asdf[@]}"
+  make
+}
+
+package() {
+  cd libvpx
+
+  make DIST_DIR="${pkgdir}"/${pacman_root}/usr install
+  install -Dm 644 LICENSE -t "${pkgdir}"/${pacman_root}/usr/share/licenses/libvpx/
+
+  local _f; for _f in ${pkgdir}/${pacman_root}/usr/{bin/vpxenc,bin/vpxdec,lib/libvpx.8.dylib}; do
+    fix_rpath "${_f}"
+  done
+}
+
+# vim:set sw=2 sts=-1 et:
