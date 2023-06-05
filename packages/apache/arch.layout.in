@@ -1,0 +1,22 @@
+<Layout Arch>
+	prefix:          %%PACMAN_ROOT%%/etc/httpd
+	exec_prefix:     %%PACMAN_ROOT%%/usr
+	bindir:          %%PACMAN_ROOT%%/usr/bin
+	sbindir:         %%PACMAN_ROOT%%/usr/bin
+	libdir:          %%PACMAN_ROOT%%/usr/lib/httpd
+	libexecdir:      %%PACMAN_ROOT%%/usr/lib/httpd/modules
+	mandir:          %%PACMAN_ROOT%%/usr/share/man
+	sysconfdir:      %%PACMAN_ROOT%%/etc/httpd/conf
+	datadir:         %%PACMAN_ROOT%%/usr/share/httpd
+	installbuilddir: %%PACMAN_ROOT%%/usr/lib/httpd/build
+	errordir:        %%PACMAN_ROOT%%/usr/share/httpd/error
+	iconsdir:        %%PACMAN_ROOT%%/usr/share/httpd/icons
+	htdocsdir:       %%PACMAN_ROOT%%/srv/http
+	manualdir:       %%PACMAN_ROOT%%/usr/share/httpd/manual
+	cgidir:          %%PACMAN_ROOT%%/srv/http/cgi-bin
+	includedir:      %%PACMAN_ROOT%%/usr/include/httpd
+	localstatedir:   %%PACMAN_ROOT%%/var
+	runtimedir:      %%PACMAN_ROOT%%/run/httpd
+	logfiledir:      %%PACMAN_ROOT%%/var/log/httpd
+	proxycachedir:   %%PACMAN_ROOT%%/var/cache/httpd
+</Layout>
