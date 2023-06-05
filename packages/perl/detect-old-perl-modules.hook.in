@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Path
+Target = %%PACMAN_ROOT_REL%%/usr/lib/perl5/*/
+
+[Action]
+Description = Warn about old perl modules
+When = PostTransaction
+Exec = %%PACMAN_ROOT%%/usr/share/libalpm/scripts/detect-old-perl-modules.sh
