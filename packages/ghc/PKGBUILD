@@ -15,7 +15,7 @@ install=ghc.install
 source=(
 "https://downloads.haskell.org/~ghc/${pkgver}/ghc-${pkgver}-src.tar.xz"
 "https://downloads.haskell.org/~ghc/${pkgver}/ghc-${pkgver}-testsuite.tar.xz"
-"https://github.com/zhiayang/pacman-macos/releases/download/ghc-bootstrap-${pkgver}/sources-tarball.tar.gz"
+"https://github.com/macos-pacman/core/releases/download/ghc-bootstrap-${pkgver}/sources-tarball.tar.gz"
 
 # stolen from alpine
 "fix-T7060.patch"

@@ -12,7 +12,7 @@ provides=("cabal" "cabal-install")
 depends=("gmp" "zlib")
 makedepends=("ghc=$_bootstrapver" "gmp" "libffi" "zlib" "python")
 source=("https://github.com/haskell/cabal/archive/refs/tags/cabal-install-v$pkgver.tar.gz"
-        "https://github.com/zhiayang/pacman-macos/releases/download/cabal-bootstrap-${_bootstrapver}/bootstrap-sources.tar.gz")
+        "https://github.com/macos-pacman/core/releases/download/cabal-bootstrap-${_bootstrapver}/bootstrap-sources.tar.gz")
 sha512sums=(
 '79c839b53d9848a265d063b363542ae96bf1000dab8f00802631eba165fec134e8803299339c5bd14ee7d8e3be10d27e1f406ab8bdad0b4e72c39e6e5a5e925c'
 'f15640fac045959ac273e3e6903c659585bf441fc94ab1175c4fad5ca2d712d0964d8504cf77cca2aa6f3edde7a3fdd484855f111cd99607a3c1dcf213e4be1f'
