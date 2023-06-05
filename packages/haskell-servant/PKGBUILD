@@ -1,0 +1,135 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_hkgname=servant
+pkgname=haskell-${_hkgname}
+pkgver=0.19.1
+pkgrel=1
+pkgdesc="A family of combinators for defining webservices APIs"
+url="https://hackage.haskell.org/package/${_hkgname}"
+license=('BSD')
+arch=('x86_64' 'arm64')
+depends=('ghc-libs'
+  'haskell-bytestring'
+  'haskell-constraints'
+  'haskell-mtl'
+  'haskell-sop-core'
+  'haskell-transformers'
+  'haskell-text'
+  'haskell-http-api-data'
+  'haskell-singleton-bool'
+  'haskell-base-compat'
+  'haskell-aeson'
+  'haskell-attoparsec'
+  'haskell-bifunctors'
+  'haskell-case-insensitive'
+  'haskell-deepseq'
+  'haskell-http-media'
+  'haskell-http-types'
+  'haskell-mmorph'
+  'haskell-network-uri'
+  'haskell-quickcheck'
+  'haskell-string-conversions'
+  'haskell-tagged'
+  'haskell-vault'
+)
+checkdepends=(
+  'haskell-hspec'
+  'haskell-quickcheck'
+  'haskell-quickcheck-instances'
+)
+makedepends=('ghc' 'uusi')
+source=("https://hackage.haskell.org/packages/archive/$_hkgname/$pkgver/$_hkgname-$pkgver.tar.gz"
+        'ghc-9.6.1-fix.patch')
+sha512sums=('f99ed533f6b0ef819880622509cb452ef53e45a950b0712e56393721e61784b98040336fbed01a097a1da08dbfaa4afc8a515b46dea85218a0ae3b4bf9101124'
+            '233a3eec0195322163592e8163714adb6d203bb385d11223539a3b71732dc56869330bed05f24e17280888dfa65987df5d0dc073b9c153d4dc4fa7b1489c50fb')
+
+prepare() {
+  cd $_hkgname-$pkgver
+  uusi \
+    -u 'base' \
+    -u 'base-compat' \
+    -u 'bifunctors' \
+    -u 'hspec' \
+    -u 'http-api-data' \
+    -u 'mtl' \
+    -u 'singleton-bool' \
+    -u 'transformers' \
+    ${_hkgname}.cabal
+
+  patch -Np2 -i ../ghc-9.6.1-fix.patch
+}
+
+# template start; name=haskell-default; version=1.0;
+# default haskell build steps
+
+build() {
+# template start; name=haskell-build; version=1.0;
+  cd $_hkgname-$pkgver
+
+  local _opts
+  if (( CHECKFUNC )) && [ -z ${_notests+x} ]; then
+    _opts=('--enable-tests')
+  else
+    _opts=('--disable-tests')
+  fi
+
+  runhaskell Setup configure -O --disable-static --enable-shared --enable-executable-dynamic \
+    --prefix=${pacman_root}/usr \
+    --docdir=${pacman_root}/usr/share/doc/$pkgname \
+    --datasubdir=$pkgname \
+    --dynlibdir='$libdir' \
+    -ftemplateHaskell --ghc-option=-fllvm --ghc-option=-fhide-source-paths \
+    --flags="${_build_flags:-}" \
+    "${_opts[@]}"
+
+  runhaskell Setup build $MAKEFLAGS
+
+  if [ -z ${_no_register+x} ]; then
+    runhaskell Setup register --gen-script
+    runhaskell Setup unregister --gen-script
+
+    sed -i -r -e "s|ghc-pkg.*update[^ ]* |&'--force' |" register.sh
+    sed -i -r -e "s|ghc-pkg.*unregister[^ ]* |&'--force' |" unregister.sh
+  fi
+# template end;
+}
+
+check() {
+# template start; name=haskell-check; version=1.0;
+  cd $_hkgname-$pkgver
+  if [ -z ${_notests+x} ]; then
+    if [ -z ${_tests_can_fail+x} ]; then
+      runhaskell Setup test --show-details=direct
+    else
+      runhaskell Setup test --show-details=direct || echo "tests failed!"
+    fi
+  fi
+# template end;
+}
+
+package() {
+# template start; name=haskell-package; version=1.0;
+  cd $_hkgname-$pkgver
+
+  if [ -z ${_no_register+x} ]; then
+    install -D -m744 register.sh "$pkgdir/${pacman_root}/usr/share/haskell/register/$pkgname.sh"
+    install -D -m744 unregister.sh "$pkgdir/${pacman_root}/usr/share/haskell/unregister/${pkgname}.sh"
+  fi
+
+  local _license_name=${license_name-LICENSE}
+
+  runhaskell Setup copy --destdir="$pkgdir"
+
+  if [ -z ${_no_license+x} ]; then
+    install -D -m644 "${_license_name}" "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+    rm "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/${_license_name}
+  fi
+
+  local dl; for dl in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/* ; do
+    [ ! -e "${dl}" ] || fix_rpath "${dl}"
+  done
+# template end;
+}
+# template end;
+
+# vim: ts=2 sw=2 et:
