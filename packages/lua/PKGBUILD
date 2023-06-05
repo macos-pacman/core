@@ -1,0 +1,106 @@
+# Maintainer: Sébastien Luttringer <seblu@archlinux.org>
+# Contributor: Juergen Hoetzel <juergen@archlinux.org>
+# Contributor: Damir Perisa <damir.perisa@bluewin.ch>
+
+pkgname=lua
+pkgver=5.4.4
+_majorver=${pkgver%.*}
+pkgrel=4
+pkgdesc='Powerful lightweight programming language designed for extending applications'
+arch=('x86_64' 'arm64')
+url='https://www.lua.org/'
+depends=('readline')
+license=('MIT')
+options=('!emptydirs')
+source=(https://www.lua.org/ftp/lua-$pkgver.tar.gz
+        https://raw.githubusercontent.com/Homebrew/formula-patches/11c8360432f471f74a9b2d76e012e3b36f30b871/lua/lua-dylib.patch
+        lua.pc.in
+        LICENSE)
+sha256sums=('164c7849653b80ae67bec4b7473b884bf5cc8d2dca05653475ec2ed27b9ebf61'
+            'a39e2ae1066f680e5c8bf1749fe09b0e33a0215c31972b133a73d43b00bf29dc'
+            '0b06c2fe802cc5040d60714d005002f79a7d0685e4bc395db7abb9ff886e0dfc'
+            '142fb08b41a807b192b4b2c166696a1830a1c97967e5099ad0e579bf500e1da4')
+
+prepare() {
+  patch -d lua-$pkgver -p1 -i ../lua-dylib.patch
+
+  sed -i.bak -e "s%/usr/local%${pacman_root}%g" lua-$pkgver/src/luaconf.h
+  sed -i.bak -e "s|@OPT_LIB@|${pacman_root}/usr/lib|g" lua-$pkgver/src/Makefile
+
+  cp -r lua-$pkgver lua++-$pkgver
+
+  sed -i.bak -e 's/-llua /-llua++ /' lua++-$pkgver/src/Makefile
+  sed -i.bak -e 's/ln -s liblua.dylib liblua.$(V).dylib/ln -s liblua++.dylib liblua++.$(V).dylib/' lua++-$pkgver/Makefile
+  sed -i.bak -e 's/ln -s liblua.dylib liblua.$(R).dylib/ln -s liblua++.dylib liblua++.$(R).dylib/' lua++-$pkgver/Makefile
+
+  sed -e "s/%VER%/$_majorver/g;s/%REL%/$pkgver/g" -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" lua.pc.in > lua-$pkgver/lua.pc
+  sed -e "s/%VER%/$_majorver/g;s/%REL%/$pkgver/g;s/-llua/-llua++/g" -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" lua.pc.in > lua++-$pkgver/lua++.pc
+}
+
+build() {
+  cd lua-$pkgver
+
+  make MYCFLAGS="$CFLAGS -fPIC" MYLDFLAGS="$LDFLAGS" macosx
+
+  cd ../lua++-$pkgver
+
+  make MYCFLAGS="$CXXFLAGS -fPIC -x c++ " MYLDFLAGS="$LDFLAGS" CC=clang++ LUA_A=liblua++.a LUA_DYLIB=liblua++.dylib macosx
+}
+
+package() {
+  cd lua-$pkgver
+
+  make \
+    TO_LIB="liblua.a liblua.dylib" \
+    LUA_DYLIB="liblua.dylib" \
+    INSTALL_DATA='cp -P' \
+    INSTALL_INC="$pkgdir"/${pacman_root}/usr/include \
+    INSTALL_TOP="$pkgdir"/${pacman_root}/usr \
+    INSTALL_MAN="$pkgdir"/${pacman_root}/usr/share/man/man1 \
+    install
+
+  # rename the unversioned one
+  mv ${pkgdir}/${pacman_root}/usr/lib/liblua.{,${pkgver}.}dylib
+
+  ln -sf liblua.${pkgver}.dylib ${pkgdir}/${pacman_root}/usr/lib/liblua.dylib
+  ln -sf liblua.${pkgver}.dylib ${pkgdir}/${pacman_root}/usr/lib/liblua${_majorver}.dylib
+  ln -sf liblua.${pkgver}.dylib ${pkgdir}/${pacman_root}/usr/lib/liblua.${_majorver}.dylib
+
+  ln -sf ${pacman_root}/usr/bin/lua "$pkgdir"/${pacman_root}/usr/bin/lua$_majorver
+  ln -sf ${pacman_root}/usr/bin/luac "$pkgdir"/${pacman_root}/usr/bin/luac$_majorver
+
+  install -Dm644 lua.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/lua54.pc
+  ln -sf lua54.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/lua.pc
+  ln -sf lua54.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/lua5.4.pc
+  ln -sf lua54.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/lua-5.4.pc
+
+  install -d "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname
+  install -m644 doc/*.{gif,png,css,html} "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname
+  install -Dm644 ../LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+
+  echo "-------------------------------------"
+
+  cd ../lua++-$pkgver
+  make \
+    TO_LIB="liblua++.a liblua++.dylib" \
+    LUA_DYLIB="liblua++.dylib" \
+    INSTALL_BIN=null INSTALL_INC=null INSTALL_MAN=../null \
+    INSTALL_DATA='cp -P' \
+    INSTALL_TOP="$pkgdir"/${pacman_root}/usr \
+    install
+
+  # rename the unversioned one
+  mv ${pkgdir}/${pacman_root}/usr/lib/liblua++.{,${pkgver}.}dylib
+
+  ln -sf liblua++.${pkgver}.dylib ${pkgdir}/${pacman_root}/usr/lib/liblua++.dylib
+  ln -sf liblua++.${pkgver}.dylib ${pkgdir}/${pacman_root}/usr/lib/liblua++${_majorver}.dylib
+  ln -sf liblua++.${pkgver}.dylib ${pkgdir}/${pacman_root}/usr/lib/liblua++.${_majorver}.dylib
+
+  install -Dm644 lua++.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/lua++54.pc
+  ln -sf lua++54.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/lua++.pc
+  ln -sf lua++54.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/lua++5.4.pc
+  ln -sf lua++54.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/lua++-5.4.pc
+
+  # change install name of the ++ one
+  install_name_tool -id ${pacman_root}/usr/lib/liblua++.dylib ${pkgdir}/${pacman_root}/usr/lib/liblua++.${pkgver}.dylib
+}
