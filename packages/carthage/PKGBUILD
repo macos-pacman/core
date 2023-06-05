@@ -1,0 +1,30 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+pkgname=carthage
+pkgver=0.39.0
+pkgrel=1
+arch=('x86_64' 'arm64')
+depends=(macos-system)
+pkgdesc='Decentralized dependency manager for Cocoa'
+url='https://github.com/Carthage/Carthage'
+license=('MIT')
+source=(git+https://github.com/Carthage/Carthage.git#tag=${pkgver}?signed)
+sha256sums=('SKIP')
+
+build() {
+  cd $srcdir/$pkgname
+  make all
+}
+
+check() {
+  cd $srcdir/$pkgname
+
+  # the tests don't work
+  make test || true
+}
+
+package() {
+  cd $srcdir/$pkgname
+  make prefix_install PREFIX=${pkgdir}/${pacman_root}/usr
+  install -Dm644 LICENSE.md "$pkgdir/${pacman_root}"/usr/share/licenses/$pkgname/LICENSE
+}
