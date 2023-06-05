@@ -1,0 +1,36 @@
+# Maintainer: Giovanni Scafora <giovanni@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Sergej Pupykin <sergej@aur.archlinux.org>
+# Contributor: Robert Stoffers <rob1@ubuntu.com>
+
+pkgname=gnu-getopt
+pkgver=2.38.1
+pkgrel=1
+pkgdesc="Convert xml to many other formats"
+arch=('x86_64' 'arm64')
+url="https://pagure.io/xmlto/"
+license=('GPL2')
+source=("https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v${pkgver%.*}/util-linux-${pkgver}.tar.xz"
+        'fix-mac-build.patch::https://github.com/util-linux/util-linux/commit/3671d4a878fb58aa953810ecf9af41809317294f.patch?full_index=1')
+sha256sums=('60492a19b44e6cf9a3ddff68325b333b8b52b6c59ce3ebd6a0ecaa4c5117e84f'
+            'd38c9ae06c387da151492dd5862c58551559dd6d2b1877c74cc1e11754221fe4')
+
+prepare() {
+  cd $srcdir/util-linux-${pkgver}
+  patch -Np1 -i ../fix-mac-build.patch
+}
+
+build() {
+  cd "$srcdir/util-linux-${pkgver}"
+
+  ./configure --prefix=${pacman_root}/usr
+  make getopt misc-utils/getopt.1
+}
+
+package() {
+  cd "$srcdir/util-linux-${pkgver}"
+
+  install -Dm755 -t "${pkgdir}/${pacman_root}/usr/bin" ./getopt
+  install -Dm644 -t "${pkgdir}/${pacman_root}/usr/share/man/" ./misc-utils/getopt.1
+  install -Dm644 -t "${pkgdir}/${pacman_root}/usr/share/bash-completion/completions/" ./bash-completion/getopt
+}
