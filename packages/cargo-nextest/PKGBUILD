@@ -1,0 +1,43 @@
+# Maintainer: Orhun Parmaksız <orhun@archlinux.org>
+# Contributor: KokaKiwi <kokakiwi+aur at kokakiwi dot net>
+
+pkgname=cargo-nextest
+pkgver=0.9.53
+pkgrel=1
+pkgdesc="A next-generation test runner for Rust."
+arch=('x86_64' 'arm64')
+url="https://github.com/nextest-rs/nextest"
+license=('Apache' 'MIT')
+depends=('gcc-libs')
+makedepends=('cargo')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/cargo-nextest-$pkgver.tar.gz")
+sha256sums=('29c7c0c78c57fb14aab2d5651575b203efc51ff1255ce83e0eb32807946bf13f')
+b2sums=('bda896da26b4846e5cc7b0fcd3988a017a9a97003e09d4f463de0cc2c1f457de37440de503a1d98899ac31b58aface17e9cd96d6c4d73707ad60d8f5aecd1ebe')
+options=('!lto')
+
+prepare() {
+  # this doesn't use the cursed cargo-util package, so no patches needed
+
+  mv "nextest-$pkgname-$pkgver" "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver"
+  cargo fetch --locked --target "${CARCH/arm64/aarch64}-apple-darwin"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  cargo build --release --frozen --package "$pkgname" --no-default-features --features default-no-update
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  cargo run --package cargo-nextest -- nextest run --profile ci
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm 755 "target/release/$pkgname" -t "$pkgdir/${pacman_root}/usr/bin"
+  install -Dm 644 README.md -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname"
+  install -Dm 644 LICENSE-MIT -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+}
+
+# vim: ts=2 sw=2 et:
