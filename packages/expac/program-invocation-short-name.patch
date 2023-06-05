@@ -1,0 +1,20 @@
+diff --git a/src/expac.c b/src/expac.c
+index 91ba2d5..9fd9742 100644
+--- a/src/expac.c
++++ b/src/expac.c
+@@ -155,6 +155,7 @@ static void usage(void)
+       "For more details see expac(1).\n");
+ }
+ 
++static const char* program_invocation_short_name = "";
+ static void version(void)
+ {
+   printf("%s %s\n", program_invocation_short_name, PACKAGE_VERSION);
+@@ -881,6 +882,7 @@ static int process_targets(int argc, char **argv, alpm_list_t **targets)
+ 
+ int main(int argc, char *argv[])
+ {
++  program_invocation_short_name = argv[0];
+   alpm_list_t *results = NULL, *targets = NULL;
+   _cleanup_(expac_freep) expac_t *expac = NULL;
+   int r;

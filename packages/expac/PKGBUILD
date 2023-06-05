@@ -1,0 +1,38 @@
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+# Maintainer: Morgan <morganamilo@archlinux.org>
+# Contributor: Dave Reisner <d@falconindy.com>
+
+pkgname=expac
+pkgver=10
+pkgrel=5
+pkgdesc='alpm data (pacman database) extraction utility'
+arch=('x86_64' 'arm64')
+url="https://github.com/falconindy/$pkgname"
+license=(GPL)
+depends=(pacman)
+makedepends=(git
+             meson
+             perl)
+source=("git+$url.git?signed&tag=$pkgver"
+		"program-invocation-short-name.patch")
+validpgpkeys=('487EACC08557AD082088DABA1EB2638FF56C0C53') # Dave Reisner
+sha256sums=('SKIP'
+			'a17c633737f6bd0232e42ee8d2424852e396a6b954fa42b8614829c4cd62531f')
+
+prepare() {
+	cd $pkgname
+	patch -Np1 -i ../program-invocation-short-name.patch
+
+	sed -i -e "s|/etc/pacman.conf|${pacman_root}/etc/pacman.conf|g" src/expac.c
+	sed -i -e 's|dbroot = "/"|dbroot = "'${pacman_root}'";|g' src/expac.c
+	sed -i -e 's|dbpath = "/var/lib/pacman"|dbpath = "'${pacman_root}'/var/lib/pacman";|g' src/expac.c
+}
+
+build() {
+	arch-meson "$pkgname" build
+	meson compile -C build
+}
+
+package() {
+	meson install -C build --destdir "$pkgdir"
+}
