@@ -1,0 +1,96 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=glib2
+pkgver=2.76.0
+pkgrel=1
+pkgdesc="Low level core library"
+url="https://wiki.gnome.org/Projects/GLib"
+license=(LGPL)
+arch=('x86_64' 'arm64')
+depends=(
+  libffi
+  pcre2
+  zlib
+)
+makedepends=(
+  gettext
+  git
+  meson
+  python
+)
+provides=(libg{lib,io,module,object,thread}-2.0.dylib)
+options=(
+  staticlibs
+)
+_commit=8a9ada663923e39c0e8d7eefe65390955dc3c0d8  # tags/2.76.0^0
+source=(
+  "git+https://gitlab.gnome.org/GNOME/glib.git#commit=$_commit"
+  "git+https://gitlab.gnome.org/GNOME/gvdb.git"
+  0001-glib-compile-schemas-Remove-noisy-deprecation-warning.patch
+  macos-test-ignore.patch
+)
+b2sums=('SKIP'
+        'SKIP'
+        'bd7f881ae6054c363783bf45b1add5eef5e8347554e23b9fece526701469d07cdcb9871fa73dee473796a219e8aa513796a96da769949097ea207db038578d07'
+        '912c8cb70b8058a15070854da8280dae3492eab82b81273c0f3868dec6c1daa59d7568b81203ae0e5ef97d2099468945e44226e22f22b4e2531d97ddcf513303')
+
+
+pkgver() {
+  cd glib
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd glib
+
+  # Suppress noise from glib-compile-schemas.hook
+  git apply -3 ../0001-glib-compile-schemas-Remove-noisy-deprecation-warning.patch
+
+  patch -Np1 -i ../macos-test-ignore.patch
+
+  git submodule init
+  git submodule set-url subprojects/gvdb "$srcdir/gvdb"
+  git -c protocol.file.allow=always submodule update
+}
+
+build() {
+  # Produce more debug info: GLib has a lot of useful macros
+  # use fat LTO objects for static libraries
+  CFLAGS+=' -g3 -fno-lto'
+  CXXFLAGS+=' -g3 -fno-lto'
+
+  CFLAGS+=" -DG_DISABLE_CAST_CHECKS"
+  arch-meson glib build \
+    --default-library both \
+    -D glib_debug=disabled \
+    -D selinux=disabled \
+    -D sysprof=disabled \
+    -D libelf=disabled \
+    -D bsymbolic_functions=false \
+    -D dtrace=false \
+    -D man=false \
+    -D gtk_doc=false
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --no-suite flaky --no-suite slow --print-errorlogs
+}
+
+package() {
+  optdepends=(
+    'gvfs: most gio functionality'
+    'libelf: gresource inspection tool'
+    'python: gdbus-codegen, glib-genmarshal, glib-mkenums, gtester-report'
+  )
+
+  meson install -C build --destdir "$pkgdir"
+
+  python -m compileall -d /usr/share/glib-2.0/codegen \
+    "$pkgdir/${pacman_root}/usr/share/glib-2.0/codegen"
+  python -O -m compileall -d /usr/share/glib-2.0/codegen \
+    "$pkgdir/${pacman_root}/usr/share/glib-2.0/codegen"
+}
+
+# vim:set sw=2 sts=-1 et:

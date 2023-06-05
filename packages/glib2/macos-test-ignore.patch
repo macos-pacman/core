@@ -1,0 +1,18 @@
+--- a/gio/tests/meson.build	2023-05-06 00:17:57.447859493 +0800
++++ b/gio/tests/meson.build	2023-05-06 00:23:57.952225879 +0800
+@@ -205,15 +205,9 @@
+       'extra_sources' : ['gdbus-tests.c'],
+       'dependencies' : [dbus1_dep],
+     },
+-    'gdbus-server-auth' : {
+-      'dependencies' : [dbus1_dep],
+-    },
+   }
+ else
+   # We can build a cut-down version of this test without libdbus
+-  gio_tests += {
+-    'gdbus-server-auth' : {},
+-  }
+ endif
+ 
+ have_dbus_daemon = find_program('dbus-daemon', required : false).found()
