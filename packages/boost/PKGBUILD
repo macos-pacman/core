@@ -1,0 +1,132 @@
+# Maintainer: Evangelos Foutras <evangelos@foutrelis.com>
+# Contributor: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Marius Knaust <marius.knaust@gmail.com>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+# Contributor: Stéphane Gaudreault <stephane@archlinux.org>
+# Contributor: kevin <kevin@archlinux.org>
+# Contributor: Giovanni Scafora <giovanni@archlinux.org>
+# Contributor: Kritoke <kritoke@gamebox.net>
+# Contributor: Luca Roccia <little_rock@users.sourceforge.net>
+
+pkgname=boost
+pkgver=1.81.0
+pkgrel=5
+_srcname=boost_${pkgver//./_}
+pkgdesc="Free peer-reviewed portable C++ source libraries"
+arch=('x86_64' 'arm64')
+url="https://www.boost.org/"
+license=('custom')
+makedepends=('icu' 'python' 'python-numpy' 'bzip2' 'zlib' 'openmpi' 'zstd')
+source=(https://boostorg.jfrog.io/artifactory/main/release/$pkgver/source/$_srcname.tar.bz2
+        boost-1.81.0-phoenix-multiple-definitions.patch
+        $pkgname-ublas-c++20-iterator.patch::https://github.com/boostorg/ublas/commit/a31e5cffa85f.patch)
+sha256sums=('71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa'
+            '3ebf428ef6be090a7b56a233330375539ac429333b83708e28fe5db049cfecdb'
+            'aa38addb40d5f44b4a8472029b475e7e6aef1c460509eb7d8edf03491dc1b5ee')
+
+prepare() {
+  cd $_srcname
+
+  # https://github.com/boostorg/phoenix/issues/111
+  patch -Np1 -i ../boost-1.81.0-phoenix-multiple-definitions.patch
+
+  # https://github.com/boostorg/ublas/pull/97
+  patch -Np2 -i ../$pkgname-ublas-c++20-iterator.patch
+}
+
+build() {
+  local JOBS="$(sed 's/.*\(-j *[0-9]\+\).*/\1/' <<<$MAKEFLAGS)"
+  local python_version=$(
+    python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+
+  pushd $_srcname/tools/build
+  ./bootstrap.sh --cxxflags="$CXXFLAGS -Wno-deprecated-declarations $LDFLAGS"
+  ./b2 install --prefix="$srcdir"/fakeinstall
+  ln -sf b2 "$srcdir"/fakeinstall/bin/bjam
+  popd
+
+  cd $_srcname
+  ./bootstrap.sh --with-toolset=clang --with-icu --with-python=python3
+
+  # support for OpenMPI
+  echo "using mpi ;" >>project-config.jam
+
+  # boostbook is needed by quickbook
+  install -dm755 "$srcdir"/fakeinstall/share/boostbook
+  cp -a tools/boostbook/{xsl,dtd} "$srcdir"/fakeinstall/share/boostbook/
+
+  # install to $srcdir/fakeinstall in preparation for split packaging
+  ./b2 install \
+    variant=release \
+    debug-symbols=off \
+    threading=multi \
+    runtime-link=shared \
+    link=shared,static \
+    toolset=clang \
+    python=$python_version \
+    cflags="$CPPFLAGS $CFLAGS -fPIC -O3 -Wno-deprecated-declarations" \
+    cxxflags="$CPPFLAGS $CXXFLAGS -fPIC -O3 -Wno-deprecated-declarations" \
+    linkflags="$LDFLAGS" \
+    --layout=system \
+    $JOBS \
+    \
+    --prefix="$srcdir"/fakeinstall
+}
+
+package() {
+  local python_version=$(
+    python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+
+  optdepends=('python: for python bindings' 'openmpi: for mpi support')
+  depends=('bzip2' 'zlib' 'icu' 'zstd')
+
+  provides=(boost-libs="${pkgver}" libboost_atomic.dylib libboost_chrono.dylib libboost_container.dylib
+    libboost_context.dylib libboost_contract.dylib libboost_coroutine.dylib
+    libboost_date_time.dylib libboost_fiber.dylib libboost_filesystem.dylib
+    libboost_graph.dylib libboost_graph_parallel.dylib libboost_iostreams.dylib
+    libboost_json.dylib libboost_locale.dylib libboost_log.dylib libboost_log_setup.dylib
+    libboost_math_c99.dylib libboost_math_c99f.dylib libboost_math_c99l.dylib
+    libboost_math_tr1.dylib libboost_math_tr1f.dylib libboost_math_tr1l.dylib
+    libboost_mpi{,_python${python_version/.}}.dylib libboost_nowide.dylib
+    libboost_numpy${python_version/.}.dylib libboost_prg_exec_monitor.dylib
+    libboost_program_options.dylib libboost_python${python_version/.}.dylib
+    libboost_random.dylib libboost_regex.dylib libboost_serialization.dylib
+    libboost_stacktrace_addr2line.dylib libboost_stacktrace_basic.dylib
+    libboost_stacktrace_noop.dylib libboost_system.dylib libboost_thread.dylib
+    libboost_timer.dylib libboost_type_erasure.dylib libboost_unit_test_framework.dylib
+    libboost_url.dylib libboost_wave.dylib libboost_wserialization.dylib)
+
+  options=('staticlibs')
+
+  install -d "$pkgdir"/${pacman_root}/usr/lib
+  cp -a fakeinstall/lib/*.{a,dylib} "$pkgdir"/${pacman_root}/usr/lib/
+  cp -a fakeinstall/lib/cmake "$pkgdir"/${pacman_root}/usr/lib/
+  cp -a fakeinstall/{bin,include,share} "$pkgdir"/${pacman_root}/usr/
+
+  # https://github.com/boostorg/mpi/issues/112
+  local site_packages=$(python -c 'import site; print(site.getsitepackages()[0])')
+  install -d "$pkgdir"$site_packages/boost
+  touch "$pkgdir"$site_packages/boost/__init__.py
+  python -m compileall -o 0 -o 1 -o 2 "$pkgdir"$site_packages/boost
+  cp fakeinstall/lib/boost-python*/mpi.so "$pkgdir"$site_packages/boost/mpi.so
+
+  # https://github.com/boostorg/python/issues/203#issuecomment-391477685
+  pushd $pkgdir/${pacman_root}/usr/lib
+  for _lib in python numpy; do
+    # note(macos): python libs are always ".so", so don't change it
+    ln -sf libboost_${_lib}${python_version/.}.so libboost_${_lib}${python_version%.*}.so
+    # ln -srL "$pkgdir"/${pacman_root}/usr/lib/libboost_${_lib}{${python_version/.},${python_version%.*}}.so
+  done
+  popd
+
+  # fix all the things
+  fix_rpath "${pacman_root}" "${pkgdir}" "$pkgdir"$site_packages/boost/mpi.so
+  for _f in "$pkgdir"/${pacman_root}/usr/lib/*.dylib; do
+    fix_rpath "${pacman_root}" "${pkgdir}" "${_f}"
+  done
+
+  install -Dm644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" $_srcname/LICENSE_1_0.txt
+}
+
+# vim:set ts=2 sw=2 et:
