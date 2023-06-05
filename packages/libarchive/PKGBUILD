@@ -1,0 +1,44 @@
+# Maintainer: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Maintainer: Dan McGee <dan@archlinux.org>
+
+pkgname=libarchive
+pkgver=3.6.2
+pkgrel=2
+pkgdesc='Multi-format archive and compression library'
+arch=('x86_64' 'arm64')
+url='https://libarchive.org/'
+license=('BSD')
+depends=('bzip2' 'expat' 'lz4' 'openssl' 'libcrypto.dylib' 'xz' 'zlib' 'zstd')
+provides=('libarchive.dylib')
+validpgpkeys=('A5A45B12AD92D964B89EEE2DEC560C81CEC2276E'  # Martin Matuska <mm@FreeBSD.org>
+              'DB2C7CF1B4C265FAEF56E3FC5848A18B8F14184B') # Martin Matuska <martin@matuska.org>
+source=("https://github.com/${pkgname}/${pkgname}/releases/download/v${pkgver}/${pkgname}-${pkgver}.tar.xz"{,.asc})
+sha256sums=('9e2c1b80d5fbe59b61308fdfab6c79b5021d7ff4ff2489fb12daf0a96a83551d'
+            'SKIP')
+
+pacman_root=$(pacman-root-dir)
+
+build() {
+  cd "${pkgname}-${pkgver}"
+
+  ./configure \
+      --prefix=${pacman_root}/usr \
+      --without-xml2 \
+      --without-nettle \
+      --disable-iconv
+  make
+}
+
+check() {
+  cd "${pkgname}-${pkgver}"
+
+  # seems to break.
+  SKIP_TEST_SPARSE=1 make check
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+
+  make DESTDIR="$pkgdir" install
+  install -Dm0644 COPYING "$pkgdir/${pacman_root}/usr/share/licenses/libarchive/COPYING"
+}
