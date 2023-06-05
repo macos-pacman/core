@@ -5,7 +5,7 @@ _name=cheroot
 pkgname=python-cheroot
 pkgdesc="Highly-optimized, pure-python HTTP server"
 pkgver=9.0.0
-pkgrel=5
+pkgrel=6
 arch=('any')
 url="https://github.com/cherrypy/cheroot"
 license=('MIT')
@@ -54,10 +54,6 @@ package() {
   cd ${_name}-${pkgver}
   python -m installer --destdir="$pkgdir" dist/*.whl
   install -vDm 644 LICENSE.md -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
-
-  # remove /test/ directory from package
-  python_stdlib_basepath="$(python -c "from sysconfig import get_path; print(get_path('stdlib'))")"
-  rm -rvf "${pkgdir}/${python_stdlib_basepath#/}/site-packages/${_name}"/{test,testing.py}
 }
 
 # vim:set ts=2 sw=2 et:
