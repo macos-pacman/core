@@ -1,0 +1,44 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=gmp
+pkgver=6.2.1
+pkgrel=2
+pkgdesc='A free library for arbitrary precision arithmetic'
+arch=('x86_64' 'arm64')
+url='https://gmplib.org/'
+depends=(gcc-libs sh)
+license=(LGPL3 GPL)
+source=(https://gmplib.org/download/gmp/gmp-$pkgver.tar.xz{,.sig}
+        'crash-fix.patch::https://gmplib.org/repo/gmp/raw-rev/5f32dbc41afc')
+sha256sums=('fd4829912cddd12f84181c3451cc752be224643e87fac497b69edddadc49b4f2'
+            'SKIP'
+            'a44ef57903b240df6fde6c9d2fe40063f785995c43b6bfc7a237c571f53613e0')
+validpgpkeys=('343C2FF0FBEE5EC2EDBEF399F3599FF828C67298')   # Niels Möller
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../crash-fix.patch
+}
+
+build() {
+  cd $pkgname-$pkgver
+
+  ./configure --build=${CHOST} \
+    --prefix=${pacman_root}/usr \
+    --enable-cxx \
+    --enable-fat \
+    --with-pic
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+  make check
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="${pkgdir}" install
+}
