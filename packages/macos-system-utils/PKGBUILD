@@ -1,0 +1,68 @@
+pkgname=macos-system-utils
+pkgver=13.2
+pkgrel=1
+pkgdesc='recompiled macOS utilities to circumvent SIP'
+arch=('x86_64' 'arm64')
+license=(MIT)
+groups=('base')
+
+source=(
+	"macos-opensource::https://github.com/apple-open-source/macos/archive/refs/tags/${pkgver}.tar.gz"
+)
+sha256sums=(
+	'ccfdda495f1472853f3de3d23cfd4d18f5327eea8351fec3cb4270c67aced544'
+)
+
+pacman_root=$(dirname $(which pacman))/../../
+
+_file_cmds_list=('stat' 'cp' 'chmod' 'chown' 'mknod' 'mkfifo' 'ls')
+
+prepare() {
+	cd $srcdir
+
+	local _cps _f
+	_cps=("xnu/bsd/sys/fsctl.h"
+	      "libutil/libutil.h"
+	      "libutil/expand_number.c"
+	      "libutil/humanize_number.c"
+	      "Libinfo/membership.subproj/membershipPriv.h")
+
+	for _f in "${_cps[@]}"; do
+		cp macos-${_macos_src_ver}/${_f} macos-${_macos_src_ver}/file_cmds/ls/
+	done
+
+	sed -i.bak -e 's/unix2003_compat/1/g' macos-${_macos_src_ver}/file_cmds/ls/print.c
+	sed -i.bak -e 's|<System/sys/fsctl.h>|"fsctl.h"|g' macos-${_macos_src_ver}/file_cmds/ls/ls.c
+}
+
+build() {
+	cd $srcdir
+
+	pushd macos-${_macos_src_ver} > /dev/null
+	pushd file_cmds > /dev/null
+
+	local _cmd
+	for _cmd in "${_file_cmds_list[@]}"; do
+		msg2 "compiling %s" "${_cmd}"
+		local _cflags
+		_cflags=""
+		if [ "${_cmd}" = "ls" ]; then
+			_cflags="-DCOLORLS=1 -ltermcap"
+		fi
+		pushd ${_cmd} > /dev/null
+			"${CC}" -o "${_cmd}" -I. ${CFLAGS} ${_cflags} *.c
+		popd > /dev/null
+	done
+
+	popd > /dev/null
+	popd > /dev/null
+}
+
+package() {
+	local _cmd
+	for _cmd in "${_file_cmds_list[@]}"; do
+		cp $srcdir/macos-${_macos_src_ver}/file_cmds/"${_cmd}"/"${_cmd}" "$pkgdir/${pacman_root}/usr/bin/"
+		chmod 755 "$pkgdir/${pacman_root}/usr/bin/${_cmd}"
+	done
+}
+
