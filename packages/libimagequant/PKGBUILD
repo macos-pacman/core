@@ -1,0 +1,35 @@
+# Maintainer: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+
+pkgname=libimagequant
+pkgver=4.1.1
+pkgrel=1
+pkgdesc="Library for high-quality conversion of RGBA images to 8-bit indexed-color (palette) images"
+arch=('x86_64' 'arm64')
+url="https://pngquant.org/lib/"
+license=('BSD')
+depends=('gcc-libs')
+makedepends=('cargo')
+source=("https://github.com/ImageOptim/libimagequant/archive/$pkgver/libimagequant-$pkgver.tar.gz"
+        "fix-makefile.patch")
+sha256sums=('726ce0bf2a8175a32d1ef303c3e8971a1fda354e760f1327c08656268bb019c2'
+            '31c97dcd65874c6fd5fb18c106980a5613806adbccc680d1986309831c30d8b0')
+
+prepare() {
+  cd "$srcdir/$pkgname-$pkgver/imagequant-sys"
+  patch -Np1 -i ../../fix-makefile.patch
+}
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver/imagequant-sys"
+  make static PREFIX=${pacman_root}/usr
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver/imagequant-sys"
+
+  # cinstall is broken under fakeroot for some obscure reason
+  make install DESTDIR="$pkgdir" PREFIX=${pacman_root}/usr
+  mv "$pkgdir/${pacman_root}/usr/lib/${pkgname}_sys.a" "$pkgdir/${pacman_root}/usr/lib/${pkgname}.a"
+
+  install -Dm644 COPYRIGHT "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}

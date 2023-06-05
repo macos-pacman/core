@@ -1,0 +1,22 @@
+diff --git a/Makefile b/Makefile
+index 88b29e5..7f0aafc 100644
+--- a/Makefile
++++ b/Makefile
+@@ -6,7 +6,7 @@ PKGCONFIGDIR ?= $(LIBDIR)/pkgconfig
+ DESTDIR ?= ""
+ 
+ VERSION=$(shell grep '^version = "4' Cargo.toml | grep -Eo "4\.[0-9.]+")
+-STATICLIB=libimagequant.a
++STATICLIB=libimagequant_sys.a
+ 
+ JNILIB=libimagequant.jnilib
+ 
+@@ -26,7 +26,7 @@ target:: Cargo.toml
+ 	cargo build --release
+ 
+ $(STATICLIB): target
+-	cp target/release/$(STATICLIB) $(STATICLIB)
++	cp ../target/release/$(STATICLIB) $(STATICLIB)
+ 
+ $(JNILIB): $(JAVAHEADERS) $(STATICLIB) org/pngquant/PngQuant.c
+ 	$(CC) -g $(CFLAGS) $(LDFLAGS) $(JAVAINCLUDE) -shared -o $@ org/pngquant/PngQuant.c $(STATICLIB)
