@@ -1,0 +1,103 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_hkgname=http-date
+pkgname=haskell-${_hkgname}
+pkgver=0.0.11
+pkgrel=1
+pkgdesc="HTTP Date parser/formatter"
+url="https://hackage.haskell.org/package/${_hkgname}"
+license=('BSD')
+arch=('x86_64' 'arm64')
+depends=('ghc-libs'
+  'haskell-array'
+  'haskell-attoparsec'
+  'haskell-bytestring'
+  'haskell-time'
+)
+checkdepends=(
+  'haskell-hspec'
+  'haskell-doctest'
+  'haskell-old-locale'
+)
+makedepends=('ghc')
+source=("https://hackage.haskell.org/packages/archive/$_hkgname/$pkgver/$_hkgname-$pkgver.tar.gz")
+sha512sums=('dec4f4fc5f765887fb884a0309648dd3336e2591c05ac89150c7ebe935d1167f3c5996a12c5371f3fab3525b95ca8e46873b6bafc1b937b1b5367c256358a62d')
+
+prepare() {
+  cd $_hkgname-$pkgver
+}
+
+# template start; name=haskell-default; version=1.0;
+# default haskell build steps
+
+build() {
+# template start; name=haskell-build; version=1.0;
+  cd $_hkgname-$pkgver
+
+  local _opts
+  if (( CHECKFUNC )) && [ -z ${_notests+x} ]; then
+    _opts=('--enable-tests')
+  else
+    _opts=('--disable-tests')
+  fi
+
+  runhaskell Setup configure -O --disable-static --enable-shared --enable-executable-dynamic \
+    --prefix=${pacman_root}/usr \
+    --docdir=${pacman_root}/usr/share/doc/$pkgname \
+    --datasubdir=$pkgname \
+    --dynlibdir='$libdir' \
+    -ftemplateHaskell --ghc-option=-fllvm --ghc-option=-fhide-source-paths \
+    --flags="${_build_flags:-}" \
+    "${_opts[@]}"
+
+  runhaskell Setup build $MAKEFLAGS
+
+  if [ -z ${_no_register+x} ]; then
+    runhaskell Setup register --gen-script
+    runhaskell Setup unregister --gen-script
+
+    sed -i -r -e "s|ghc-pkg.*update[^ ]* |&'--force' |" register.sh
+    sed -i -r -e "s|ghc-pkg.*unregister[^ ]* |&'--force' |" unregister.sh
+  fi
+# template end;
+}
+
+check() {
+# template start; name=haskell-check; version=1.0;
+  cd $_hkgname-$pkgver
+  if [ -z ${_notests+x} ]; then
+    if [ -z ${_tests_can_fail+x} ]; then
+      runhaskell Setup test --show-details=direct
+    else
+      runhaskell Setup test --show-details=direct || echo "tests failed!"
+    fi
+  fi
+# template end;
+}
+
+package() {
+# template start; name=haskell-package; version=1.0;
+  cd $_hkgname-$pkgver
+
+  if [ -z ${_no_register+x} ]; then
+    install -D -m744 register.sh "$pkgdir/${pacman_root}/usr/share/haskell/register/$pkgname.sh"
+    install -D -m744 unregister.sh "$pkgdir/${pacman_root}/usr/share/haskell/unregister/${pkgname}.sh"
+  fi
+
+  local _license_name=${license_name-LICENSE}
+
+  runhaskell Setup copy --destdir="$pkgdir"
+
+  if [ -z ${_no_license+x} ]; then
+    install -D -m644 "${_license_name}" "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+    rm "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/${_license_name}
+  fi
+
+  local dl; for dl in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/* ; do
+    [ ! -e "${dl}" ] || fix_rpath "${dl}"
+  done
+# template end;
+}
+# template end;
+
+# vim: ts=2 sw=2 et:
