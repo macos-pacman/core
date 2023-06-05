@@ -8,7 +8,7 @@
 
 pkgname=gtest
 pkgver=1.13.0
-pkgrel=1
+pkgrel=2
 pkgdesc='Google Test - C++ testing utility'
 url='https://github.com/google/googletest'
 arch=('x86_64' 'arm64')
@@ -36,7 +36,8 @@ build() {
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON \
-    -Dgtest_build_tests=ON
+    -Dgtest_build_tests=ON \
+    -DCMAKE_CXX_STANDARD=17
   cmake --build build
 }
 
