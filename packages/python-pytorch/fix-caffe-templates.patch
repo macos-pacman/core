@@ -1,0 +1,10 @@
+--- a/caffe2/operators/atomic_ops.cc	2023-05-28 23:29:06.248469276 +0800
++++ b/caffe2/operators/atomic_ops.cc	2023-05-28 23:28:59.453859244 +0800
+@@ -175,3 +175,7 @@
+ } // namespace
+ } // namespace fb
+ } // namespace caffe2
++
++namespace caffe2 {
++CAFFE_DEFINE_KNOWN_TYPE(std::unique_ptr<std::atomic<bool>>);
++}
