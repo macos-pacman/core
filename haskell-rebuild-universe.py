@@ -23,7 +23,7 @@ class Package:
 		# no PKGBUILD = no checkdepends
 		checkdeps: list[Package] = []
 		try:
-			pkgbuild = open(f"/pm/pacman-macos/packages/haskell-{self.name.lower()}/PKGBUILD", "r").read()
+			pkgbuild = open(f"/pm/src/packages/haskell-{self.name.lower()}/PKGBUILD", "r").read()
 			if "checkdepends=(" in pkgbuild:
 				tmp = pkgbuild[pkgbuild.index("checkdepends=(") + len("checkdepends=("):]
 				tmp2 = [ x.replace("'", "").replace("\"", "") for x in tmp[:tmp.index(')')].strip().split() ]
@@ -88,7 +88,7 @@ def get_next_rebuild(sorted_pkgs: list[str], broken: set[str]) -> str:
 
 
 def rebuild_package(name: str):
-	cwd=f"/pm/pacman-macos/packages/haskell-{name.lower()}"
+	cwd=f"/pm/src/packages/haskell-{name.lower()}"
 
 	# increment pkgrel
 	with open(f"{cwd}/PKGBUILD", "rb") as f:
@@ -108,11 +108,11 @@ def rebuild_package(name: str):
 	env["SRCDEST"] = f"{cwd}/src-downloads"
 
 	print("")
-	subprocess.check_call([ "makepkg-template", "--template-dir", "/pm/pacman-macos/templates" ], cwd=cwd)
+	subprocess.check_call([ "makepkg-template", "--template-dir", "/pm/src/templates" ], cwd=cwd)
 	subprocess.check_call([ "makepkg", "-Ccfi", "--noconfirm", "--nocheck" ], cwd=cwd, env=env)
 
 def check_package(name: str):
-	cwd=f"/pm/pacman-macos/packages/haskell-{name.lower()}"
+	cwd=f"/pm/src/packages/haskell-{name.lower()}"
 	if not os.path.exists(cwd):
 		return
 
