@@ -1,0 +1,25 @@
+pkgname=lz4
+pkgver=1.9.4
+pkgrel=1
+pkgdesc='Extremely fast compression algorithm'
+arch=('x86_64' 'arm64')
+url='https://lz4.github.io/lz4/'
+license=('GPL2')
+depends=('sh')
+source=("https://github.com/lz4/lz4/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('0b0e3aa07c8c063ddf40b082bdf7e37a1562bda40a0ff5272957f3e987e0e54b')
+sha512sums=('043a9acb2417624019d73db140d83b80f1d7c43a6fd5be839193d68df8fd0b3f610d7ed4d628c2a9184f7cde9a0fd1ba9d075d8251298e3eb4b3a77f52736684')
+
+pacman_root=$(pacman-root-dir)
+
+build() {
+  cd ${pkgname}-${pkgver}
+
+  make PREFIX=${pacman_root}/usr
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+
+  make DESTDIR="${pkgdir}" PREFIX=${pacman_root}/usr install
+}
