@@ -1,0 +1,80 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgbase=librsvg
+pkgname=(librsvg librsvg-docs)
+pkgver=2.56.0
+pkgrel=2
+pkgdesc="SVG rendering library"
+url="https://wiki.gnome.org/Projects/LibRsvg"
+arch=('x86_64' 'arm64')
+license=(LGPL)
+depends=(
+  cairo
+  freetype2
+  gdk-pixbuf2
+  glib2
+  harfbuzz
+  libxml2
+  pango
+)
+makedepends=(
+  gi-docgen
+  git
+  gobject-introspection
+  python-docutils
+  rust
+)
+_commit=b831e077174ae608d8cd09e532fc0e7ce1fe5c4f  # tags/2.56.0^0
+source=("git+https://gitlab.gnome.org/GNOME/librsvg.git#commit=$_commit")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd librsvg
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd librsvg
+  NOCONFIGURE=1 ./autogen.sh
+}
+
+# don't use LTO (breaks stuff)
+# export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+
+build() {
+  cd librsvg
+  ./configure --prefix=${pacman_root}/usr \
+    --enable-gtk-doc \
+    --enable-tools \
+    --enable-pixbuf-loader \
+    --enable-introspection \
+    --disable-static \
+    --disable-Bsymbolic
+  make
+}
+
+check() {
+  # Test suite is very dependent on the versions of
+  # Cairo, Pango, FreeType and HarfBuzz
+  make -C librsvg check || :
+}
+
+package_librsvg() {
+  provides=(librsvg-${pkgver%%.*}.dylib)
+
+  make -C librsvg DESTDIR="$pkgdir" install
+
+  mkdir -p doc/${pacman_root}/usr/share
+  mv {"$pkgdir",doc}/${pacman_root}/usr/share/doc
+}
+
+package_librsvg-docs() {
+  pkgdesc+=" (documentation)"
+  depends=()
+
+  mv doc/* "$pkgdir"
+}
+
+
+# vim:set sw=2 sts=-1 et:
