@@ -1,0 +1,14 @@
+--- a/girepository/gitypelib.c	2023-06-03 12:41:03.934721148 +0800
++++ b/girepository/gitypelib.c	2023-06-03 12:42:05.465514165 +0800
+@@ -2285,6 +2285,11 @@
+           if (m != NULL)
+             return m;
+         }
++      char *tmp = g_build_filename ("%%PACMAN_ROOT%%/usr/lib/", shlib, NULL);
++      m = g_module_open (tmp, G_MODULE_BIND_LAZY);
++      g_free (tmp);
++      if (m != NULL)
++        return m;
+     }
+ 
+   /* Then try loading from standard paths */

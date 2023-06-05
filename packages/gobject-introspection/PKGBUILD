@@ -8,7 +8,7 @@ pkgname=(
   libgirepository
 )
 pkgver=1.76.1
-pkgrel=3
+pkgrel=4
 pkgdesc="Introspection system for GObject-based libraries"
 url="https://wiki.gnome.org/Projects/GObjectIntrospection"
 arch=('x86_64' 'arm64')
@@ -28,9 +28,11 @@ _commit=1565805460c3fd65f8630debd0337ec0e33ee2e7  # tags/1.76.1^0
 source=(
   "git+https://gitlab.gnome.org/GNOME/gobject-introspection.git#commit=$_commit"
   "git+https://gitlab.gnome.org/GNOME/glib.git?signed#tag=$_glibver"
+  'dylib-load-path.patch.in'
 )
 b2sums=('SKIP'
-        'SKIP')
+        'SKIP'
+        '0586869f1417bfc331a4c8f7566d9168852c9c1ece352131fe06779e7035d7f724228ab04dc4e80288791373f86579f040f45227d8b0d00a3b4e9e6573dfc7da')
 validpgpkeys=('923B7025EE03C1C59F42684CF0942E894B2EAFA0'  # Philip Withnall <philip@tecnocode.co.uk>
               'D4C501DA48EB797A081750939449C2F50996635F') # Marco Trevisan <marco@trevi.me>
 
@@ -41,6 +43,8 @@ pkgver() {
 
 prepare() {
   cd $pkgbase
+
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../dylib-load-path.patch.in | patch -Np1
 }
 
 build() {
