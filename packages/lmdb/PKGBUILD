@@ -1,0 +1,43 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Matt Monaco <cx monaco matt>
+
+pkgname=lmdb
+pkgver=0.9.30
+_commit=8f44dca45d87bc1f8da65428172668c5e6154179
+pkgrel=3
+pkgdesc="Symas Lightning Memory-Mapped Database"
+arch=('x86_64' 'arm64')
+url="https://symas.com/lmdb"
+license=('custom:OpenLDAP')
+depends=('glibc')
+makedepends=('git')
+options=('!emptydirs')
+source=("git+https://git.openldap.org/openldap/openldap.git#commit=$_commit"
+        lmdb.pc)
+sha512sums=('SKIP'
+            '0349d4b08a1f93fe338d8f8e3e5a83e24211a46f999fe529bc1ac49c8c4975559d95a548c203d9427e3f82d62e934ba3cd1be6f734f9b9405b2a26477be4ed33')
+
+prepare() {
+  sed -e "s|@PKGVER@|$pkgver|" -i lmdb.pc
+}
+
+build() {
+  cd openldap/libraries/liblmdb
+  make CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" prefix=${pacman_root}/usr
+}
+
+check() {
+  cd openldap/libraries/liblmdb
+  make test
+}
+
+package() {
+  cd openldap/libraries/liblmdb
+  install -dm755 "$pkgdir"/${pacman_root}/usr/{bin,lib,include,man/man1,share}
+  make DESTDIR="$pkgdir" prefix=${pacman_root}/usr install
+
+  mv "$pkgdir"/${pacman_root}/usr/man "$pkgdir"/${pacman_root}/usr/share/man
+
+  install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
+  install -Dm644 "$srcdir"/lmdb.pc -t "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/
+}
