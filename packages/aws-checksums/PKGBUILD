@@ -1,0 +1,35 @@
+# Maintainer: Anatol Pomozov
+
+pkgname=aws-checksums
+pkgver=0.1.14
+pkgrel=1
+pkgdesc='Cross-Platform HW accelerated CRC32c and CRC32 with fallback to efficient SW implementations.'
+arch=('x86_64' 'arm64')
+url='https://github.com/awslabs/aws-checksums'
+license=(Apache)
+depends=(aws-c-common)
+makedepends=(cmake)
+source=(aws-checksums-$pkgver.zip::https://github.com/awslabs/aws-checksums/archive/v$pkgver.zip)
+sha256sums=('936a8eef454ee319175ffae9508e68ae26d4fd8a37e70cd23de7dbee9e923ca1')
+
+build() {
+  cd aws-checksums-$pkgver
+
+  cmake -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_PREFIX_PATH=${pacman_root}/usr \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake --build build
+}
+
+check() {
+  cd aws-checksums-$pkgver
+  cmake --build build --target test
+}
+
+package() {
+  cd aws-checksums-$pkgver
+
+  cmake --build build --target install -- DESTDIR="$pkgdir/"
+  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}
