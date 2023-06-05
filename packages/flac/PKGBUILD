@@ -1,0 +1,59 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Eric Bélanger <eric@archlinux.org>
+
+pkgname=flac
+pkgver=1.4.2
+pkgrel=1
+pkgdesc='Free Lossless Audio Codec'
+url='https://xiph.org/flac/'
+arch=('x86_64' 'arm64')
+license=('BSD' 'GPL')
+depends=('gcc-libs' 'libogg')
+makedepends=('cmake' 'ninja' 'git')
+_commit=b32e5cbf9818ca23dd22aaa75522042c16ea7d17  # tags/1.4.2
+source=("git+https://github.com/xiph/flac?signed#commit=$_commit")
+b2sums=('SKIP')
+validpgpkeys=('5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23') # https://github.com/web-flow.gpg
+
+pkgver() {
+  cd flac
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd flac
+
+  # Fix GStreamer
+  # https://bugs.archlinux.org/task/76120
+  git cherry-pick -n 3d55a9dc6c14317b4766db96bb52e2fd95e920a9
+
+  # Shorten tests
+  sed -i 's/FLAC__TEST_LEVEL=1/FLAC__TEST_LEVEL=0/' test/CMakeLists.txt
+}
+
+build() {
+  cmake -S flac -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DBUILD_SHARED_LIBS=ON \
+    -DINSTALL_MANPAGES=ON \
+    -DWITH_STACK_PROTECTOR=OFF \
+    -DNDEBUG=ON
+  cmake --build build
+}
+
+check() {
+  cd build
+  ctest --output-on-failure --stop-on-failure -j1
+}
+
+package() {
+  provides=('libFLAC.dylib' 'libFLAC++.dylib')
+
+  DESTDIR="${pkgdir}" cmake --install build
+
+  install -Dm 644 flac/src/*/*.m4 -t "${pkgdir}/${pacman_root}/usr/share/aclocal"
+  install -Dm 644 flac/COPYING.Xiph -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+}
+
+# vim:set sw=2 sts=-1 et:
