@@ -1,0 +1,42 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+pkgname=mm-common
+pkgver=1.0.5
+pkgrel=1
+pkgdesc="Common build files of the C++ bindings"
+url="https://www.gtkmm.org/"
+arch=(any)
+depends=(graphviz doxygen gtk-doc libsigc++-docs perl-xml-parser)
+makedepends=(libsigc++ git meson)
+license=(GPL2)
+_commit=16af4937218061076c18816f749242b4c488383b  # tags/1.0.5^0
+source=("git+https://gitlab.gnome.org/GNOME/mm-common.git#commit=$_commit"
+        https://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/libstdc++.tag)
+sha256sums=('SKIP'
+            'dfb6521cb807fc827c34bcd47dbcf2f7564b2fc1b6014ebb13bed349ddf55af0')
+
+pkgver() {
+  cd $pkgname
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd $pkgname
+  cp ../libstdc++.tag doctags
+}
+
+build() {
+  arch-meson $pkgname build
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}
+
+# vim:set sw=2 sts=-1 et:
