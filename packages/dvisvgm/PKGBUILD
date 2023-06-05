@@ -1,0 +1,30 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+
+pkgname=dvisvgm
+pkgver=3.0.4
+pkgrel=1
+pkgdesc='A fast DVI, EPS, and PDF to SVG converter'
+arch=('x86_64' 'arm64')
+url='https://dvisvgm.de/'
+license=(GPL3)
+depends=(texlive-bin woff2 ghostscript)
+makedepends=(python)
+source=(https://github.com/mgieseki/dvisvgm/releases/download/$pkgver/$pkgname-$pkgver.tar.gz)
+sha256sums=('8b2a1b5aa0b0315bae9a8be48dcce003ee15f3101265080d1c57df958190aaf1')
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure \
+    --prefix=${pacman_root}/usr
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+  make check
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+}
