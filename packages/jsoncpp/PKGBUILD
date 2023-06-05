@@ -1,0 +1,56 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+# Contributor: Jonahtan Schaeffer <joschaeffer@gmail.com>
+# COntributor: Drake Arconis <lightdrake@gmail.com>
+
+pkgname=jsoncpp
+pkgver=1.9.5
+pkgrel=2
+pkgdesc='C++ library for interacting with JSON'
+url='https://github.com/open-source-parsers/jsoncpp'
+arch=('x86_64' 'arm64')
+license=('MIT' 'custom:Public_Domain')
+makedepends=('gcc-libs' 'python' 'meson')
+options=('staticlibs')
+source=(https://github.com/open-source-parsers/${pkgname}/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz)
+sha512sums=('1d06e044759b1e1a4cc4960189dd7e001a0a4389d7239a6d59295af995a553518e4e0337b4b4b817e70da5d9731a4c98655af90791b6287870b5ff8d73ad8873')
+b2sums=('744275297647be8f1ac7bbf6c818e5106fc122591b3fb68c37cf33f5b3b7d6666e8429bb7ca2ae693202a5a83c274303804e21ebb27f05ba235568bf75a9b375')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  echo "${pkgver}" > pkg_version
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  echo "Building shared library..."
+  arch-meson --default-library shared build
+  ninja -C build
+
+  echo "Building static library..."
+  CXXFLAGS="$CXXFLAGS -ffat-lto-objects" \
+  arch-meson --default-library static build-static
+  ninja -C build-static
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  ninja -C build test
+  cd test
+  python runjsontests.py ../build/jsontestrunner
+  python rununittests.py ../build/jsoncpp_test
+}
+
+package() {
+  depends=('gcc-libs')
+  provides=('libjsoncpp.dylib')
+
+  cd ${pkgname}-${pkgver}
+  DESTDIR="${pkgdir}" ninja -C build install
+  DESTDIR="${pkgdir}" ninja -C build-static install
+  install -Dm 644 LICENSE -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+}
+
+
+# vim: ts=2 sw=2 et:
