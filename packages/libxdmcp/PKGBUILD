@@ -1,0 +1,31 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=libxdmcp
+pkgver=1.1.4
+pkgrel=2
+pkgdesc="X11 Display Manager Control Protocol library"
+arch=('x86_64' 'arm64')
+url="https://xorg.freedesktop.org/"
+license=('custom')
+depends=('glibc' 'xorgproto')
+makedepends=('xorg-util-macros')
+provides=('libXdmcp.dylib')
+source=(${url}/releases/individual/lib/libXdmcp-${pkgver}.tar.xz{,.sig})
+sha512sums=('83b384d43bfb034c395f83f97d1c6e73aa3d5faa8f8756b08e697c0b9c3c87189651b51e8213fbd1f5f9cbc2d8136cbf143627481744345d78cfe0ff2ad074a9'
+            'SKIP')
+validpgpkeys=('4A193C06D35E7C670FA4EF0BA2FB9E081F2D130E') # Alan Coopersmith <alan.coopersmith@oracle.com>
+
+build() {
+  cd libXdmcp-${pkgver}
+  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc --disable-static
+  make
+}
+
+package() {
+  cd libXdmcp-${pkgver}
+  make DESTDIR="${pkgdir}" install
+
+  install -m755 -d "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install -m644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/"
+}
