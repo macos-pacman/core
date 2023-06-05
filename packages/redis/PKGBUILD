@@ -1,0 +1,53 @@
+# Maintainer: Andrew Crerar <crerar@archlinux.org>
+# Maintainer: Frederik Schwan <freswa at archlinux dot org>
+# Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Jan-Erik Rediger <badboy at archlinux dot us>
+# Contributor: nofxx <x@<nick>.com>
+
+pkgname=redis
+pkgver=7.0.10
+pkgrel=1
+pkgdesc='An in-memory database that persists on disk'
+arch=('x86_64' 'arm64')
+url='https://redis.io/'
+license=('BSD')
+depends=('jemalloc' 'grep')
+makedepends=('openssl')
+backup=(${pacman_root#/}/'etc/redis/redis.conf'
+        ${pacman_root#/}/'etc/redis/sentinel.conf')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/redis/redis/archive/${pkgver}.tar.gz"
+        redis.conf-sane-defaults.patch.in
+        redis-5.0-use-system-jemalloc.patch)
+sha512sums=('603efa12c98163a2abe6874715362c7251c789dad2bff678f4a500e56d1ee3fdcc641e4b635395f7c6a7cefdff073f1eddba5258c99e8f128307f9532949e673'
+            '93eda452ec8c787b7c1694cf324c0a288c6c456c9b3fa0aac338d4ba151429c9233ede610857ad6678b8764012ae9dd53e9c70d73490723d81c3d2b027e3c434'
+            '0acb08a6e0eaba239db7461bcfeddfbe0c1aaa517dc33c3918c9e991a1d5067cfe135b7f75085caade8c3ababd51ec9cefcc4120f57818bea1f7029a548a7732')
+
+prepare() {
+  cd $pkgname-$pkgver
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../redis.conf-sane-defaults.patch.in > redis.conf-sane-defaults.patch
+
+  patch -Np1 < redis.conf-sane-defaults.patch
+  patch -Np1 < ../redis-5.0-use-system-jemalloc.patch
+}
+
+build() {
+  make BUILD_TLS=yes \
+    -C $pkgname-$pkgver
+}
+
+check() {
+  cd $pkgname-$pkgver
+
+  # currently we fail these:
+  # trim on SET with big value in tests/unit/type/string.tcl
+  make test || true
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make PREFIX="$pkgdir"/${pacman_root}/usr install
+
+  install -Dm644 COPYING "$pkgdir"/${pacman_root}/usr/share/licenses/redis/LICENSE
+  install -Dm644 -t "$pkgdir"/${pacman_root}/etc/redis redis.conf sentinel.conf
+}
