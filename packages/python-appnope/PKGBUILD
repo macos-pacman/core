@@ -1,0 +1,28 @@
+pkgname=python-appnope
+pkgver=0.1.3
+pkgrel=1
+pkgdesc="Simple package for disabling App Nap on macOS >= 10.9, which can be problematic."
+arch=('any')
+license=('MIT')
+url="https://github.com/minrk/appnope"
+depends=('python')
+makedepends=('python-setuptools')
+checkdepends=('python-pytest')
+source=("https://pypi.io/packages/source/a/appnope/appnope-${pkgver}.tar.gz")
+sha256sums=('02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24')
+
+build() {
+  cd appnope-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd appnope-$pkgver
+  PYTHONPATH=build/lib pytest || :
+}
+
+package() {
+  cd appnope-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1 --skip-build
+  install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
+}
