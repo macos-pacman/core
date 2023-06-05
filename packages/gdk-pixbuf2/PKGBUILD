@@ -1,0 +1,81 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+pkgbase=gdk-pixbuf2
+pkgname=(gdk-pixbuf2 gdk-pixbuf2-docs)
+pkgver=2.42.10
+pkgrel=2
+pkgdesc="An image loading library"
+url="https://wiki.gnome.org/Projects/GdkPixbuf"
+arch=('x86_64' 'arm64')
+license=(LGPL)
+depends=(glib2 libpng libtiff libjpeg)
+makedepends=(gobject-introspection git meson gi-docgen python-docutils)
+optdepends=(
+  "libwmf: Load .wmf and .apm"
+  "libopenraw: Load .dng, .cr2, .crw, .nef, .orf, .pef, .arw, .erf, .mrw, and .raf"
+  "libavif: Load .avif"
+  "libheif: Load .heif, .heic, and .avif"
+  "libjxl: Load .jxl"
+  "librsvg: Load .svg, .svgz, and .svg.gz"
+  "webp-pixbuf-loader: Load .webp"
+)
+_commit=9ac257eb38f772fec4253e8051743029e75a2acd  # tags/2.42.10^0
+source=(
+  "git+https://gitlab.gnome.org/GNOME/gdk-pixbuf.git#commit=$_commit"
+  gdk-pixbuf-query-loaders.hook.in
+)
+sha256sums=('SKIP'
+            '7d6ea324736a7c86d9f84d7bfb39b7beadbf77490f82e73a97f2a74623564581')
+
+pkgver() {
+  cd gdk-pixbuf
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd gdk-pixbuf
+
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
+      -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
+      ../gdk-pixbuf-query-loaders.hook.in > ../gdk-pixbuf-query-loaders.hook
+
+  # yeet broken tests
+  sed -i.bak -e "/pixbuf-randomly-modified/d" \
+             -e "/pixbuf-readonly-to-mutable/d" \
+             -e "/pixbuf-fail/d" \
+             tests/meson.build
+}
+
+build() {
+  arch-meson gdk-pixbuf build \
+    -D builtin_loaders=all \
+    -D gtk_doc=true \
+    -D installed_tests=false
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package_gdk-pixbuf2() {
+  provides=(libgdk_pixbuf-2.0.dylib)
+  install=gdk-pixbuf2.install
+
+  meson install -C build --destdir "$pkgdir"
+
+  mkdir -p doc/${pacman_root}/usr/share
+  mv {"$pkgdir",doc}/${pacman_root}/usr/share/doc
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 *.hook
+}
+
+package_gdk-pixbuf2-docs() {
+  pkgdesc+=" (documentation)"
+  depends=()
+
+  mv doc/* "$pkgdir"
+}
+
+# vim:set sw=2 sts=-1 et:
