@@ -1,0 +1,131 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_hkgname=pandoc-lua-engine
+pkgname=haskell-${_hkgname}
+pkgver=0.2
+pkgrel=1
+pkgdesc="Lua engine to power custom pandoc conversions"
+url="https://hackage.haskell.org/package/${_hkgname}"
+license=('BSD')
+arch=('x86_64' 'arm64')
+depends=('ghc-libs'
+  'haskell-sha'
+  'haskell-aeson'
+  'haskell-bytestring'
+  'haskell-citeproc'
+  'haskell-containers'
+  'haskell-data-default'
+  'haskell-doclayout'
+  'haskell-doctemplates'
+  'haskell-exceptions'
+  'haskell-hslua'
+  'haskell-hslua-module-doclayout'
+  'haskell-hslua-module-path'
+  'haskell-hslua-module-system'
+  'haskell-hslua-module-text'
+  'haskell-hslua-module-version'
+  'haskell-hslua-module-zip'
+  'haskell-hslua-repl'
+  'haskell-lpeg'
+  'haskell-mtl'
+  'haskell-pandoc'
+  'haskell-pandoc-lua-marshal'
+  'haskell-pandoc-types'
+  'haskell-parsec'
+  'haskell-text'
+)
+checkdepends=(
+  'haskell-tasty'
+  'haskell-tasty-lua'
+  'haskell-tasty-hunit'
+  'haskell-tasty-golden'
+)
+makedepends=('ghc' 'uusi')
+source=("https://hackage.haskell.org/packages/archive/$_hkgname/$pkgver/$_hkgname-$pkgver.tar.gz"
+        'https://github.com/jgm/pandoc/raw/main/pandoc-lua-engine/test/lua/module/sample.svg')
+sha512sums=('c426bcdebeef444c6bc22561f495cc8ea3ce19cf43a81edb26f073e0bc07cd03e2c10b800acbd79302404e7bbd4b2c00eafb33caa973efbc3b5dbd71ef3d883e'
+            '180f4881477b76a6a860e2ef7dd4b8832ec7f1c79a79cbadd1bcb043d6bf9dbaa2a43400a3b46eda74f8527a3a609332acbc2e9f38b17254e6252383ebf8e4d9')
+
+license_name="COPYING.md"
+
+prepare() {
+  cd $_hkgname-$pkgver
+  gen-setup
+
+  ln -sf $srcdir/sample.svg ./test/lua/module/sample.svg
+}
+
+# template start; name=haskell-default; version=1.0;
+# default haskell build steps
+
+build() {
+# template start; name=haskell-build; version=1.0;
+  cd $_hkgname-$pkgver
+
+  local _opts
+  if (( CHECKFUNC )) && [ -z ${_notests+x} ]; then
+    _opts=('--enable-tests')
+  else
+    _opts=('--disable-tests')
+  fi
+
+  runhaskell Setup configure -O --disable-static --enable-shared --enable-executable-dynamic \
+    --prefix=${pacman_root}/usr \
+    --docdir=${pacman_root}/usr/share/doc/$pkgname \
+    --datasubdir=$pkgname \
+    --dynlibdir='$libdir' \
+    -ftemplateHaskell --ghc-option=-fllvm --ghc-option=-fhide-source-paths \
+    --flags="${_build_flags:-}" \
+    "${_opts[@]}"
+
+  runhaskell Setup build $MAKEFLAGS
+
+  if [ -z ${_no_register+x} ]; then
+    runhaskell Setup register --gen-script
+    runhaskell Setup unregister --gen-script
+
+    sed -i -r -e "s|ghc-pkg.*update[^ ]* |&'--force' |" register.sh
+    sed -i -r -e "s|ghc-pkg.*unregister[^ ]* |&'--force' |" unregister.sh
+  fi
+# template end;
+}
+
+check() {
+# template start; name=haskell-check; version=1.0;
+  cd $_hkgname-$pkgver
+  if [ -z ${_notests+x} ]; then
+    if [ -z ${_tests_can_fail+x} ]; then
+      runhaskell Setup test --show-details=direct ${_test_suites+}
+    else
+      runhaskell Setup test --show-details=direct ${_test_suites+} || echo "tests failed!"
+    fi
+  fi
+# template end;
+}
+
+package() {
+# template start; name=haskell-package; version=1.0;
+  cd $_hkgname-$pkgver
+
+  if [ -z ${_no_register+x} ]; then
+    install -D -m744 register.sh "$pkgdir/${pacman_root}/usr/share/haskell/register/$pkgname.sh"
+    install -D -m744 unregister.sh "$pkgdir/${pacman_root}/usr/share/haskell/unregister/${pkgname}.sh"
+  fi
+
+  local _license_name=${license_name-LICENSE}
+
+  runhaskell Setup copy --destdir="$pkgdir"
+
+  if [ -z ${_no_license+x} ]; then
+    install -D -m644 "${_license_name}" "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+    rm "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/${_license_name}
+  fi
+
+  local dl; for dl in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/* ; do
+    [ ! -e "${dl}" ] || fix_rpath "${dl}"
+  done
+# template end;
+}
+# template end;
+
+# vim: ts=2 sw=2 et:
