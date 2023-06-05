@@ -1,0 +1,68 @@
+# Maintainer:  Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Giovanni Scafora <giovanni@archlinux.org>
+# Contributor: Douglas Soares de Andrade <douglas@archlinux.org>
+
+pkgname=mercurial
+pkgver=6.4.3
+pkgrel=1
+pkgdesc='A scalable distributed SCM tool'
+arch=('x86_64' 'arm64')
+url="https://www.mercurial-scm.org/"
+license=(GPL)
+depends=(python)
+makedepends=(python-docutils)
+optdepends=('tk: for the hgk GUI')
+#checkdepends=('breezy' 'cvs' 'git' 'git-lfs' 'python-docutils' 'subversion' 'unzip')
+
+# ToDo:
+# check included contrib/packaging/mercurial.spec and how BLFS/Gentoo/Debian/Fedora do it
+# the following should be either makedepends or checkdepends when running tests
+# 'python-gnupg' 'python-pygments'  'python-pyflakes' 'python-pyopenssl'
+# 'openssh'  'rust' 'subversion' 'breezy' 'cvs' 'git')
+
+backup=(${pacman_root#/}/etc/mercurial/hgrc)
+validpgpkeys=(2BCCE14F5C6725AA2EA8AEB7B9C9DC824AA5BDD5
+              EB851395B4223EE2F7BA0B28DA54740BF08732BA
+              818D87CD1AC180C394C86E633A33DE460D9EC39F  # Pulkit Goyal <7895pulkit@gmail.com>
+              1F66F8CDF654E905C11DA061A11E01CD0E05D956) # Raphaël Gomès <alphare@raphaelgomes.dev>
+source=(https://www.mercurial-scm.org/release/${pkgname}-${pkgver}.tar.gz{,.asc})
+sha512sums=('f212558ef3f60f32d8da05dbe47c64d59cfc7cd69718237452567b2c92cc2d0778bc49b9096e9613b8cc7f99da409f95360d07a57818e7626cb633ee03e1c749'
+            'SKIP')
+
+build() {
+  cd $pkgname-$pkgver
+  python setup.py build
+  make -C contrib/chg
+}
+
+check() {
+  cd $pkgname-$pkgver/tests
+  # TODO - disabled for now - to many tests fail
+  #python run-tests.py # -j48 || :
+}
+
+package() {
+  cd $pkgname-$pkgver
+  python setup.py install --root="$pkgdir" --skip-build --optimize=1
+  make DESTDIR="${pkgdir}" PREFIX=${pacman_root}/usr install
+
+  install -m644 -D contrib/zsh_completion "$pkgdir/${pacman_root}/usr/share/zsh/site-functions/_hg"
+  install -m644 -D contrib/bash_completion "$pkgdir/${pacman_root}/usr/share/bash-completion/completions/hg"
+
+  make -C contrib/chg DESTDIR="$pkgdir" PREFIX=${pacman_root}/usr install
+  install -m755 contrib/hg-ssh "$pkgdir/${pacman_root}/usr/bin"
+  install -m755 contrib/hgk "$pkgdir/${pacman_root}/usr/bin"
+
+  install -d "$pkgdir/${pacman_root}/usr/share/emacs/site-lisp"
+  install -m644 contrib/{mq.el,mercurial.el} "$pkgdir/${pacman_root}/usr/share/emacs/site-lisp"
+
+  install -Dm644 contrib/vim/HGAnnotate.vim \
+    "$pkgdir/${pacman_root}/usr/share/vim/vimfiles/syntax/HGAnnotate.vim"
+
+  # FS#38825 - Add certs config to package
+  install -m755 -d "$pkgdir/${pacman_root}/etc/mercurial"
+  cat <<-EOF > "$pkgdir/${pacman_root}/etc/mercurial/hgrc"
+	[web]
+	cacerts = ${pacman_root}/etc/ssl/certs/ca-certificates.crt
+	EOF
+}
