@@ -48,7 +48,7 @@ build() {
 }
 
 check() {
-  PYTEST_ADDOPTS="-v -k 'not test_file_chooser_dialog and not test_path_exists_various_types'" PYGI_TEST_VERBOSE=1 DYLD_LIBRARY_PATH="${pacman_root}/usr/lib" \
+  PYTEST_ADDOPTS="-v -k 'not test_file_chooser_dialog and not test_path_exists_various_types'" PYGI_TEST_VERBOSE=1 \
     meson test -C build --print-errorlogs
 }
 
