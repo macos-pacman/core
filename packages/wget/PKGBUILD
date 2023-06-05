@@ -1,0 +1,67 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Eric Bélanger <eric@archlinux.org>
+
+pkgname=wget
+pkgver=1.21.3
+pkgrel=1
+pkgdesc='Network utility to retrieve files from the Web'
+url='https://www.gnu.org/software/wget/wget.html'
+arch=('x86_64' 'arm64')
+license=('GPL3')
+depends=('glibc' 'zlib' 'gnutls' 'libidn2' 'libpsl' 'pcre2' 'nettle')
+checkdepends=('python')
+optdepends=('ca-certificates: HTTPS downloads')
+backup=(${pacman_root#/}/etc/wgetrc)
+source=(https://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.gz{,.sig})
+sha256sums=('5726bb8bc5ca0f6dc7110f6416e4bb7019e2d2ff5bf93d1ca2ffcc6656f220e5'
+            'SKIP')
+b2sums=('4ff40a30cb3be82ea492d0eae324a9d43de30a0169d3b219ce25f3d667915f90c7eb1559760d1605340f112e96e028613265e0be73aaba7935c69cc06a4ae4f6'
+        'SKIP')
+validpgpkeys=(
+  'AC404C1C0BF735C63FF4D562263D6DF2E163E1EA' # Giuseppe Scrivano <gscrivano@gnu.org>
+  '7845120B07CBD8D6ECE5FF2B2A1743EDA91A35B6' # Darshit Shah <darnir@gnu.org>
+  '1CB27DBC98614B2D5841646D08302DB6A2670428' # Tim Rühsen <tim.ruehsen@gmx.de>
+)
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  cat >> doc/sample.wgetrc <<EOF
+
+# default root certs location
+ca_certificate=${pacman_root}/etc/ssl/certs/ca-certificates.crt
+EOF
+}
+
+build() {
+  # doesn't build properly using system libunistring...
+  cd ${pkgname}-${pkgver}
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --sysconfdir=${pacman_root}/etc \
+    --disable-rpath \
+    --with-included-libunistring \
+    --with-ssl=gnutls
+  make
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+
+  # these are broken
+  sed -e '/Test-ftp-iri-fallback.px \\/d'  \
+      -e '/Test-ftp-iri.px \\/d'           \
+      -e '/Test-ftp-iri-recursive.px \\/d' \
+      -e '/Test-ftp-iri-disabled.px \\/d'  \
+      -e '/Test-iri-disabled.px \\/d'      \
+      -e '/Test-iri-list.px \\/d'          \
+      -i.bak tests/Makefile
+
+  make check < /dev/null
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+}
+
+# vim: ts=2 sw=2 et:
