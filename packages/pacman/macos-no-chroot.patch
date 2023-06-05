@@ -1,0 +1,33 @@
+--- a/lib/libalpm/util.c	2023-06-03 01:22:03.464763145 +0800
++++ b/lib/libalpm/util.c	2023-06-03 01:23:12.332191398 +0800
+@@ -650,10 +650,14 @@
+ 		}
+ 
+ 		/* use fprintf instead of _alpm_log to send output through the parent */
+-		if(chroot(handle->root) != 0) {
+-			fprintf(stderr, _("could not change the root directory (%s)\n"), strerror(errno));
++
++		// note: don't actually chroot, because "hardened runtime" fuckery means that any script
++		// executing in the chroot environment will just fucking die cryptically
++		if(strcmp(handle->root, "/") != 0) {
++			fprintf(stderr, "tried to chroot to unsupported directory '%s'\n", handle->root);
+ 			exit(1);
+ 		}
++
+ 		if(chdir("/") != 0) {
+ 			fprintf(stderr, _("could not change directory to %s (%s)\n"),
+ 					"/", strerror(errno));
+--- a/src/pacman/pacman.c	2023-06-03 01:23:37.989825311 +0800
++++ b/src/pacman/pacman.c	2023-06-03 01:24:52.902789158 +0800
+@@ -1186,9 +1186,8 @@
+ 		}
+ 	}
+ 
+-	if(config->sysroot && (chroot(config->sysroot) != 0 || chdir("/") != 0)) {
+-		pm_printf(ALPM_LOG_ERROR,
+-				_("chroot to '%s' failed: (%s)\n"), config->sysroot, strerror(errno));
++	if(config->sysroot && strcmp(config->sysroot, "/") != 0) {
++		pm_printf(ALPM_LOG_ERROR, "non-'/' sysroot not supported on macOS due to broken 'chroot'\n");
+ 		cleanup(EXIT_FAILURE);
+ 	}
+ 
