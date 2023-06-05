@@ -1,0 +1,34 @@
+pkgname=python-pyobjc-framework-quartz
+pkgver=9.1.1
+pkgrel=1
+pkgdesc="Wrappers for the “Quartz” related frameworks on macOS"
+url="https://github.com/ronaldoussoren/pyobjc"
+license=('MIT')
+arch=('any')
+depends=('python' 'python-pyobjc-core' 'python-pyobjc-framework-cocoa')
+makedepends=('python-build' 'python-installer')
+checkdepends=('python-pytest')
+source=("https://files.pythonhosted.org/packages/source/p/pyobjc-framework-Quartz/pyobjc-framework-Quartz-$pkgver.tar.gz")
+sha256sums=('8d03bc52bd6d90f00f274fd709b82e53dc5dfca19f3fc744997634e03faaa159')
+
+
+build() {
+  cd pyobjc-framework-Quartz-${pkgver}
+  python -m build -wn
+}
+
+check() {
+  cd pyobjc-framework-Quartz-${pkgver}
+  PYTHONPATH="${PWD}/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-${CARCH}-cpython-311/:${PYTHONPATH}" \
+    python -m pytest -vv \
+      -W "ignore::pytest.PytestCollectionWarning" \
+      --deselect 'PyObjCTest/test_cgwindow.py::TestCGWindow::testFunctions' \
+      --deselect 'PyObjCTest/test_quartz.py::TestCallableMetadata::test_callable_metadata_is_sane' \
+      --deselect 'PyObjCTest/test_quartzfiltermanager.py::TestQuartzFilterManager::testConstants10_6' \
+      < /dev/null
+}
+
+package() {
+  cd pyobjc-framework-Quartz-${pkgver}
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}
