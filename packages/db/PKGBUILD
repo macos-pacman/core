@@ -1,0 +1,47 @@
+# Maintainer: Frederik Schwan <freswa at archlinux dot org>
+# Contributor: Stéphane Gaudreault <stephane@archlinux.org>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: Andreas Radke <andyrtr@archlinux.org>
+
+pkgname=db
+pkgver=6.2.32
+pkgrel=2
+pkgdesc="The Berkeley DB embedded database system"
+arch=('x86_64' 'arm64')
+url='https://www.oracle.com/technology/software/products/berkeley-db/index.html'
+license=(AGPL3)
+depends=(gcc-libs sh)
+source=(https://download.oracle.com/berkeley-db/db-${pkgver}.tar.gz
+        'fix-store-define.patch'
+        'fix-atomic-init-define.patch'
+        'fix-tls-configure.patch')
+b2sums=('d3254fba1300d6c7dda5d872c5fa349e8704d71be9c4d37ccf3357782adeb879ce30e066cf083bd97554405c2e94071a96cee16090ad9f797a4fa657ff7e8c46'
+        '75ad485db2cb0a03364ca8efe3d47f7334b0b62564254d2e113c91e4429b6935419b3e29c7e44aa7a52680a998d3576bdd0fd07222c3e307cecf092ba84dd957'
+        '13fac0dfd8f5dc04707975e27d849f2d2655ebb1ca7aa9afb2cff45953b5d95ddfb581ab0802ab21b1e38163c4b99a5676bb5d6086106483d0341d1a19d8e03f'
+        '36214292f9123cb18e23d64dd4ecd07c5e8ef466f7d66e7801a69e96a4535e9fcf57ceda688b1d005a39b606eae72e94a15427bd9fe971e61268c186a252c0af')
+
+prepare() {
+  cd $pkgname-$pkgver
+
+  patch -Np1 -i ../fix-store-define.patch
+  patch -Np1 -i ../fix-atomic-init-define.patch
+  patch -Np1 -i ../fix-tls-configure.patch
+}
+
+build() {
+  cd ${pkgname}-${pkgver}/build_unix
+  ../dist/configure \
+    --prefix=${pacman_root}/usr \
+    --enable-compat185 \
+    --enable-shared \
+    --disable-static \
+    --enable-cxx \
+    --enable-dbm \
+    --enable-stl
+  make LIBSO_LIBS=-lpthread
+}
+
+package() {
+  make -C ${pkgname}-${pkgver}/build_unix DESTDIR="${pkgdir}" install
+  rm -r "${pkgdir}"/${pacman_root}/usr/docs
+}

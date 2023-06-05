@@ -1,0 +1,22 @@
+--- a/dist/configure
++++ b/dist/configure
+@@ -19147,17 +19147,17 @@
+ template <typename T>class TLSClass {
+               public: static  $ax_tls_decl_keyword  T *tlsvar;
+               };
+               class TLSClass2 {
+               public: static  $ax_tls_decl_keyword int tlsvar;
+               };
+-              template<typename T>  $ax_tls_defn_keyword  T* TLSClass<T>::tlsvar = NULL;
++              template<typename T>  $ax_tls_defn_keyword  T* TLSClass<T>::tlsvar = 0;
+               $ax_tls_defn_keyword int TLSClass2::tlsvar = 1;
+               static $ax_tls_decl_keyword int x = 0;
+ int
+ main ()
+ {
+-TLSClass<int>::tlsvar = NULL; TLSClass2::tlsvar = 1;
++TLSClass<int>::tlsvar = 0; TLSClass2::tlsvar = 1;
+   ;
+   return 0;
+ }
+ _ACEOF

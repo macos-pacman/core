@@ -1,0 +1,12 @@
+diff --git a/db.in b/db.in
+index 92ac822..56cec0b 100644
+--- a/src/dbinc/db.in
++++ b/src/dbinc/db.in
+@@ -2782,7 +2782,6 @@ typedef struct {
+ #define	fetch(a)	__db_dbm_fetch@DB_VERSION_UNIQUE_NAME@(a)
+ #define	firstkey	__db_dbm_firstkey@DB_VERSION_UNIQUE_NAME@
+ #define	nextkey(a)	__db_dbm_nextkey@DB_VERSION_UNIQUE_NAME@(a)
+-#define	store(a, b)	__db_dbm_store@DB_VERSION_UNIQUE_NAME@(a, b)
+ 
+ /*******************************************************
+  * Hsearch historic interface.
