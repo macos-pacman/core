@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+set -e
+gfortran "${@/-fopenmp=libomp/-fopenmp}" -fno-fast-math

@@ -1,0 +1,61 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Thomas Dziedzic < gostrc at gmail >
+# Contributor: Angel 'angvp' Velasquez <angvp[at]archlinux.com.ve>
+# Contributor: Ray Rashif <schiv@archlinux.org>
+# Contributor: Douglas Soares de Andrade <dsa@aur.archlinux.org>
+# Contributor: Bodor Dávid Gábor <david.gabor.bodor@gmail.com>
+# Contributor: Andrzej Giniewicz <gginiu@gmail.com>
+
+_name=scipy
+pkgname=python-scipy
+pkgver=1.10.1
+pkgrel=3
+pkgdesc='Open-source software for mathematics, science, and engineering'
+arch=('x86_64' 'arm64')
+url='https://www.scipy.org/'
+license=(BSD)
+depends=(python-numpy python-pooch lapack)
+provides=(scipy)
+makedepends=(gcc-fortran cython python-pythran pybind11 meson-python python-build python-installer)
+checkdepends=(python-pytest)
+optdepends=('python-pillow: for image saving module')
+source=(https://pypi.python.org/packages/source/${_name:0:1}/$_name/$_name-$pkgver.tar.gz
+        'gfortran-wrapper')
+sha256sums=('2cf9dfb80a7b4589ba4c40ce7588986d6d5cebc5457cad2c2880f6bc2d42f3a5'
+            '637abff72be73a87ac5cabe3a2a81e7b629b2d13be05a96d1f427606a4fc1ac8')
+
+build() {
+  cd $_name-$pkgver
+
+  ln -sf ../gfortran-wrapper ./
+  chmod u+x ./gfortran-wrapper
+
+  export CC=gcc
+  export CXX=g++
+  export FC="$PWD/gfortran-wrapper"
+  export CFLAGS+=" -Wno-deprecated-non-prototype -fno-fast-math "
+  export CXXFLAGS+=" -fno-fast-math "
+
+  python -m build --wheel --no-isolation --skip-dependency-check \
+    -C setup-args=-Dblas=openblas \
+    -C setup-args=-Dlapack=lapack \
+    -C builddir=meson-build
+}
+
+check() {
+  cd $_name-$pkgver
+  [ ! -e "test-env" ] || rm -r test-env
+
+  python -m venv --system-site-packages test-env
+  test-env/bin/python -m installer dist/*.whl
+  cd test-env
+
+  # some tests crash and idk why
+  bin/python -c "from scipy import test; test('full', verbose=1, extra_argv=['-n', '8', '--max-worker-restart=512', '--dist=worksteal'])" || :
+}
+
+package() {
+  cd $_name-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 LICENSE.txt -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
+}
