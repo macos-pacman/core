@@ -1,0 +1,41 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Dan McGee <dan@archlinux.org>
+# Contributor: Michael Irwin <6d6469@gmail.com>
+
+pkgname=memcached
+pkgver=1.6.19
+pkgrel=1
+pkgdesc='Distributed memory object caching system'
+url='https://memcached.org/'
+arch=('x86_64' 'arm64')
+license=('GPL')
+depends=('glibc' 'libevent')
+optdepends=('perl: for memcached-tool usage')
+source=(https://www.memcached.org/files/${pkgname}-${pkgver}.tar.gz)
+sha512sums=('60d93065e0ef2b17e9da5370a497a4fbfc64c0af70e14fdfdab60c0c94c0b19e30da31d615e19565474c278141a4cb401c65fd79bd70947dd96a9fee81824a74')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  ./configure \
+    --prefix=${pacman_root}/usr
+  make
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  make test
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+
+  install -Dm 755 scripts/memcached-tool -t "${pkgdir}/${pacman_root}/usr/bin"
+  install -Dm 644 scripts/memcached-tool.1 -t "${pkgdir}/${pacman_root}/usr/share/man/man1"
+}
+
+# vim: ts=2 sw=2 et:
