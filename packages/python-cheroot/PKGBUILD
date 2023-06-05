@@ -21,9 +21,7 @@ optdepends=(
 )
 makedepends=('python-build' 'python-installer' 'python-setuptools'
 'python-setuptools-scm' 'python-wheel')
-# TODO: package python-pytest-watch
-# TODO: package python-pypytools
-checkdepends=(python-apipkg python-chardet python-colorama
+checkdepends=(python-apipkg python-chardet python-colorama python-pypytools
 python-jaraco.context python-portend python-pyopenssl
 python-pytest python-pytest-forked python-pytest-rerunfailures
 python-pytest-sugar python-pytest-xdist python-requests-toolbelt

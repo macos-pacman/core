@@ -1,0 +1,24 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-pypytools
+pkgver=0.6.2
+pkgrel=1
+pkgdesc="A collection of useful tools to use PyPy-specific features, with CPython fallbacks"
+url="https://pypi.org/project/pypytools/"
+license=('BSD')
+arch=('any')
+depends=('python')
+makedepends=('python-setuptools')
+source=("https://pypi.io/packages/source/p/pypytools/pypytools-$pkgver.tar.gz")
+sha512sums=('5e95ea6c30403d3b46ab43bfa316ba9b3dda85149aa0aaadc3056c74683c2e60cff357d86989b43ccb8fe73ee2a4bace9e8bdb7f164ea497211b4843c32fc05f')
+
+build() {
+  cd pypytools-$pkgver
+  python setup.py build
+}
+
+
+package() {
+  cd pypytools-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+}
