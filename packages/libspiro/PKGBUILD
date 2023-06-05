@@ -1,0 +1,37 @@
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Rémy Oudompheng <oudomphe@clipper.ens.fr>
+
+pkgname=libspiro
+epoch=1
+pkgver=20221101
+pkgrel=1
+pkgdesc='Simplifies the drawing of beautiful curves'
+url='https://github.com/fontforge/libspiro'
+license=('GPL')
+arch=('x86_64' 'arm64')
+source=("https://github.com/fontforge/libspiro/releases/download/${pkgver}/libspiro-dist-${pkgver}.tar.gz")
+depends=(glibc)
+sha256sums=('5984fb5af3e4e1f927f3a74850b705a711fb86284802a5e6170b09786440e8be')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  autoreconf -i
+  automake --foreign -Wall
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  ./configure --prefix=${pacman_root}/usr
+  make
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  make check
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 libspiro.pc "${pkgdir}"/${pacman_root}/usr/lib/pkgconfig/libspiro.pc
+}
