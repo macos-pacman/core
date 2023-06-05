@@ -1,0 +1,14 @@
+--- a/utils/ghc-pkg/Main.hs	2023-05-21 22:38:29.575422539 +0800
++++ b/utils/ghc-pkg/Main.hs	2023-05-21 22:38:42.232760077 +0800
+@@ -1905,8 +1905,9 @@
+   mapM_ (checkDir True  "dynamic-library-dirs") (libraryDynDirs pkg)
+   mapM_ (checkDir True  "include-dirs") (includeDirs pkg)
+   mapM_ (checkDir True  "framework-dirs") (frameworkDirs pkg)
+-  mapM_ (checkFile   True "haddock-interfaces") (haddockInterfaces pkg)
+-  mapM_ (checkDirURL True "haddock-html")       (haddockHTMLs pkg)
++  -- no thanks
++  -- mapM_ (checkFile   True "haddock-interfaces") (haddockInterfaces pkg)
++  -- mapM_ (checkDirURL True "haddock-html")       (haddockHTMLs pkg)
+   checkDuplicateModules pkg
+   checkExposedModules db_stack pkg
+   checkOtherModules pkg

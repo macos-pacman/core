@@ -1,0 +1,267 @@
+pkgname=(ghc ghc-docs)
+pkgver=9.6.1
+pkgrel=1
+pkgdesc="The Glasgow Haskell Compiler"
+url="https://haskell.org/ghc"
+arch=('x86_64' 'arm64')
+license=("BSD-3-Clause")
+
+# note: ghc depends on ghc to bootstrap, use ghcup or something to 'manually' install ghc and pass
+# -d to ignore deps when building.
+depends=('bash')
+makedepends=("ghc" "autoconf" "automake" "python" "python-sphinx" "zlib")
+checkdepends=("python" "bash")
+install=ghc.install
+source=(
+"https://downloads.haskell.org/~ghc/${pkgver}/ghc-${pkgver}-src.tar.xz"
+"https://downloads.haskell.org/~ghc/${pkgver}/ghc-${pkgver}-testsuite.tar.xz"
+"https://github.com/zhiayang/pacman-macos/releases/download/ghc-bootstrap-${pkgver}/sources-tarball.tar.gz"
+
+# stolen from alpine
+"fix-T7060.patch"
+"fix-T21035.patch"
+"fix-egrep-usage.patch"
+
+"ghc-register.hook"
+"ghc-unregister.hook"
+"ghc-rebuild-doc-index.hook"
+
+"no-haddock-annoyances.patch"
+)
+sha512sums=(
+'d9ba7ca372052ed80cda74842f9738e6365856325da5c621d0d6ebf373439342f59693362409c61e7086b15bdb78c74646058ba309a21626bfa1e2e501957cc4'
+'1e08bf2efad92c32dc113c192ef0c4adf247e9f5f5af8cbd1a5a217a5c67af4034fbe05760066860a3aab98f75be59d66e39ae64e04845b6fc319309ba7abbc0'
+'f5f70d13f0561a525372c07913f64b5eab49b6945b3b0fa07d6b2b6185b45687df1f18b3d51962d70c9c3d1be293b5bdbedc1671503c45e36978903ce4be2797'
+'28433f5e86b571ef591ee61153c804eb4a540fda120b7a7aa14f39af46eda6917361d0cd41127356e20f24cf5b9d493ae404023eae31b863c2485fb8cffa0c6a'
+'be5a8639b151b7828ad50b0f63775d34411d971aae73b0fe5c0226e4c70d1ee8353545b1d04c8de7825730b6d73a2e75f855757348b5ffa2d620d20d7e57f8c6'
+'524dec6a4fc2ce45f7a35f089f936fb3020aa8283612de6f0dad34146213df638d654c0943147c77126d54c24f632edc53a0400f1af15bfe0d9d3f20cc4ae869'
+'43048423fde452744f63e91cda46c3e02c4ad3d0bf2e5cce02aa3fb09864f9b662ccb9a6d23eb93e288d3faa8f8f577111f178a5548b3b8c9667c13d722ebe09'
+'3953478ce7c52b2c798929b16aa2d44d58e6f3f6266a305e4afb455815e45a4d287bfdff544cddb5efa6606879fa013e41aafe11f3a6d630299f430f0081c33c'
+'16ad151443083a42cc3cff6fdd4055588d31aad1720c984e813a1a2b1f58795aaeaef703d331e79c691be24ad38aac6f2bee955591230dedfdd092a3b8b92e09'
+'c82c9087e624bd9087683ca9375318e290a0b5b851cc43364e89d318db5a6e010b2e452b49b76c62794614218b8d5edaa5ec4417b1cd778aafb198011488ab55'
+)
+
+# don't extract the bootstrap sources
+noextract=(sources-tarball.tar.gz)
+
+prepare() {
+  ln -sf ghc-${pkgver}-testsuite ghc-$pkgver/testsuite
+
+  cd ghc-${pkgver}
+  patch -Np1 -i ../fix-T7060.patch
+  patch -Np1 -i ../fix-T21035.patch
+  patch -Np1 -i ../fix-egrep-usage.patch
+
+  patch -Np1 -i ../no-haddock-annoyances.patch
+}
+
+# don't want to depend on latex, so no pdfs
+_hadrian_flags=" -j --docs=no-sphinx-pdfs --flavour=release+llvm+split_sections "
+
+build() {
+  cd ghc-$pkgver
+
+  local _chost _cbuild _ctarget
+  _chost=${CHOST/arm64/aarch64}
+  _cbuild=${CBUILD-${_chost}}
+  _ctarget=${CTARGET-${_chost}}
+
+  echo "cc = ${CC}"
+  echo "host = ${_chost}"
+  echo "build = ${_cbuild}"
+  echo "target = ${_ctarget}"
+
+  # create dummy things to unfuck whatever ghc is doing
+  mkdir -p dummy-wrappers
+  ln -sf $(which clang) dummy-wrappers/cc
+  ln -sf $(which clang) dummy-wrappers/gcc
+  ln -sf $(which clang++) dummy-wrappers/c++
+  ln -sf $(which clang++) dummy-wrappers/g++
+
+  ln -sf $(which clang) dummy-wrappers/${_ctarget}-gcc
+  ln -sf $(which clang++) dummy-wrappers/${_ctarget}-g++
+
+  export PATH="${PWD}/dummy-wrappers:${PATH}"
+
+  # first, bootstrap hadrian (the weird ghc build system)
+  pushd hadrian/bootstrap > /dev/null
+    # note: we assume ghc is somewhere in path. if you installed it via ghcup (for bootstrapping)
+    # then just put it somewhere in PATH.
+
+    # note: the bootstrap plan comes with the tarball (we set it up already)
+    # see https://gitlab.haskell.org/ghc/ghc/-/tree/master/hadrian/bootstrap
+    python bootstrap.py --no-archive -w $(which ghc) -s $srcdir/sources-tarball.tar.gz
+  popd > /dev/null
+
+  local _hadrian=$PWD/hadrian/bootstrap/_build/bin/hadrian
+  export CFLAGS="${CFLAGS} -Wno-strict-prototypes -Wno-deprecated-declarations "
+
+  ./configure \
+    --host=${_chost} \
+    --build=${_cbuild} \
+    --prefix=${pacman_root}/usr \
+    --with-system-libffi \
+    --disable-ld-override
+
+  # no quotes on the flags!
+  "${_hadrian}" ${_hadrian_flags}
+}
+
+check() {
+  cd ghc-$pkgver
+  export PATH="${PWD}/dummy-wrappers:${PATH}"
+
+  local _hadrian=$PWD/hadrian/bootstrap/_build/bin/hadrian
+  export CFLAGS="${CFLAGS} -Wno-strict-prototypes -Wno-deprecated-declarations "
+
+	"${_hadrian}" ${_hadrian_flags} test --skip-perf --test-speed=fast
+}
+
+
+# this is a bit weird, but pull this out so that either ghc or ghc-docs can use it.
+# we don't know which package_ function will be called first by makepkg, so we handle either case.
+do_packaging() {
+  if [ -e '.did-packaging' ]; then
+    return
+  fi
+
+  touch '.did-packaging'
+
+  export PATH="${PWD}/dummy-wrappers:${PATH}"
+
+  local _hadrian=$PWD/hadrian/bootstrap/_build/bin/hadrian
+  export CFLAGS="${CFLAGS} -Wno-strict-prototypes -Wno-deprecated-declarations "
+
+  "${_hadrian}" ${_hadrian_flags} binary-dist-dir
+
+  # Hadrian's install command doesn't support DESTDIR.
+  # Hence, we need to install via the bindist.
+  cd _build/bindist/ghc-${pkgver}-${CARCH/arm64/aarch64}-apple-darwin$(uname -r)
+
+  # Need to re-run configure.
+  # See: https://gitlab.haskell.org/ghc/ghc/-/issues/22058
+  ./configure --prefix=${pacman_root}/usr \
+    --with-system-libffi \
+    --disable-ld-override
+
+  make DESTDIR="$pkgdir" RECACHE_PACKAGE_DB=NO install
+  install -Dm644 "$srcdir/ghc-${pkgver}/LICENSE" \
+    "$pkgdir/${pacman_root}/usr/share/licenses/ghc/LICENSE"
+
+  local _prefix=${pkgdir}/${pacman_root}/usr/lib/ghc-${pkgver}
+  local _ghclib=${CARCH/arm64/aarch64}-osx-ghc-${pkgver}
+
+  # this particular dumbass is broken
+  install_name_tool -add_rpath "/opt/pacman/usr/lib/ghc-${pkgver}/lib/${CARCH/arm64/aarch64}-osx-ghc-${pkgver}" \
+    ${pkgdir}/${pacman_root}/usr/lib/ghc-${pkgver}/bin/ghc-iserv-dyn-ghc-${pkgver}
+
+  # finally, fix rpaths. all the real binaries are in /usr/lib/ghc-${pkgver}, the
+  # things in /usr/bin are just scripts that `exec` them ._.
+  local _f; for _f in ${_prefix}/bin/{hpc-ghc,runghc,ghc-iserv-dyn-ghc,ghc-pkg,haddock-ghc,ghc,hsc2hs-ghc}-${pkgver} \
+                      ${_prefix}/lib/bin/ghc-iserv-dyn \
+                      ${_prefix}/lib/${_ghclib}/*.dylib; do
+
+    fix_rpath "${_f}"
+  done
+
+  # yeet the doctrees
+  rm -r "${pkgdir}/${pacman_root}"/usr/share/doc/"ghc-${pkgver}"/html/{users_guide,Haddock}/{.doctrees-html,.log}
+
+  # yeet any existing folders
+  [ ! -e "${srcdir}/docs" ] || rm -r "${srcdir}/docs"
+  [ ! -e "${srcdir}/libs" ] || rm -r "${srcdir}/libs"
+
+  # move the docs to their own folder
+  mkdir -p ${srcdir}/{docs,libs}
+  mv "${pkgdir}/${pacman_root}"/usr/share/doc ${srcdir}/docs/
+
+  # move the "real contents" to their own folder
+  mv "${pkgdir}/${pacman_root}"/usr ${srcdir}/libs/
+}
+
+
+
+_pats=(
+  -e "s|%%PACMAN_ROOT%%|${pacman_root}|g"
+  -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g"
+)
+
+package_ghc-docs() {
+  cd ghc-$pkgver
+  do_packaging
+
+  mkdir -p ${pkgdir}/${pacman_root}/usr/share/
+  mv "${srcdir}/docs/doc" "${pkgdir}/${pacman_root}"/usr/share/
+
+  sed "${_pats[@]}" $srcdir/ghc-rebuild-doc-index.hook > ghc-rebuild-doc-index.hook
+  install -Dm644 ghc-rebuild-doc-index.hook "${pkgdir}/${pacman_root}/usr/share/libalpm/hooks/"
+}
+
+package_ghc() {
+  depends+=("gmp" "libffi" "perl")
+  provides=(ghc ghci=${pkgver} 'ghc-libs'
+    'haskell-cabal=3.10.1.0'
+    'haskell-cabal-syntax=3.10.1.0'
+    'haskell-array=0.5.5.0'
+    'haskell-base=4.18.0.0'
+    'haskell-binary=0.8.9.1'
+    'haskell-bytestring=0.11.4.0'
+    'haskell-containers=0.6.7'
+    'haskell-deepseq=1.4.8.1'
+    'haskell-directory=1.3.8.1'
+    'haskell-exceptions=0.10.7'
+    'haskell-filepath=1.4.100.1'
+    'haskell-ghc-bignum=1.3'
+    'haskell-ghc-boot=9.6.1'
+    'haskell-ghc-boot-th=9.6.1'
+    'haskell-ghc-compact=0.1.0.0'
+    'haskell-ghc-heap=9.6.1'
+    'haskell-ghc-prim=0.10.0'
+    'haskell-haddock=2.28.0'
+    'haskell-haskeline=0.8.2.1'
+    'haskell-hpc=0.6.2.0'
+    'haskell-integer-gmp=1.1'
+    'haskell-libiserv=9.6.1'
+    'haskell-mtl=2.3.1'
+    'haskell-parsec=3.1.16.1'
+    'haskell-pretty=1.1.3.6'
+    'haskell-process=1.6.17.0'
+    'haskell-rts=1.0.2'
+    'haskell-stm=2.5.1.0'
+    'haskell-template-haskell=2.20.0.0'
+    'haskell-terminfo=0.4.1.6'
+    'haskell-text=2.0.2'
+    'haskell-time=1.12.2'
+    'haskell-transformers=0.6.1.0'
+    'haskell-unix=2.8.1.0'
+    'haskell-xhtml=3000.2.2.1'
+  )
+
+  cd ghc-$pkgver
+  do_packaging
+
+  mv "${srcdir}/libs/usr" "${pkgdir}/${pacman_root}"/
+
+  sed "${_pats[@]}" $srcdir/ghc-register.hook > ghc-register.hook
+  sed "${_pats[@]}" $srcdir/ghc-unregister.hook > ghc-unregister.hook
+
+  install -Dm644 ghc-register.hook "${pkgdir}/${pacman_root}/usr/share/libalpm/hooks/"
+  install -Dm644 ghc-unregister.hook "${pkgdir}/${pacman_root}/usr/share/libalpm/hooks/"
+
+  # silence the ghc-pkg check warning
+  mkdir -p ${pkgdir}/${pacman_root}/usr/lib/ghc-*/${CARCH/arm64/aarch64}-osx-ghc-*/directory-*/include
+
+  # /bin/sh fucks us up big time
+  # in fact, /usr/bin/env fucks us up big time also
+  local f; for f in ${pkgdir}/${pacman_root}/usr/bin/*; do
+    sed -i.bak -e "1s|#!/bin/sh|#!${pacman_root}/usr/bin/bash|" $f
+    rm ${f}.bak
+  done
+}
+
+
+
+
+
+
+
