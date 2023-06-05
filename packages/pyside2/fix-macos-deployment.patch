@@ -1,0 +1,11 @@
+--- a/build_scripts/wheel_utils.py	2023-06-03 23:37:34.455728245 +0800
++++ b/build_scripts/wheel_utils.py	2023-06-03 23:37:47.344798906 +0800
+@@ -104,7 +104,7 @@
+     target = QtInfo().macos_min_deployment_target
+ 
+     if not target:
+-        raise DistutilsSetupError("Failed to query for Qt's QMAKE_MACOSX_DEPLOYMENT_TARGET.")
++        return "12.0"
+     return target
+ 
+ 
