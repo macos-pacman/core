@@ -1,0 +1,15 @@
+--- a/test/lib/random.hpp	2023-05-11 23:44:11.157014412 +0800
++++ b/test/lib/random.hpp	2023-05-11 23:44:56.369504304 +0800
+@@ -39,6 +39,12 @@
+   return uniform_int_distribution<T>(min, max)(rnd_eng);
+ }
+ 
++template<>
++inline char random_num<char>(char min, char max) {
++  lock_guard m{rnd_mtx};
++  return static_cast<char>(uniform_int_distribution<short>(static_cast<short>(min), static_cast<short>(max))(rnd_eng));
++}
++
+ unsigned random_port();
+ string random_port_string(const string &);
+ 

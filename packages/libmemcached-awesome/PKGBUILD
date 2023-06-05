@@ -1,0 +1,53 @@
+# Maintainer: Evangelos Foutras <evangelos@foutrelis.com>
+
+pkgname=libmemcached-awesome
+pkgver=1.1.4
+pkgrel=1
+pkgdesc="C/C++ client library and tools for the memcached server"
+arch=('x86_64' 'arm64')
+url="https://awesomized.github.io/libmemcached/"
+license=('BSD')
+depends=('gcc-libs' 'libsasl' 'libevent')
+makedepends=('cmake' 'memcached' 'python-sphinx' 'python-sphinx_rtd_theme')
+provides=('libmemcached')
+conflicts=('libmemcached')
+replaces=('libmemcached')
+options=('!debug') # some interaction with FIXTURES_OPTIONS_CONFIG makes it
+                   # look in the wrong directory (/usr/src/..) for the file
+source=(https://github.com/awesomized/libmemcached/archive/$pkgver/$pkgname-$pkgver.tar.gz
+        fix-libcpp-compile.patch)
+sha256sums=('c477e1f6510e1dc698e84f3717ce690a8f65b94c616ecaa62306cce0f5e3116a'
+            '33fb45f7d2653ba7fcc837d1f453dc2a9bf1f7d8c76bf41a324dd87ef69a1a0d')
+
+prepare() {
+  cd libmemcached-$pkgver
+  patch -Np1 -i ../fix-libcpp-compile.patch
+}
+
+build() {
+  cmake -B build -S libmemcached-$pkgver \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DBUILD_DOCS=ON \
+    -DBUILD_DOCS_MANGZ=OFF \
+    -DBUILD_TESTING=ON \
+    -DENABLE_SASL=ON \
+    -DENABLE_HASH_HSIEH=ON \
+    -DENABLE_HASH_FNV64=ON \
+    -DENABLE_HASH_MURMUR=ON \
+    -DENABLE_MEMASLAP=ON \
+    -DENABLE_OPENSSL_CRYPTO=ON
+  cmake --build build
+}
+
+check() {
+  cd build
+  ctest --output-on-failure
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+  install -Dm644 libmemcached-$pkgver/LICENSE -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+}
+
+# vim:set ts=2 sw=2 et:
