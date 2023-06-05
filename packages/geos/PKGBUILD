@@ -1,0 +1,34 @@
+# Maintainer: Jaroslav Lichtblau <svetlemodry@archlinux.org>
+# Maintainer: Bruno Pagani <archange@archlinux.org>
+# Contributor: dibblethewrecker dibblethewrecker.at.jiwe.dot.org
+# Contributor: William Rea <sillywilly@gmail.com>
+# Contributor: Alexander Rødseth <rodseth@gmail.com>
+
+pkgname=geos
+pkgver=3.11.2
+pkgrel=1
+pkgdesc="C/C++ library for computational geometry"
+arch=('x86_64' 'arm64')
+url="https://libgeos.org/"
+license=(LGPL)
+depends=(gcc-libs bash)
+makedepends=(cmake)
+options=(!emptydirs)
+changelog=$pkgname.changelog
+source=(https://download.osgeo.org/$pkgname/$pkgname-$pkgver.tar.bz2)
+sha256sums=('b1f077669481c5a3e62affc49e96eb06f281987a5d36fdab225217e5b825e4cc')
+
+build() {
+  cmake -B build -S $pkgname-$pkgver \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DBUILD_DOCUMENTATION=OFF
+  make -C build
+}
+
+check() {
+  ctest --test-dir build --verbose
+}
+
+package() {
+  make -C build DESTDIR="${pkgdir}" install
+}
