@@ -1,0 +1,47 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Alexander Baldeck <alexander@archlinux.org>
+
+pkgname=nspr
+pkgver=4.35
+pkgrel=1
+pkgdesc="Netscape Portable Runtime"
+url="https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSPR"
+arch=('x86_64' 'arm64')
+license=(MPL GPL)
+depends=(glibc sh)
+source=("https://archive.mozilla.org/pub/nspr/releases/v${pkgver}/src/nspr-${pkgver}.tar.gz")
+sha256sums=('7ea3297ea5969b5d25a5dd8d47f2443cda88e9ee746301f6e1e1426f8a6abc8f')
+
+prepare() {
+  cd $pkgname-${pkgver}/nspr
+}
+
+build() {
+  cd $pkgname-$pkgver/nspr
+  ./configure \
+      --prefix=${pacman_root}/usr \
+      --libdir=${pacman_root}/usr/lib \
+      --includedir=${pacman_root}/usr/include/nspr \
+      --enable-optimize \
+      --disable-debug \
+      --enable-64bit
+
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver/nspr
+  make DESTDIR="$pkgdir" install
+  ln -s nspr.pc "$pkgdir/${pacman_root}/usr/lib/pkgconfig/mozilla-nspr.pc"
+
+  rm -r "$pkgdir"/${pacman_root}/usr/include/nspr/md
+  rm "$pkgdir"/${pacman_root}/usr/bin/{compile-et.pl,prerr.properties}
+
+  local _f
+  for _f in ${pkgdir}/${pacman_root}/usr/lib/{libplds4,libplc4,libnspr4}.dylib; do
+    fix_rpath "${pacman_root}" "${pkgdir}" "${_f}"
+  done
+}
+
+# vim:set sw=2 et:
