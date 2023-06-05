@@ -1,0 +1,38 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+pkgname=sdl2_image
+pkgver=2.6.3
+pkgrel=1
+pkgdesc="A simple library to load images of various formats as SDL surfaces (Version 2)"
+arch=('x86_64' 'arm64')
+url="https://github.com/libsdl-org/SDL_image"
+license=('MIT')
+depends=('sdl2' 'libpng' 'libtiff' 'libjpeg' 'libwebp' 'libavif' 'libjxl')
+makedepends=('cmake')
+source=("https://github.com/libsdl-org/SDL_image/releases/download/release-${pkgver}/SDL2_image-${pkgver}.tar.gz"{,.sig})
+sha512sums=('11f1d041a052829708560b6211a2a00b3a1ce26a6f23cb389f57fa5254372027e97d3a6ffe551134a77bc33718c3acea3df21fe8426e93a2b1955176c47c7647'
+            'SKIP')
+validpgpkeys=('1528635D8053A57F77D1E08630A59377A7763BE6')
+
+build() {
+  cd "${srcdir}/SDL2_image-${pkgver}/"
+  export CC="clang"
+  export CXX="clang++"
+  export OBJC="clang"
+  export OBJCXX="clang"
+
+  ./configure --disable-static --prefix=${pacman_root}/usr \
+    --disable-jpg-shared \
+    --disable-png-shared \
+    --disable-stb-image \
+    --disable-tif-shared \
+    --disable-jxl-shared \
+    --disable-webp-shared
+  make
+}
+
+package() {
+  cd "${srcdir}/SDL2_image-${pkgver}/"
+
+  make DESTDIR="${pkgdir}/" install
+  install -Dm644 LICENSE.txt "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+}
