@@ -1,0 +1,45 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Contributor: Alexander Rødseth <rodseth@gmail.com>
+# Contributor: Thomas Dziedzic < gostrc at gmail >
+# Contributor: Dan Serban
+# Contributor: Richard Murri
+
+pkgname=python-werkzeug
+pkgver=2.3.2
+pkgrel=1
+pkgdesc='Swiss Army knife of Python web development'
+url='https://werkzeug.palletsprojects.com/'
+arch=('any')
+license=('custom:BSD')
+depends=('python-markupsafe')
+makedepends=('python-setuptools' 'python-build' 'python-installer' 'python-wheel')
+checkdepends=('python-pytest' 'python-pytest-timeout' 'python-pytest-xprocess' 'python-requests'
+              'python-ephemeral-port-reserve' 'python-greenlet' 'python-watchdog'
+              'python-cryptography')
+source=("https://github.com/pallets/werkzeug/archive/${pkgver}/$pkgname-$pkgver.tar.gz")
+sha512sums=('03b866cc7b2d539ade9284632e55dd66598a06596f3ef1de2b3af9081d8b3c6745eb94744faf7f93abe383615efb3453a41544975fbfb548582ca1912ad932dc')
+
+build() {
+  cd "werkzeug-$pkgver"
+
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd "werkzeug-$pkgver"
+  PYTHONPATH="build/lib" pytest \
+    --deselect=tests/test_serving.py \
+    --deselect=tests/test_debug.py::test_basic \
+    --deselect=tests/middleware/test_http_proxy.py \
+    --deselect='tests/test_exceptions.py::test_response_body[RequestRedirect]' \
+    --deselect='tests/test_routing.py::test_no_memory_leak_from_Rule_builder'
+}
+
+package() {
+  cd "werkzeug-$pkgver"
+
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm 644 LICENSE.rst -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+}
+
+# vim:set ts=2 sw=2 et:
