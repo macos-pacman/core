@@ -61,7 +61,7 @@ build() {
     -D xlib-lease=disabled
     -D gles1=disabled
     -D gles2=enabled
-    -D glx=disabled
+    -D glx=xlib
     -D llvm=enabled
     -D osmesa=true
     -D valgrind=disabled
