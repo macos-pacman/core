@@ -28,6 +28,12 @@ source=(https://files.pythonhosted.org/packages/source/${_name::1}/$_name/$_name
 sha256sums=('e052f69bc8a9073db02484681e8e47004dd1fb3763b0ae833bd899e5895c559a')
 b2sums=('9da65074aeca7de6a91c7afab7ac83ec8724c0595efe4abe7f3e2951ac37137c48a770ea1b5baeeb7484d647c1a03c20c86ad4de7627fb63beef174a2f7c3925')
 
+prepare() {
+  # this thing is broken
+  cd $_name-$pkgver
+  rm pyproject.toml
+}
+
 build() {
   cd $_name-$pkgver
   python -m build --wheel --no-isolation
