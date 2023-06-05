@@ -1,0 +1,10 @@
+--- a/Lib/ctypes/macholib/dyld.py	2023-06-03 13:29:16.223912063 +0800
++++ b/Lib/ctypes/macholib/dyld.py	2023-06-03 13:28:46.893993431 +0800
+@@ -28,6 +28,7 @@
+ 
+ DEFAULT_LIBRARY_FALLBACK = [
+     os.path.expanduser("~/lib"),
++    "%%PACMAN_ROOT%%/usr/lib",
+     "/usr/local/lib",
+     "/lib",
+     "/usr/lib",

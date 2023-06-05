@@ -9,7 +9,7 @@ shopt -s extglob
 pkgbase=python
 pkgname=(python python-tests)
 pkgver=3.11.3
-pkgrel=1
+pkgrel=2
 _pybasever=${pkgver%.*}
 pkgdesc="Next generation of the python high-level scripting language"
 arch=('x86_64' 'arm64')
@@ -19,11 +19,13 @@ depends=('bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib' '
 makedepends=('tk' 'sqlite')
 source=("https://www.python.org/ftp/python/${pkgver%rc*}/Python-${pkgver}.tar.xz"{,.asc}
 		    "fix-pkg-config.patch"
-		    "disable-bad-test.patch")
+		    "disable-bad-test.patch"
+		    "fix-dyld-paths.patch.in")
 sha512sums=('a3bba4b69322a47bfeefe42ba0fd7331b5b67fd2ab41441e2219d16ef8c6f307f1a48977afd073c18cfd24ec6cb1bfe0c4bb4b273031eb524dc7e9fb5fbcc3b6'
             'SKIP'
             '3dc3f94928cd10ed97759bc3ffb95f50dfb97e8a4df3587e46789e9c551f5232dd5e1bb329f598949e39c5bd5c472f128ca1d6d0db369c1b497c05ea85f7c88e'
-            '7ab5f314bdc866854610731c763e53e173a95af9356112ce15ba633c9f810df9720c27a566d37721c65f29ec4614ddf409ee572d5dd584f9599c16b135a9ed5d')
+            '7ab5f314bdc866854610731c763e53e173a95af9356112ce15ba633c9f810df9720c27a566d37721c65f29ec4614ddf409ee572d5dd584f9599c16b135a9ed5d'
+            'cc9f5e0800cb1fdae5f1dab91b9fb04823e093b1b49434d3a0f19770e2ccf46a1736e17d19848c033c671fe071f8478b255839716532fb3550cab7d71dcb7b10')
 validpgpkeys=('0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D'  # Ned Deily (Python release signing key) <nad@python.org>
               'E3FF2839C048B25C084DEBE9B26995E310250568'  # Łukasz Langa (GPG langa.pl) <lukasz@langa.pl>
               'A035C8C19219BA821ECEA86B64E628F8D684696D') # Pablo Galindo Salgado <pablogsal@gmail.com>
@@ -43,6 +45,8 @@ prepare() {
 
   patch -Np1 -i ../fix-pkg-config.patch
   patch -Np1 -i ../disable-bad-test.patch
+
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../fix-dyld-paths.patch.in | patch -Np1
 }
 
 build() {
