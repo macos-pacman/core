@@ -1,0 +1,32 @@
+# Maintainer: Anatol Pomozov
+
+pkgname=aws-c-mqtt
+pkgver=0.8.10
+pkgrel=1
+pkgdesc='C99 implementation of the MQTT 3.1.1 specification'
+arch=('x86_64' 'arm64')
+url='https://github.com/awslabs/aws-c-mqtt'
+license=(Apache)
+depends=(aws-c-common aws-c-http)
+makedepends=(cmake)
+source=(aws-c-mqtt-$pkgver.zip::https://github.com/awslabs/aws-c-mqtt/archive/v$pkgver.zip)
+sha256sums=('b871d5e2c73516996f27afa24c9227c07ec68e016bae88569a43ea4bb107aabc')
+
+build() {
+  cd aws-c-mqtt-$pkgver
+
+  cmake -DCMAKE_BUILD_TYPE=Releasee -DCMAKE_PREFIX_PATH=${pacman_root}/usr -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake --build build
+}
+
+check() {
+  cd aws-c-mqtt-$pkgver
+  cmake --build build --target test
+}
+
+package() {
+  cd aws-c-mqtt-$pkgver
+
+  cmake --build build --target install -- DESTDIR="$pkgdir/"
+  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}
