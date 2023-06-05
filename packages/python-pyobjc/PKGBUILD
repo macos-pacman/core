@@ -1,0 +1,33 @@
+pkgname=python-pyobjc
+pkgver=9.1.1
+pkgrel=1
+pkgdesc="The Python <-> Objective-C Bridge with bindings for macOS frameworks"
+url="https://github.com/ronaldoussoren/pyobjc"
+license=('MIT')
+arch=('any')
+
+# todo: add more of these as we package them
+depends=('python'
+         'python-pyobjc-core'
+         'python-pyobjc-framework-cocoa'
+         'python-pyobjc-framework-quartz'
+)
+makedepends=('python-build' 'python-installer')
+checkdepends=('python-pytest')
+source=("https://files.pythonhosted.org/packages/source/p/pyobjc/pyobjc-$pkgver.tar.gz")
+sha512sums=('SKIP')
+
+build() {
+  cd pyobjc-${pkgver}
+  python -m build -wn
+}
+
+check() {
+  cd pyobjc-${pkgver}
+  python -m pytest || :
+}
+
+package() {
+  cd pyobjc-${pkgver}
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}
