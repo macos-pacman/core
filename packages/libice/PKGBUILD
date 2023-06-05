@@ -1,0 +1,31 @@
+# Maintainer: AndyRTR <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Alexander Baldeck <alexander@archlinux.org>
+
+pkgname=libice
+pkgver=1.1.1
+pkgrel=2
+pkgdesc="X11 Inter-Client Exchange library"
+arch=('x86_64' 'arm64')
+url="https://xorg.freedesktop.org/"
+depends=('glibc' 'xorgproto')
+makedepends=('xtrans' 'xorg-util-macros')
+source=(${url}/releases/individual/lib/libICE-${pkgver}.tar.xz{,.sig})
+license=('custom')
+sha512sums=('2f7833a25f31cc743ca95cb88f9a8403b50e19ffb5bf43bfef87ba405857d359789daaa9ec2391351237d958f16d35dbf082adb76d301e46d3a54162a6b452d3'
+            'SKIP')
+#validpgpkeys=('4A193C06D35E7C670FA4EF0BA2FB9E081F2D130E') # "Alan Coopersmith <alan.coopersmith@oracle.com>"
+validpgpkeys=('3BB639E56F861FA2E86505690FDD682D974CA72A') # Matt Turner <mattst88@gmail.com>
+
+build() {
+  cd libICE-${pkgver}
+  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc
+  make
+}
+
+package() {
+  cd libICE-${pkgver}
+  make DESTDIR="${pkgdir}" install
+
+  install -Dm644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/COPYING"
+}
