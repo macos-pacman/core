@@ -1,0 +1,39 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Hussam Al-Tayeb <ht990332@gmail.com>
+
+pkgname=hunspell
+pkgver=1.7.2
+pkgrel=1
+pkgdesc="Spell checker and morphological analyzer library and program"
+arch=('x86_64' 'arm64')
+url="https://github.com/hunspell/hunspell"
+license=('GPL' 'LGPL' 'MPL')
+depends=('gcc-libs' 'readline')
+optdepends=('perl: for ispellaff2myspell')
+source=(https://github.com/hunspell/hunspell/releases/download/v${pkgver}/hunspell-${pkgver}.tar.gz)
+sha256sums=('11ddfa39afe28c28539fe65fc4f1592d410c1e9b6dd7d8a91ca25d85e9ec65b8')
+
+build() {
+  cd hunspell-$pkgver
+  ./configure --prefix=${pacman_root}/usr \
+    --disable-static \
+    --with-ui \
+    --with-readline
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+}
+
+check() {
+  cd hunspell-$pkgver
+  make check
+}
+
+package() {
+  cd hunspell-$pkgver
+  make DESTDIR="$pkgdir" install
+
+  # add generic hunspell.so for development and projects not using pkgconfig flags - FS#30592
+  pushd "$pkgdir"/${pacman_root}/usr/lib
+  ln -s libhunspell-?.?.dylib libhunspell.dylib
+  popd
+}
