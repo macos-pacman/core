@@ -1,0 +1,51 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+_name=pytest_httpserver
+pkgname=python-pytest-httpserver
+pkgver=1.0.8
+pkgrel=1
+pkgdesc="Http server for pytest to test http clients"
+arch=(any)
+url="https://github.com/csernazs/pytest-httpserver"
+license=(MIT)
+depends=(
+  python
+  python-pytest
+  python-werkzeug
+)
+makedepends=(
+  python-build
+  python-installer
+  python-poetry-core
+  python-wheel
+)
+checkdepends=(
+  python-ipdb
+  python-pytest
+  python-requests
+)
+source=(https://files.pythonhosted.org/packages/source/${_name::1}/$_name/$_name-$pkgver.tar.gz)
+sha256sums=('e052f69bc8a9073db02484681e8e47004dd1fb3763b0ae833bd899e5895c559a')
+b2sums=('9da65074aeca7de6a91c7afab7ac83ec8724c0595efe4abe7f3e2951ac37137c48a770ea1b5baeeb7484d647c1a03c20c86ad4de7627fb63beef174a2f7c3925')
+
+build() {
+  cd $_name-$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  local _site_packages=$(python -c "import site; print(site.getsitepackages()[0])")
+
+  cd $_name-$pkgver
+  # install to temporary location, as importlib is used
+  python -m installer --destdir=test_dir dist/*.whl
+  export PYTHONPATH="test_dir/$_site_packages:$PYTHONPATH"
+  pytest -vv --ignore tests/test_release.py
+}
+
+package() {
+  cd $_name-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -vDm 644 LICENSE -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  install -vDm 644 CHANGES.rst README.md -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+}
