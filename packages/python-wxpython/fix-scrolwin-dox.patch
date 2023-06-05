@@ -1,0 +1,61 @@
+--- a/ext/wxWidgets/docs/doxygen/out/xml/scrolwin_8h.xml	2023-06-04 14:11:23.354400189 +0800
++++ b/ext/wxWidgets/docs/doxygen/out/xml/scrolwin_8h.xml	2023-06-04 14:14:25.955319772 +0800
+@@ -43,8 +43,56 @@
+       </memberdef>
+       </sectiondef>
+       <sectiondef kind="typedef">
+-      <member refid="group__group__class__miscwnd_1ga695bec5996cd4d5512d1a01cfdcf96a5" kind="typedef"><name>wxScrolledWindow</name></member>
+-      <member refid="group__group__class__miscwnd_1ga6b205af0f8759231eab11f15f7d4a098" kind="typedef"><name>wxScrolledCanvas</name></member>
++      <memberdef kind="typedef" id="group__group__class__miscwnd_1ga607ffd127eb0b0a1a7e5e280d4ec8c67" prot="public" static="no">
++        <type><ref refid="classwx_scrolled" kindref="compound">wxScrolled</ref>&lt; <ref refid="classwx_panel" kindref="compound">wxPanel</ref> &gt;</type>
++        <definition>using wxScrolledWindow =  wxScrolled&lt;wxPanel&gt;</definition>
++        <argsstring></argsstring>
++        <name>wxScrolledWindow</name>
++        <briefdescription>
++<para>Scrolled window derived from <ref refid="classwx_panel" kindref="compound">wxPanel</ref>. </para>
++        </briefdescription>
++        <detaileddescription>
++<para>See <ref refid="classwx_scrolled" kindref="compound">wxScrolled</ref> for a detailed description.</para>
++<para><simplesect kind="note"><para>Note that because this class derives from <ref refid="classwx_panel" kindref="compound">wxPanel</ref>, it shares its behaviour with regard to TAB traversal and focus handling (in particular, it forwards focus to its children). If you don&apos;t want this behaviour, use <ref refid="group__group__class__miscwnd_1ga6b205af0f8759231eab11f15f7d4a098" kindref="member">wxScrolledCanvas</ref> instead.</para>
++</simplesect>
++<simplesect kind="note"><para><ref refid="group__group__class__miscwnd_1ga607ffd127eb0b0a1a7e5e280d4ec8c67" kindref="member">wxScrolledWindow</ref> is an alias for wxScrolled&lt;wxPanel&gt; since version 2.9.0. In older versions, it was a standalone class.</para>
++</simplesect>
++<heading level="2"></heading>
++</para>
++<para>Library:<nonbreakablespace/><nonbreakablespace/><ref refid="page_libs_1page_libs_wxcore" kindref="member">wxCore</ref></para>
++<para>Category:<nonbreakablespace/><nonbreakablespace/><ref refid="group__group__class__miscwnd" kindref="compound">Miscellaneous Windows</ref></para>
++<para><simplesect kind="see"><para><ref refid="classwx_scrolled" kindref="compound">wxScrolled</ref>, <ref refid="group__group__class__miscwnd_1ga6b205af0f8759231eab11f15f7d4a098" kindref="member">wxScrolledCanvas</ref> </para>
++</simplesect>
++</para>
++        </detaileddescription>
++        <inbodydescription>
++        </inbodydescription>
++        <location file="interface/wx/scrolwin.h" line="660" column="1" bodyfile="interface/wx/scrolwin.h" bodystart="660" bodyend="-1"/>
++      </memberdef>
++      <memberdef kind="typedef" id="group__group__class__miscwnd_1ga6b205af0f8759231eab11f15f7d4a098" prot="public" static="no">
++        <type><ref refid="classwx_scrolled" kindref="compound">wxScrolled</ref>&lt; <ref refid="classwx_window" kindref="compound">wxWindow</ref> &gt;</type>
++        <definition>typedef wxScrolled&lt;wxWindow&gt; wxScrolledCanvas</definition>
++        <argsstring></argsstring>
++        <name>wxScrolledCanvas</name>
++        <briefdescription>
++<para>Alias for wxScrolled&lt;wxWindow&gt;. </para>
++        </briefdescription>
++        <detaileddescription>
++<para>Scrolled window that doesn&apos;t have children and so doesn&apos;t need or want special handling of TAB traversal.</para>
++<para><simplesect kind="since"><para>2.9.0</para>
++</simplesect>
++<heading level="2"></heading>
++</para>
++<para>Library:<nonbreakablespace/><nonbreakablespace/><ref refid="page_libs_1page_libs_wxcore" kindref="member">wxCore</ref></para>
++<para>Category:<nonbreakablespace/><nonbreakablespace/><ref refid="group__group__class__miscwnd" kindref="compound">Miscellaneous Windows</ref></para>
++<para><simplesect kind="see"><para><ref refid="classwx_scrolled" kindref="compound">wxScrolled</ref>, <ref refid="group__group__class__miscwnd_1ga607ffd127eb0b0a1a7e5e280d4ec8c67" kindref="member">wxScrolledWindow</ref> </para>
++</simplesect>
++</para>
++        </detaileddescription>
++        <inbodydescription>
++        </inbodydescription>
++        <location file="interface/wx/scrolwin.h" line="674" column="20" bodyfile="interface/wx/scrolwin.h" bodystart="674" bodyend="-1"/>
++      </memberdef>
+       </sectiondef>
+       <sectiondef kind="func">
+       <memberdef kind="function" id="scrolwin_8h_1a83d578aba79c5b54372a7c53174c11a3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">

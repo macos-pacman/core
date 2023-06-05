@@ -1,0 +1,72 @@
+# Maintainer: Filipe Laíns (FFY00) <lains@archlinux.org>
+# Maintainer: Morten Linderud <foxboron@archlinux.org>
+# Contributor: Eric Bélanger <eric@archlinux.org>
+
+pkgname=python-wxpython
+_pkgname=wxPython
+pkgver=4.2.0
+_wxver=3.2.0
+_pkgver="${pkgver%.*}"
+_post="${pkgver##*.}"
+pkgrel=4
+epoch=1
+pkgdesc='Cross-platform GUI toolkit'
+arch=('x86_64' 'arm64')
+license=('custom:wxWindows')
+url='https://www.wxpython.org'
+depends=('wxwidgets' 'python-six')
+optdepends=('python-pypubsub: Alternative to the deprecated wx.lib.pubsub API')
+makedepends=('mesa' 'python-requests' 'python-setuptools' 'python-attrdict' 'sip' 'doxygen' 'waf')
+checkdepends=('python-pytest-forked' 'python-numpy')
+source=("https://files.pythonhosted.org/packages/source/w/wxPython/wxPython-$pkgver.tar.gz"
+        'fix-extractor.patch'
+        'fix-grid-dox.patch'
+        'fix-scrolwin-dox.patch')
+sha512sums=('9ec937a024efb2916403c84382a66004f0c2bb07471246b7de517778309ce459e929eeb59e261f538d3fa077c950628de62e49a3760fbd03ab9ff2114c6f354f'
+            '5980739092ab2de096d4054e0b6cc401587cb6a542f3bce9a1ee90c8590aa8fc618995fdc114ba91a2ffd7c22669642cc53c4ff1c33d409aabe4642776a4b755'
+            '97ad84a0e841969394b6ecd8aa28e3197f1dbda09b47f490069118dac9ff6ed9b8fa56bc1a7b690b0c297421b3d95b0dba294eba20361b0b048d6a47b4a19cec'
+            '2a2d363c5eb7b04b8edee359dfbed35f5cb46b9997fa179184177c6ad58166fbd7aa17e0acac8da560880e7cad6ce3022e0c4b899e12fce2199124850a86c66f')
+
+prepare() {
+  cd $_pkgname-$pkgver
+  patch -Np1 -i ../fix-extractor.patch
+
+  sed -i.bak -e 's/getargspec/getfullargspec/g' wx/lib/pubsub/core/callables.py sphinxtools/modulehunter.py
+}
+
+build() {
+  cd $_pkgname-$pkgver
+
+  rm -r sip/{cpp,gen}/* # Recreate sip files with current wxWidgets
+  export SIP=${pacman_root}/usr/bin/sip
+  # export WAF=${pacman_root}/usr/bin/waf
+  export DOXYGEN=${pacman_root}/usr/bin/doxygen
+
+  # first, dox
+  python build.py dox --use_syswx --release --nodoc --osx_cocoa
+
+  # then patch the dox...
+  patch -Np1 -i ${srcdir}/fix-scrolwin-dox.patch
+  patch -Np1 -i ${srcdir}/fix-grid-dox.patch
+
+  # then proceed
+  python build.py touch etg sip build \
+    --use_syswx --release --nodoc \
+    --osx_cocoa
+}
+
+check() {
+  cd $_pkgname-$pkgver
+
+  # there are segfaulting tests so --forked ensures we get sensible results
+  PYTHONPATH=$PWD pytest --forked unittests || echo "==> WARNING: tests usually fail randomly"
+}
+
+package() {
+  cd $_pkgname-$pkgver
+
+  python build.py install --destdir="$pkgdir"
+
+  install -Dm 644 LICENSE.txt "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE.txt
+  find "$pkgdir/${pacman_root}/usr/lib" -type f | xargs chmod 644
+}

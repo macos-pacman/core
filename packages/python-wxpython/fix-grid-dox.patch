@@ -1,0 +1,66 @@
+--- a/ext/wxWidgets/docs/doxygen/out/xml/interface_2wx_2grid_8h.xml	2023-06-04 14:36:22.784047788 +0800
++++ b/ext/wxWidgets/docs/doxygen/out/xml/interface_2wx_2grid_8h.xml	2023-06-04 14:36:41.533126581 +0800
+@@ -260,9 +260,60 @@
+       </memberdef>
+       </sectiondef>
+       <sectiondef kind="typedef">
+-      <member refid="group__group__class__grid_1ga96b09b971041aec484895837865d71fd" kind="typedef"><name>wxGridCellRendererPtr</name></member>
+-      <member refid="group__group__class__grid_1ga768dab6c50f3c568f2957206fa7941b9" kind="typedef"><name>wxGridCellEditorPtr</name></member>
+-      <member refid="group__group__class__grid_1ga5521cb3a42b01f8e4e3511b0903f3f2a" kind="typedef"><name>wxGridCellAttrPtr</name></member>
++      <memberdef kind="typedef" id="group__group__class__grid_1ga96b09b971041aec484895837865d71fd" prot="public" static="no">
++        <type>wxObjectDataPtr&lt; <ref refid="classwx_grid_cell_renderer" kindref="compound">wxGridCellRenderer</ref> &gt;</type>
++        <definition>typedef wxObjectDataPtr&lt;wxGridCellRenderer&gt; wxGridCellRendererPtr</definition>
++        <argsstring></argsstring>
++        <name>wxGridCellRendererPtr</name>
++        <briefdescription>
++<para>Smart pointer wrapping <ref refid="classwx_grid_cell_renderer" kindref="compound">wxGridCellRenderer</ref>. </para>
++        </briefdescription>
++        <detaileddescription>
++<para>wxGridCellRendererPtr takes ownership of <ref refid="classwx_grid_cell_renderer" kindref="compound">wxGridCellRenderer</ref> passed to it on construction and calls DecRef() on it automatically when it is destroyed. It also provides transparent access to <ref refid="classwx_grid_cell_renderer" kindref="compound">wxGridCellRenderer</ref> methods by allowing to use objects of this class as if they were <ref refid="classwx_grid_cell_renderer" kindref="compound">wxGridCellRenderer</ref> pointers.</para>
++<para><simplesect kind="since"><para>3.1.4</para>
++</simplesect>
++Category:<nonbreakablespace/><nonbreakablespace/><ref refid="group__group__class__grid" kindref="compound">Grid Related Classes</ref> </para>
++        </detaileddescription>
++        <inbodydescription>
++        </inbodydescription>
++        <location file="interface/wx/grid.h" line="147" column="25" bodyfile="interface/wx/grid.h" bodystart="147" bodyend="-1"/>
++      </memberdef>
++      <memberdef kind="typedef" id="group__group__class__grid_1ga768dab6c50f3c568f2957206fa7941b9" prot="public" static="no">
++        <type>wxObjectDataPtr&lt; <ref refid="classwx_grid_cell_editor" kindref="compound">wxGridCellEditor</ref> &gt;</type>
++        <definition>typedef wxObjectDataPtr&lt;wxGridCellEditor&gt; wxGridCellEditorPtr</definition>
++        <argsstring></argsstring>
++        <name>wxGridCellEditorPtr</name>
++        <briefdescription>
++<para>Smart pointer wrapping <ref refid="classwx_grid_cell_editor" kindref="compound">wxGridCellEditor</ref>. </para>
++        </briefdescription>
++        <detaileddescription>
++<para>wxGridCellEditorPtr takes ownership of <ref refid="classwx_grid_cell_editor" kindref="compound">wxGridCellEditor</ref> passed to it on construction and calls DecRef() on it automatically when it is destroyed. It also provides transparent access to <ref refid="classwx_grid_cell_editor" kindref="compound">wxGridCellEditor</ref> methods by allowing to use objects of this class as if they were <ref refid="classwx_grid_cell_editor" kindref="compound">wxGridCellEditor</ref> pointers.</para>
++<para><simplesect kind="since"><para>3.1.4</para>
++</simplesect>
++Category:<nonbreakablespace/><nonbreakablespace/><ref refid="group__group__class__grid" kindref="compound">Grid Related Classes</ref> </para>
++        </detaileddescription>
++        <inbodydescription>
++        </inbodydescription>
++        <location file="interface/wx/grid.h" line="820" column="25" bodyfile="interface/wx/grid.h" bodystart="820" bodyend="-1"/>
++      </memberdef>
++      <memberdef kind="typedef" id="group__group__class__grid_1ga5521cb3a42b01f8e4e3511b0903f3f2a" prot="public" static="no">
++        <type>wxObjectDataPtr&lt; <ref refid="classwx_grid_cell_attr" kindref="compound">wxGridCellAttr</ref> &gt;</type>
++        <definition>typedef wxObjectDataPtr&lt;wxGridCellAttr&gt; wxGridCellAttrPtr</definition>
++        <argsstring></argsstring>
++        <name>wxGridCellAttrPtr</name>
++        <briefdescription>
++<para>Smart pointer wrapping <ref refid="classwx_grid_cell_attr" kindref="compound">wxGridCellAttr</ref>. </para>
++        </briefdescription>
++        <detaileddescription>
++<para>wxGridCellAttrPtr takes ownership of <ref refid="classwx_grid_cell_attr" kindref="compound">wxGridCellAttr</ref> passed to it on construction and calls DecRef() on it automatically when it is destroyed. It also provides transparent access to <ref refid="classwx_grid_cell_attr" kindref="compound">wxGridCellAttr</ref> methods by allowing to use objects of this class as if they were <ref refid="classwx_grid_cell_attr" kindref="compound">wxGridCellAttr</ref> pointers.</para>
++<para><simplesect kind="since"><para>3.1.4</para>
++</simplesect>
++Category:<nonbreakablespace/><nonbreakablespace/><ref refid="group__group__class__grid" kindref="compound">Grid Related Classes</ref> </para>
++        </detaileddescription>
++        <inbodydescription>
++        </inbodydescription>
++        <location file="interface/wx/grid.h" line="1536" column="25" bodyfile="interface/wx/grid.h" bodystart="1536" bodyend="-1"/>
++      </memberdef>
+       </sectiondef>
+       <sectiondef kind="var">
+       <memberdef kind="variable" id="interface_2wx_2grid_8h_1a661d09f404e0391eaa885de0aff601e4" prot="public" static="no" mutable="no">

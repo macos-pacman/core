@@ -1,0 +1,11 @@
+--- a/etgtools/extractors.py	2023-06-04 14:09:15.751921254 +0800
++++ b/etgtools/extractors.py	2023-06-04 14:09:09.698918307 +0800
+@@ -61,7 +61,7 @@
+         # Pull info from the ElementTree element that is pertinent to this
+         # class. Should be overridden in derived classes to get what each one
+         # needs in addition to the base.
+-        self.name = element.find(self.nameTag).text
++        self.name = element.find(self.nameTag).text or ''
+         if '::' in self.name:
+             loc = self.name.rfind('::')
+             self.name = self.name[loc+2:]
