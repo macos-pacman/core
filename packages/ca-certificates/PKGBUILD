@@ -1,0 +1,68 @@
+pkgname=ca-certificates
+pkgver=2023_01_10
+pkgrel=2
+pkgdesc="Common CA Certificates"
+arch=(any)
+license=(MIT)
+url="https://curl.se/docs/caextract.html"
+source=("https://curl.se/ca/cacert-${pkgver//_/-}.pem")
+sha256sums=("fb1ecd641d0a02c01bc9036d513cb658bbda62a75e246bedbc01764560a639f0")
+
+macos_system_certs=(
+	/Library/Keychains/System.keychain
+	/System/Library/Keychains/SystemRootCertificates.keychain
+)
+
+extract_cert_file() {
+	echo "extracting $1"
+
+	/usr/bin/security find-certificate -a -p < $1 > all-$(basename $1).pem
+	split -p "-----BEGIN CERTIFICATE-----" all-$(basename $1).pem cert-$(basename $1)-
+}
+
+build() {
+	cd $srcdir
+
+	for cert in "${macos_system_certs[@]}"; do
+		extract_cert_file $cert
+	done
+
+	valid_certs=()
+	for cert_file in $srcdir/cert-*; do
+		# only include certs that haven't expired
+		if openssl x509 -inform pem -checkend 0 -noout < $cert_file; then
+			# only include certs that are meant as SSL roots
+			# if openssl x509 -inform pem -purpose -noout < $cert_file | grep -qs "SSL server CA : Yes"; then
+				valid_certs+=($cert_file)
+			# fi
+		fi
+	done
+
+	echo "found ${#valid_certs[@]} system certificates"
+
+	# only add trusted certs
+	# macos doesn't trust its own certs,
+	# so maybe skip this.
+#	trusted_certs=()
+#	for cert_file in "${valid_certs[@]}"; do
+#		if /usr/bin/security verify-cert -c $cert_file; then
+#			echo $cert_file is trusted
+#		else
+#			echo $cert_file is not trusted
+#		fi
+#	done
+
+	echo > "final-certs.pem"
+	cat cacert-${pkgver//_/-}.pem > "final-certs.pem"
+	for cert in "${valid_certs[@]}"; do
+		cat $cert >> final-certs.pem
+	done
+}
+
+package() {
+	mkdir -p $pkgdir/${pacman_root}/etc/ssl/certs
+	cp $srcdir/final-certs.pem $pkgdir/${pacman_root}/etc/ssl/cert.pem
+
+	ln -sf ../cert.pem $pkgdir/${pacman_root}/etc/ssl/certs/cert.pem
+	ln -sf ../cert.pem $pkgdir/${pacman_root}/etc/ssl/certs/ca-certificates.crt
+}
