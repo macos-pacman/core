@@ -1,0 +1,51 @@
+--- a/Cargo.toml	2023-05-14 18:54:28.593445483 +0800
++++ b/Cargo.toml	2023-05-14 18:56:36.770957523 +0800
+@@ -27,6 +27,9 @@
+ name = "cargo-ctest"
+ path = "src/bin/ctest.rs"
+ 
++[patch.crates-io]
++cargo-util = { path = "./cargo/crates/cargo-util" }
++
+ [dependencies]
+ cargo = "0.70.0"
+ cargo-util = "0.2"
+--- a/Cargo.lock	2023-05-14 19:00:24.275406094 +0800
++++ b/Cargo.lock	2023-05-14 19:02:07.784662564 +0800
+@@ -260,8 +260,6 @@
+ [[package]]
+ name = "cargo-util"
+ version = "0.2.3"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "e4e0cd00582e110eb8d99de768521d36fce9e24a286babf3cea68824ae09948f"
+ dependencies = [
+  "anyhow",
+  "core-foundation",
+@@ -276,7 +274,7 @@
+  "shell-escape",
+  "tempfile",
+  "walkdir",
+- "winapi",
++ "windows-sys 0.45.0",
+ ]
+
+ [[package]]
+--- a/cargo/crates/cargo-util/src/paths.rs
++++ b/cargo/crates/cargo-util/src/paths.rs
+@@ -725,6 +725,7 @@ fn exclude_from_time_machine(_: &Path) {}
+ #[cfg(target_os = "macos")]
+ /// Marks files or directories as excluded from Time Machine on macOS
+ fn exclude_from_time_machine(path: &Path) {
++/*
+     use core_foundation::base::TCFType;
+     use core_foundation::{number, string, url};
+     use std::ptr;
+@@ -742,6 +743,8 @@ fn exclude_from_time_machine(path: &Path) {
+             );
+         }
+     }
++*/
++	let _ = path;
+     // Errors are ignored, since it's an optional feature and failure
+     // doesn't prevent Cargo from working
+ }
