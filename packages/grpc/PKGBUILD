@@ -1,0 +1,168 @@
+# Maintainer: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+# Contributor: Aleksey Filippov <sarum9in@gmail.com>
+# Contributor: Victor Aurélio Santos <victoraur.santos@gmail.com>
+
+pkgbase='grpc'
+pkgname=('grpc' 'python-grpcio' 'python-grpcio-tools' 'grpc-cli')
+pkgver=1.53.0
+_gtestver=0e402173c97aea7a00749e825b194bfede4f2e45
+pkgrel=3
+pkgdesc="High performance, open source, general RPC framework that puts mobile and HTTP/2 first."
+arch=('x86_64' 'arm64')
+url='https://grpc.io'
+license=('BSD')
+makedepends=('re2' 're2c' 'protobuf' 'c-ares' 'openssl' 'cython'
+             'cmake' 'benchmark' 'python-setuptools' 'abseil-cpp' 'ninja')
+checkdepends=('python-six')
+source=("https://github.com/grpc/grpc/archive/v$pkgver/$pkgbase-$pkgver.tar.gz"
+        "https://github.com/google/googletest/archive/$_gtestver/googletest-$_gtestver.tar.gz")
+sha256sums=('9717ffc52120861136e478155c2ff3a9c21740e2244de52fa966f376d7471adf'
+            'c8de6c60e12ad014a28225c5247ee735861d85cf906df617f6a29954ca05f547')
+
+prepare() {
+  cd "$srcdir/$pkgbase-$pkgver"
+
+  ln -sf "$srcdir/googletest-$_gtestver/"{googlemock,googletest} \
+    third_party/googletest
+
+  # use system protobuf for grpcio_tools
+  sed -r -i \
+      -e 's/^(CC_FILES=\[).*(\])/\1\2/' \
+      -e "s@^((CC|PROTO)_INCLUDE=')[^']+'@\1${pacman_root}/usr/include'@" \
+      -e '/^PROTOBUF_SUBMODULE_VERSION=/d' \
+      tools/distrib/python/grpcio_tools/protoc_lib_deps.py
+  # ln -sf ../../../.. tools/distrib/python/grpcio_tools/grpc_root
+
+  cmake -Bbuild-dir \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DNDEBUG" \
+    -DgRPC_INSTALL=ON \
+    -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_CXX_STANDARD=17 \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DgRPC_BUILD_TESTS=ON \
+    -DgRPC_BUILD_CODEGEN=ON \
+    -DgRPC_BUILD_CSHARP_EXT=OFF \
+    -DgRPC_BACKWARDS_COMPATIBILITY_MODE=OFF \
+    -DgRPC_ZLIB_PROVIDER='package' \
+    -DgRPC_CARES_PROVIDER='package' \
+    -DgRPC_RE2_PROVIDER='package' \
+    -DgRPC_SSL_PROVIDER='package' \
+    -DgRPC_PROTOBUF_PROVIDER='package' \
+    -DgRPC_PROTOBUF_PACKAGE_TYPE='MODULE' \
+    -DgRPC_BENCHMARK_PROVIDER='package' \
+    -DgRPC_ABSL_PROVIDER='package' \
+    -DgRPC_USE_PROTO_LITE=OFF \
+    -DgRPC_BUILD_GRPC_CPP_PLUGIN=ON \
+    -DgRPC_BUILD_GRPC_NODE_PLUGIN=ON \
+    -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=ON \
+    -DgRPC_BUILD_GRPC_PYTHON_PLUGIN=ON \
+    -DgRPC_BUILD_GRPC_RUBY_PLUGIN=ON \
+    -GNinja
+}
+
+build() {
+  cd "$srcdir/$pkgbase-$pkgver/build-dir"
+
+  cmake --build .
+
+  # Python
+  export GRPC_PYTHON_LDFLAGS="$(pkg-config --libs protobuf)"
+  export GRPC_PYTHON_BUILD_WITH_CYTHON=1
+  export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1
+  export GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1
+  export GRPC_PYTHON_BUILD_SYSTEM_CARES=1
+  export GRPC_PYTHON_BUILD_SYSTEM_RE2=1
+  export GRPC_PYTHON_BUILD_SYSTEM_ABSL=1
+  export GRPC_BUILD_WITH_BORING_SSL_ASM=0
+
+  local _absl_libs=(
+    'absl_time'
+    'absl_hash'
+    'absl_cord'
+    'absl_status'
+    'absl_strings'
+    'absl_statusor'
+    'absl_str_format'
+    'absl_synchronization'
+    'absl_flat_hash_map'
+    'absl_flat_hash_set'
+    'absl_node_hash_map'
+    'absl_node_hash_set'
+    'absl_random_random'
+  )
+
+  cd "$srcdir/$pkgbase-$pkgver"
+  GRPC_PYTHON_CFLAGS="-fvisibility=hidden -fno-wrapv -fno-exceptions $(pkg-config --cflags protobuf ${_absl_libs[*]}) -std=c++17" \
+  GRPC_PYTHON_LDFLAGS="$(pkg-config --libs protobuf) -lprotoc $(pkg-config --libs ${_absl_libs[*]})" \
+    python setup.py build
+
+  # grpcio-tools
+  cd tools/distrib/python/grpcio_tools
+  GRPC_PYTHON_CFLAGS="-fno-wrapv -frtti $(pkg-config --cflags protobuf ${_absl_libs[*]})" \
+  GRPC_PYTHON_LDFLAGS="$(pkg-config --libs protobuf) -lprotoc $(pkg-config --libs ${_absl_libs[*]})" \
+    python setup.py build
+}
+
+check() {
+  cd "$srcdir/$pkgbase-$pkgver"
+  local _pyver=$(python -c "import sys; print('{0}{1}'.format(*sys.version_info[:2]))")
+  PYTHONPATH="python_build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-$_pyver" python -c 'import grpc'
+}
+
+package_grpc() {
+  depends=('c-ares' 'protobuf' 'openssl' 're2' 'abseil-cpp')
+  provides=(
+    'libupb.dylib'
+    'libgrpcpp_channelz.dylib'
+    'libgrpc_unsecure.dylib'
+    'libgrpc_plugin_support.dylib'
+    'libgrpc.dylib'
+    'libgrpc++_unsecure.dylib'
+    'libgrpc++_reflection.dylib'
+    'libgrpc++_error_details.dylib'
+    'libgrpc++_alts.dylib'
+    'libgrpc++.dylib'
+    'libgpr.dylib'
+    'libaddress_sorting.dylib'
+  )
+
+  cd "$srcdir/$pkgbase-$pkgver/build-dir"
+  DESTDIR="$pkgdir" cmake --install .
+  install -Dm644 ../LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+}
+
+package_python-grpcio() {
+  pkgdesc='Python language bindings for grpc, remote procedure call (RPC) framework'
+  depends=('c-ares' 'python' 'python-six' 're2' 'abseil-cpp')
+
+  cd "$srcdir/$pkgbase-$pkgver"
+  python setup.py install -O1 --skip-build --root="$pkgdir"
+  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+}
+
+package_python-grpcio-tools() {
+  pkgdesc='Python protobuf generator for GRPC'
+  depends=('python-grpcio' 'python-protobuf')
+
+  cd "$srcdir/$pkgbase-$pkgver"
+  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+
+  cd tools/distrib/python/grpcio_tools
+  python setup.py install -O1 --skip-build --root="$pkgdir"
+}
+
+package_grpc-cli() {
+  pkgdesc='gRPC protocol buffers cli'
+  depends=('grpc')
+
+  cd "$srcdir/$pkgbase-$pkgver"
+  install -dm0755 "$pkgdir/${pacman_root}/usr/lib"
+  cp -a build-dir/libgrpc++_test_config.*dylib "$pkgdir/${pacman_root}/usr/lib/"
+
+  install -Dm0755 build-dir/grpc_cli "$pkgdir/${pacman_root}/usr/bin/grpc_cli"
+  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+
+  fix_rpath ${pkgdir}/${pacman_root}/usr/lib/libgrpc++_test_config.1.53.0.dylib
+  fix_rpath ${pkgdir}/${pacman_root}/usr/bin/grpc_cli
+}
