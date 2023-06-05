@@ -1,0 +1,156 @@
+# Maintainer: Anatol Pomozov <anatol.pomozov@gmail.com>
+# Maintainer: Andreas 'Segaja' Schleifer <segaja at archlinux dot org>
+# Maintainer: Tim Meusel <tim@bastelfreak.de>
+# Contributor: Thomas Dziedzic <gostrc@gmail.com>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: John Proctor <jproctor@prium.net>
+# Contributor: Jeramy Rutley <jrutley@gmail.com>
+
+pkgname=ruby-bootstrap
+pkgver=3.2.2
+pkgrel=1
+arch=('x86_64' 'arm64')
+url='https://www.ruby-lang.org/en/'
+license=(BSD custom)
+makedepends=(gdbm libffi libyaml openssl tk rust)
+options=(!emptydirs !lto) # Disable LTO until fixes for https://bugs.ruby-lang.org/issues/18062 released
+_osslver=3.0.0
+source=(https://cache.ruby-lang.org/pub/ruby/${pkgver:0:3}/ruby-${pkgver}.tar.xz)
+sha256sums=('4b352d0f7ec384e332e3e44cdbfdcd5ff2d594af3c8296b5636c710975149e23')
+
+build() {
+  cd ruby-${pkgver}
+
+  export CFLAGS+=" -Wno-error=implicit-function-declaration "
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --sysconfdir=${pacman_root}/etc \
+    --localstatedir=${pacman_root}/var \
+    --sharedstatedir=${pacman_root}/var/lib \
+    --libexecdir=${pacman_root}/usr/lib/ruby \
+    --enable-shared \
+    --disable-rpath \
+    --with-dbm-type=gdbm_compat
+  make
+}
+
+check() {
+  cd ruby-${pkgver}
+
+  make test
+}
+
+package() {
+  pkgdesc='An object-oriented language for quick and easy programming'
+  depends=(gdbm openssl libffi libyaml libxcrypt gmp zlib)
+  provdes=(ruby)
+  optdepends=(
+      'ruby-docs: Ruby documentation'
+      'tk: for Ruby/TK'
+  )
+
+  provides=(ruby
+    # upstream list of bundled gems ( https://github.com/ruby/ruby/blob/master/gems/bundled_gems )
+    # bundled gems
+    ruby-minitest
+    ruby-power_assert
+    ruby-rake
+    ruby-rexml
+    ruby-test-unit
+    #ruby-typeprof
+    #ruby-rss
+    #ruby-rbs
+    #ruby-debug
+    #ruby-matrix
+    #ruby-net-ftp
+    #ruby-net-imap
+    #ruby-net-pop
+    #ruby-net-smtp
+    #ruby-prime
+
+    # upstream list of gems contained in stdlib ( https://github.com/ruby/ruby/tree/master/{ext,lib} )
+    # stdlib things
+    ruby-abbrev
+    ruby-base64
+    ruby-benchmark
+    ruby-bigdecimal
+    ruby-bundler
+    ruby-cgi
+    ruby-csv
+    ruby-date
+    ruby-delegate
+    ruby-did_you_mean
+    ruby-digest
+    ruby-drb
+    ruby-english
+    ruby-erb
+    ruby-etc
+    ruby-fcntl
+    ruby-fiddle
+    ruby-fileutils
+    ruby-find
+    ruby-forwardable
+    #ruby-gdbm   # removed in 3.1.2
+    ruby-getoptlong
+    ruby-io-console
+    ruby-io-nonblock
+    ruby-io-wait
+    ruby-ipaddr
+    ruby-irb
+    ruby-json
+    ruby-logger
+    ruby-mutex_m
+    ruby-net-http
+    #ruby-net-protocol
+    #ruby-nkf
+    #ruby-observer
+    ruby-open-uri
+    #ruby-open3
+    #ruby-openssl
+    #ruby-optparse
+    #ruby-ostruct
+    #ruby-pathname
+    #ruby-pp
+    #ruby-prettyprint
+    #ruby-pstore
+    ruby-psych
+    ruby-racc
+    ruby-rdoc
+    #ruby-readline
+    #ruby-readline-ext
+    ruby-reline
+    #ruby-resolv
+    #ruby-resolv-replace
+    #ruby-rinda
+    #ruby-securerandom
+    #ruby-set
+    #ruby-shellwords
+    #ruby-singleton
+    ruby-stringio
+    #ruby-strscan
+    #ruby-syslog
+    #ruby-tempfile
+    ruby-time
+    #ruby-timeout
+    ruby-tmpdir
+    #ruby-tsort
+    #ruby-un
+    ruby-uri
+    #ruby-weakref
+    #ruby-yaml
+    #ruby-zlib
+
+    #ruby-error_highlight   # new in 3.2.1
+    #ruby2_keywords   # new in 3.1.2 - already exists in [community]
+  )
+
+
+  cd ruby-${pkgver}
+
+  make DESTDIR="${pkgdir}" install-nodoc
+
+  install -D -m644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/ruby/LICENSE"
+  install -D -m644 BSDL "${pkgdir}/${pacman_root}/usr/share/licenses/ruby/BSDL"
+}
+
+# vim: tabstop=2 shiftwidth=2 expandtab:
