@@ -1,0 +1,84 @@
+# Maintainer:
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Thomas Weißschuh <thomas t-8ch.de>
+# Contributor: George Brooke <george+arch.aur@george-brooke.co.uk>
+# Contributor: Sebastian Wiesner <lunaryorn googlemail com>
+
+_name=tox
+pkgname=python-tox
+pkgver=4.5.1
+pkgrel=1
+pkgdesc='Python virtualenv management and testing tool'
+arch=('any')
+url='https://tox.readthedocs.io'
+license=('GPL2')
+depends=(
+  'python'
+  'python-cachetools'
+  'python-chardet'
+  'python-colorama'
+  'python-filelock'
+  'python-packaging'
+  'python-platformdirs'
+  'python-pluggy'
+  'python-pyproject-api'
+  'python-virtualenv'
+)
+makedepends=(
+  'python-build'
+  'python-hatch-vcs'
+  'python-hatchling'
+  'python-installer'
+  'python-wheel'
+)
+checkdepends=(
+  # 'python-devpi-process'  # NOTE: pulls in devpi-{client,server}
+  'python-diff-cover'
+  'python-distlib'
+  'python-flaky'
+  'python-pytest'
+  'python-pytest-mock'
+  'python-psutil'
+  'python-re-assert'
+  # 'python-time-machine'  # NOTE: needed?
+)
+optdepends=(
+  'python-pytest: for pytest plugin to test tox and its plugins'
+  'python-pytest-mock: for pytest plugin to test tox and its plugins'
+  'python-re-assert: for pytest plugin to test tox and its plugins'
+)
+source=(https://files.pythonhosted.org/packages/source/${_name::1}/$_name/$_name-$pkgver.tar.gz)
+sha512sums=('75d495d6dba134c3fe537fc190c1f428ff188ee67c346911c02ee151a8369425b22956eea52be5d434735e1590edce57b3487d5f4b277022bf8cfe8bf4660cf8')
+b2sums=('38ab00eb577e66211db0ecf8931087a8c5a14f8219eb7ebecb7be9938221d1c680edc09a38a5c72b9ec63825d4cbb2d4fd9157a52aed8cdb0d22a1c1bbb70cba')
+
+prepare() {
+  find $_name-$pkgver -name "*.pyc" -delete
+}
+
+build() {
+  cd $_name-$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  local pytest_options=(
+    -vv
+  )
+  local site_packages=$(python -c "import site; print(site.getsitepackages()[0])")
+
+  cd $_name-$pkgver
+  # install to temporary location, as importlib is used
+  python -m installer --destdir=test_dir dist/*.whl
+  export PYTHONPATH="$PWD/test_dir/$site_packages:$PYTHONPATH"
+  # TODO: package remaining checkdepends
+  # pytest "${pytest_options[@]}"
+}
+
+package() {
+  local site_packages=$(python -c "import site; print(site.getsitepackages()[0])")
+
+  cd $_name-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  # add legacy symlink
+  ln -sv tox "$pkgdir"/${pacman_root}/usr/bin/tox3
+}
