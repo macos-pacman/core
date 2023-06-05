@@ -1,0 +1,104 @@
+--- a/gcc-13.1.0.patch	2023-05-11 00:36:17.561075306 +0800
++++ b/gcc-13.1.0.patch	2023-05-11 00:39:29.399977935 +0800
+@@ -3176,9 +3176,9 @@
+ +    # of rpaths, since runpaths set via DYLD_LIBRARY_PATH are elided by key
+ +    # system executables (e.g. /bin/sh).  Force rpaths on for these systems.
+ +      UNSET,darwin1[5-9]*|UNSET,darwin2*|10.1[1-9][,.]*|1[1-9].*[,.]* )
+-+      { $as_echo "$as_me:${as_lineno-$LINENO}: @rpath library names are needed on macOS versions later than 10.11 (rpaths have been enabled)" >&5
+++      { $as_echo "$as_me:${as_lineno-$LINENO}: warning: @rpath library names are needed on macOS versions later than 10.11 (rpaths have been enabled)" >&5
+ +$as_echo "$as_me: @rpath library names are needed on macOS versions later than 10.11 (rpaths have been enabled)" >&6;}
+-+      enable_darwin_at_rpath=yes
+++      enable_darwin_at_rpath=no
+ +      ;;
+ +    # NOTE: we are not (yet) doing anything for 10.5 .. 10.10, since they can
+ +    # work with either DYLD_LIBRARY_PATH or embedded rpaths.
+@@ -12038,7 +12038,7 @@
+ +libasan_darwin_rpath += -Wl,-rpath,@loader_path
+ +endif
+ +libasan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_libasan) $(libasan_darwin_rpath)
+++	$(link_libasan) $(libasan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+  
+  libasan_preinit.o: asan_preinit.o
+  	cp $< $@
+@@ -12055,7 +12055,7 @@
+ +@ENABLE_DARWIN_AT_RPATH_TRUE@	-Wc,-nodefaultrpaths \
+ +@ENABLE_DARWIN_AT_RPATH_TRUE@	-Wl,-rpath,@loader_path
+ +libasan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_libasan) $(libasan_darwin_rpath)
+++	$(link_libasan) $(libasan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+ +
+  
+  # Work around what appears to be a GNU make bug handling MAKEFLAGS
+@@ -12310,7 +12310,7 @@
+ +libhwasan_darwin_rpath = -nodefaultrpaths -Wl,-rpath,@loader_path/
+ +endif
+ +libhwasan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_libhwasan) $(libhwasan_darwin_rpath)
+++	$(link_libhwasan) $(libhwasan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+  
+  libhwasan_preinit.o: hwasan_preinit.o
+  	cp $< $@
+@@ -12325,7 +12325,7 @@
+ -libhwasan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` $(link_libhwasan)
+ +@ENABLE_DARWIN_AT_RPATH_TRUE@libhwasan_darwin_rpath = -nodefaultrpaths -Wl,-rpath,@loader_path/
+ +libhwasan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_libhwasan) $(libhwasan_darwin_rpath)
+++	$(link_libhwasan) $(libhwasan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+ +
+  
+  # Work around what appears to be a GNU make bug handling MAKEFLAGS
+@@ -12345,7 +12345,7 @@
+ +liblsan_darwin_rpath += -Wl,-rpath,@loader_path
+ +endif
+ +liblsan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_liblsan) $(liblsan_darwin_rpath)
+++	$(link_liblsan) $(liblsan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+  liblsan_preinit.o: lsan_preinit.o
+  	cp $< $@
+  
+@@ -12362,7 +12362,7 @@
+ +@ENABLE_DARWIN_AT_RPATH_TRUE@	-Wc,-nodefaultrpaths \
+ +@ENABLE_DARWIN_AT_RPATH_TRUE@	-Wl,-rpath,@loader_path
+ +liblsan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_liblsan) $(liblsan_darwin_rpath)
+++	$(link_liblsan) $(liblsan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+ +
+  
+  # Work around what appears to be a GNU make bug handling MAKEFLAGS
+@@ -12388,7 +12388,7 @@
+ +libtsan_darwin_rpath = -nodefaultrpaths -Wl,-rpath,@loader_path/
+ +endif
+ +libtsan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_libtsan) $(libtsan_darwin_rpath)
+++	$(link_libtsan) $(libtsan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+  
+  libtsan_preinit.o: tsan_preinit.o
+  	cp $< $@
+@@ -12403,7 +12403,7 @@
+ -libtsan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` $(link_libtsan)
+ +@ENABLE_DARWIN_AT_RPATH_TRUE@libtsan_darwin_rpath = -nodefaultrpaths -Wl,-rpath,@loader_path/
+ +libtsan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_libtsan) $(libtsan_darwin_rpath)
+++	$(link_libtsan) $(libtsan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+ +
+  
+  # Work around what appears to be a GNU make bug handling MAKEFLAGS
+@@ -12422,7 +12422,7 @@
+ +libubsan_darwin_rpath += -Wl,-rpath,@loader_path
+ +endif
+ +libubsan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_libubsan) $(libubsan_darwin_rpath)
+++	$(link_libubsan) $(libubsan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+  
+  # Use special rules for files that require RTTI support.
+  ubsan_handlers_cxx.% ubsan_type_hash.% ubsan_type_hash_itanium.% : AM_CXXFLAGS += -frtti
+@@ -12439,7 +12439,7 @@
+ +@ENABLE_DARWIN_AT_RPATH_TRUE@	-Wc,-nodefaultrpaths \
+ +@ENABLE_DARWIN_AT_RPATH_TRUE@	-Wl,-rpath,@loader_path
+ +libubsan_la_LDFLAGS = -version-info `grep -v '^\#' $(srcdir)/libtool-version` \
+-+	$(link_libubsan) $(libubsan_darwin_rpath)
+++	$(link_libubsan) $(libubsan_darwin_rpath) -Wl,-undefined,dynamic_lookup
+ +
+  
+  # Work around what appears to be a GNU make bug handling MAKEFLAGS
