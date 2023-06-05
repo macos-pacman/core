@@ -1,0 +1,78 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Contributor: Hilton Medeiros <medeiros.hilton@gmail.com>
+# Contributor: Dave Reisner <d@falconindy.com>
+
+pkgname=libgit2
+pkgver=1.6.4
+pkgrel=1
+epoch=1
+pkgdesc="A linkable library for Git"
+arch=('x86_64' 'arm64')
+url="https://github.com/libgit2/libgit2"
+license=(GPL2)
+depends=(
+  gcc-libs
+  glibc
+  http-parser
+  zlib
+)
+makedepends=(
+  cmake
+  libssh2
+  openssl
+  pcre2
+  python
+)
+provides=(libgit2.dylib)
+source=($url/archive/v$pkgver/$pkgname-v$pkgver.tar.gz)
+sha512sums=('fd73df91710f19b0d6c3765c37c7f529233196da91cf4d58028a8d3840244f11df44abafabd74a8ed1cbe4826d1afd6ff9f01316d183ace0924c65e7cf0eb8d5')
+b2sums=('103af9ea9ed1310b1066a48859bbefc162647d787519bb3df83d7ea1957cda5934537271970d3d180f91daa6edc3bbc05387d6293812f0d849dda966419d29ba')
+
+build() {
+  local cmake_options=(
+    -B build
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
+    -DREGEX_BACKEND=pcre2
+    -DUSE_HTTP_PARSER=system
+    -DUSE_SSH=ON
+    -S $pkgname-$pkgver
+    -Wno-dev
+  )
+
+  cmake "${cmake_options[@]}"
+  cmake --build build --verbose
+}
+
+check() {
+  local ignored_tests=(
+    'invasive|'
+    'online|'
+    'ssh|'
+    'network_url_parse__hostname_implied_root_empty_port|'
+    'network_url_parse__hostname_empty_port|'
+    'network_url_parse__ipv4_implied_root_empty_port|'
+    'network_url_parse__ipv4_empty_port|'
+    'network_url_parse__ipv6_implied_root_empty_port|'
+    'network_url_parse__ipv6_empty_port'
+  )
+  local ifs="$IFS"
+  IFS=
+  # NOTE: disable tests requiring the internet, relying on non-existent
+  # resources, or those that are only compatible with the (modified) vendored
+  # version of http-parser, but not with upstream http-parser
+  ctest --test-dir build --output-on-failure -E "${ignored_tests[*]}"
+  IFS="$ifs"
+}
+
+package() {
+  depends+=(
+    libssh2 libssh2.dylib
+    openssl libcrypto.dylib libssl.dylib
+    pcre2 libpcre2-8.dylib
+  )
+
+  DESTDIR="$pkgdir" cmake --install build
+  install -vDm 644 $pkgname-$pkgver/{AUTHORS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+}
