@@ -1,0 +1,62 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+
+pkgname=python-requests
+pkgver=2.30.0
+pkgrel=1
+pkgdesc="Python HTTP for Humans"
+arch=('any')
+url="https://requests.readthedocs.io/"
+license=('Apache')
+depends=('python-urllib3' 'python-chardet' 'python-idna' 'python-certifi')
+makedepends=(
+  python-build
+  python-installer
+  python-wheel
+  python-setuptools
+  python-chardet
+  python-urllib3
+  python-idna
+)
+checkdepends=('python-pytest-httpbin' 'python-pytest-mock' 'python-pysocks' 'python-trustme')
+optdepends=('python-pysocks: SOCKS proxy support')
+source=("https://github.com/psf/requests/archive/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha512sums=('73583e5e77340a1b6a1dade517d07cbc17a6b92e25eeb216fc23b45cbbdca01922b2c20e60967520e5d6d66dbb9ff3ceb134fe0b0c1c9db76c1c1c556415febd')
+
+prepare() {
+  cd requests-$pkgver
+  # Stay with chardet for now: https://github.com/psf/requests/issues/5871
+  sed -e '/certifi/d' \
+      -e "s/,<.*'/'/" \
+      -e '/charset_normalizer/d' \
+      -i setup.py
+}
+
+build() {
+  cd requests-$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  # Seems to be a problem about pytest-httpbin:
+  # pytest-httpbin server hit an exception serving request: [SSL: HTTP_REQUEST] http request (_ssl.c:1129)
+  # pytest-httpbin server hit an exception serving request: [SSL: TLSV1_ALERT_UNKNOWN_CA] tlsv1 alert unknown ca (_ssl.c:1129)
+
+  cd requests-$pkgver
+
+  # these tests appear to be broken (or something)
+  pytest tests \
+    --deselect tests/test_requests.py::TestRequests::test_pyopenssl_redirect \
+    --deselect tests/test_requests.py::TestRequests::test_cookie_sent_on_redirect \
+    --deselect tests/test_requests.py::TestRequests::test_cookie_removed_on_expire \
+    --deselect tests/test_requests.py::TestTimeout::test_connect_timeout \
+    --deselect tests/test_requests.py::TestTimeout::test_total_timeout_connect \
+    --deselect tests/test_requests.py::TestPreparingURLs::test_redirecting_to_bad_url
+}
+
+package() {
+  cd requests-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}
+
+# vim: ts=2 sw=2 et:
