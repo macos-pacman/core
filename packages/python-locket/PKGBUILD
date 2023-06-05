@@ -23,7 +23,7 @@ build() {
 
 check() {
   cd ${_pkg}.py-${pkgver}
-  # PYTHONPATH="${PWD}/build/lib/" pytest
+  PYTHONPATH="${PWD}/build/lib/" pytest
 }
 
 package() {
