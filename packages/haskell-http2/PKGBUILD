@@ -1,0 +1,121 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_hkgname=http2
+pkgname=haskell-${_hkgname}
+pkgver=4.1.2
+pkgrel=1
+pkgdesc="HTTP/2 library"
+url="https://hackage.haskell.org/package/${_hkgname}"
+license=('BSD')
+arch=('x86_64' 'arm64')
+depends=('ghc-libs'
+  'haskell-array'
+  'haskell-async'
+  'haskell-bytestring'
+  'haskell-case-insensitive'
+  'haskell-containers'
+  'haskell-http-types'
+  'haskell-network'
+  'haskell-network-byte-order'
+  'haskell-psqueues'
+  'haskell-stm'
+  'haskell-time-manager'
+  'haskell-unix-time'
+  'haskell-unliftio'
+  'haskell-cryptonite'
+  'haskell-network-run'
+)
+checkdepends=(
+  'haskell-text'
+  'haskell-glob'
+  'haskell-hspec'
+  'haskell-aeson'
+  'haskell-vector'
+  'haskell-filepath'
+  'haskell-directory'
+  'haskell-typed-process'
+  'haskell-base16-bytestring'
+  'haskell-unordered-containers'
+)
+makedepends=('ghc')
+source=("https://hackage.haskell.org/packages/archive/$_hkgname/$pkgver/$_hkgname-$pkgver.tar.gz")
+sha512sums=('85fb0025854c059d186dd4cefffb1065f0c87d494740afba6a3f785c7d579bc11e2ba881eeeae8f682e55902e70a8ba8bc571f84aa27fcaf341110fb70e1b43d')
+
+prepare() {
+  cd $_hkgname-$pkgver
+}
+
+# template start; name=haskell-default; version=1.0;
+# default haskell build steps
+
+build() {
+# template start; name=haskell-build; version=1.0;
+  cd $_hkgname-$pkgver
+
+  local _opts
+  if (( CHECKFUNC )) && [ -z ${_notests+x} ]; then
+    _opts=('--enable-tests')
+  else
+    _opts=('--disable-tests')
+  fi
+
+  runhaskell Setup configure -O --disable-static --enable-shared --enable-executable-dynamic \
+    --prefix=${pacman_root}/usr \
+    --docdir=${pacman_root}/usr/share/doc/$pkgname \
+    --datasubdir=$pkgname \
+    --dynlibdir='$libdir' \
+    -ftemplateHaskell --ghc-option=-fllvm --ghc-option=-fhide-source-paths \
+    --flags="${_build_flags:-}" \
+    "${_opts[@]}"
+
+  runhaskell Setup build $MAKEFLAGS
+
+  if [ -z ${_no_register+x} ]; then
+    runhaskell Setup register --gen-script
+    runhaskell Setup unregister --gen-script
+
+    sed -i -r -e "s|ghc-pkg.*update[^ ]* |&'--force' |" register.sh
+    sed -i -r -e "s|ghc-pkg.*unregister[^ ]* |&'--force' |" unregister.sh
+  fi
+# template end;
+}
+
+check() {
+# template start; name=haskell-check; version=1.0;
+  cd $_hkgname-$pkgver
+  if [ -z ${_notests+x} ]; then
+    if [ -z ${_tests_can_fail+x} ]; then
+      runhaskell Setup test --show-details=direct
+    else
+      runhaskell Setup test --show-details=direct || echo "tests failed!"
+    fi
+  fi
+# template end;
+}
+
+package() {
+# template start; name=haskell-package; version=1.0;
+  cd $_hkgname-$pkgver
+
+  if [ -z ${_no_register+x} ]; then
+    install -D -m744 register.sh "$pkgdir/${pacman_root}/usr/share/haskell/register/$pkgname.sh"
+    install -D -m744 unregister.sh "$pkgdir/${pacman_root}/usr/share/haskell/unregister/${pkgname}.sh"
+  fi
+
+  local _license_name=${license_name-LICENSE}
+
+  runhaskell Setup copy --destdir="$pkgdir"
+
+  if [ -z ${_no_license+x} ]; then
+    install -D -m644 "${_license_name}" "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+    rm "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/${_license_name}
+  fi
+
+  local dl; for dl in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/* ; do
+    [ ! -e "${dl}" ] || fix_rpath "${dl}"
+  done
+# template end;
+}
+# template end;
+
+# vim: ts=2 sw=2 et:
