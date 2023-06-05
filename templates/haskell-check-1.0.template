@@ -1,8 +1,8 @@
   cd $_hkgname-$pkgver
   if [ -z ${_notests+x} ]; then
     if [ -z ${_tests_can_fail+x} ]; then
-      runhaskell Setup test --show-details=direct
+      runhaskell Setup test --show-details=direct ${_test_suites+}
     else
-      runhaskell Setup test --show-details=direct || echo "tests failed!"
+      runhaskell Setup test --show-details=direct ${_test_suites+} || echo "tests failed!"
     fi
   fi
