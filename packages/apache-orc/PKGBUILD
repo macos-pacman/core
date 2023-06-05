@@ -4,7 +4,7 @@
 _pkg=orc
 pkgname=apache-${_pkg}
 pkgver=1.8.3
-pkgrel=1
+pkgrel=2
 pkgdesc="Columnar storage for Hadoop workloads."
 arch=('x86_64' 'arm64')
 url="https://orc.apache.org"
@@ -19,11 +19,15 @@ validpgpkeys=(F28C9C925C188C35E345614DEDA00CE834F0FC5C) # Dongjoon Hyun (CODE SI
 prepare(){
   cd ${_pkg}-${pkgver}
   sed -i 's/orc STATIC/orc SHARED/' c++/src/CMakeLists.txt
+  sed -i 's/c++11/c++17/g' CMakeLists.txt
 }
 
 build(){
   cmake -B build -S ${_pkg}-${pkgver} \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_STANDARD=17 \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DPROTOBUF_USE_DLLS=1" \
+    -DCMAKE_CXX_STANDARD_REQUIRED=ON \
     -DCMAKE_INSTALL_PREFIX="${pacman_root}/usr" \
     -DLZ4_HOME="${pacman_root}/usr" \
     -DPROTOBUF_HOME="${pacman_root}/usr" \
@@ -40,8 +44,13 @@ build(){
     -DBUILD_JAVA=OFF \
     -DINSTALL_VENDORED_LIBS=OFF \
     -DCMAKE_CXX_STANDARD=14 \
-    -DSTOP_BUILD_ON_WARNING=OFF
-  make -C build
+    -DSTOP_BUILD_ON_WARNING=OFF \
+    -DVERBOSE_MAKEFILE=1
+
+  # makefiles are fucking broken
+  find build -name "*.make" | xargs sed -i -e 's/gnu++14/c++17/g'
+
+  make -C build VERBOSE=1
 }
 
 check(){
