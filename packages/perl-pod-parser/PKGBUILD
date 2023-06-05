@@ -1,0 +1,29 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=perl-pod-parser
+pkgver=1.66
+pkgrel=1
+pkgdesc="Modules for parsing/translating POD format documents"
+arch=('any')
+license=('PerlArtistic')
+url="https://metacpan.org/release/Pod-Parser"
+depends=('perl')
+options=('!emptydirs')
+source=("https://cpan.metacpan.org/authors/id/M/MA/MAREKR/Pod-Parser-$pkgver.tar.gz")
+sha512sums=('7e9db0166ad74e45a61542a12e901443ae82e5ba06d8c0704f9a617fc792b41b5520b9c071f9ec93bddffaae9a3e2232a777e45d1f64f8e418dd788dd49c189f')
+
+build() {
+  cd Pod-Parser-$pkgver
+  perl Makefile.PL INSTALLDIRS=vendor
+  make
+}
+
+check() {
+  cd Pod-Parser-$pkgver
+  make test
+}
+
+package() {
+  cd Pod-Parser-$pkgver
+  make DESTDIR="$pkgdir" install
+}
