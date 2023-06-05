@@ -1,0 +1,18 @@
+--- a/src/tools/cargo/crates/cargo-util/src/paths.rs	2023-05-14 18:35:56.632607449 +0800
++++ b/src/tools/cargo/crates/cargo-util/src/paths.rs	2023-05-14 18:36:08.983860815 +0800
+@@ -733,6 +733,7 @@
+     let is_excluded_key: Result<string::CFString, _> = "NSURLIsExcludedFromBackupKey".parse();
+     let path = url::CFURL::from_path(path, false);
+     if let (Some(path), Ok(is_excluded_key)) = (path, is_excluded_key) {
++/*
+         unsafe {
+             url::CFURLSetResourcePropertyForKey(
+                 path.as_concrete_TypeRef(),
+@@ -741,6 +742,7 @@
+                 ptr::null_mut(),
+             );
+         }
++*/
+     }
+     // Errors are ignored, since it's an optional feature and failure
+     // doesn't prevent Cargo from working
