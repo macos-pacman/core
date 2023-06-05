@@ -4,7 +4,7 @@
 # Contributor: Ben Greiner <code-arch@bnavigator.de>
 
 pkgname=python-scikit-build
-pkgver=0.17.1
+pkgver=0.17.5
 pkgrel=2
 pkgdesc="Improved build system generator for CPython C, C++, Cython and Fortran extensions"
 arch=(any)
@@ -27,13 +27,16 @@ checkdepends=(
     python-six
     python-virtualenv
 )
-_tag=6e47f59cb4c0057e5559e02c4d30a0619f636d30 # git rev-parse ${pkgver}
+_tag=b15e5682866a63a8151a8f7cd988aef1d5a9cdd1 # git rev-parse ${pkgver}
 source=(git+https://github.com/scikit-build/scikit-build.git#tag=${_tag}?signed)
 sha256sums=('SKIP')
 validpgpkeys=(2FDEC9863E5E14C7BC429F27B9D0E45146A241E8) # Henry Schreiner <hschrein@cern.ch>
 
 prepare() {
   cd scikit-build
+
+  # fucked up
+  sed -i.bak -e 's/CMAKE_INSTALL_PREFIX:PATH/CMAKE_INSTALL_PREFIX/g' skbuild/cmaker.py
 }
 
 build() {
