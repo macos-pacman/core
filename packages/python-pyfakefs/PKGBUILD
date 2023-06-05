@@ -1,0 +1,52 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+
+pkgname=python-pyfakefs
+pkgver=5.2.2
+pkgrel=4
+pkgdesc='pyfakefs implements a fake file system that mocks the Python file system modules'
+url=https://github.com/jmcgeheeiv/pyfakefs/
+license=(APACHE)
+arch=(any)
+depends=(python-pytest)
+makedepends=(
+  git
+  python-setuptools
+)
+checkdepends=(
+  python-tox
+)
+_tag=1ccc6b0917ab9f596957f294468cac940d09d6dc
+source=(git+https://github.com/jmcgeheeiv/pyfakefs.git#tag=${_tag})
+sha256sums=('SKIP')
+
+pkgver() {
+  cd pyfakefs
+
+  git describe --tags | sed 's/^v//'
+}
+
+prepare() {
+  cd  pyfakefs
+  sed -i 's/passenv = HOME USERPROFILE/passenv = HOME,USERPROFILE/' tox.ini
+}
+
+build() {
+  cd  pyfakefs
+
+  python setup.py build
+}
+
+check() {
+  cd  pyfakefs
+
+  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
+  tox -e "py${python_version}"
+}
+
+package() {
+  cd pyfakefs
+
+  python setup.py install --root="${pkgdir}" --optimize=1 --skip-build
+}
+
+# vim: ts=2 sw=2 et:
