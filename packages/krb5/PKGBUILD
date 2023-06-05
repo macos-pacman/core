@@ -1,0 +1,81 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+
+pkgname=krb5
+_pkgvermajor=1.20
+pkgver=1.20.1
+pkgrel=1
+pkgdesc='The Kerberos network authentication system'
+url='https://web.mit.edu/kerberos/'
+arch=('x86_64' 'arm64')
+license=('custom')
+depends=('glibc' 'libldap')
+makedepends=('perl')
+provides=(
+  libgssapi_krb5.dylib
+  libgssrpc.dylib
+  libk5crypto.dylib
+  libkadm5clnt_mit.dylib
+  libkadm5srv_mit.dylib
+  libkdb5.dylib
+  libkdb_ldap.dylib
+  libkrad.dylib
+  libkrb5.dylib
+  libkrb5support.dylib
+)
+backup=(
+  ${pacman_root#/}/'etc/krb5.conf'
+  ${pacman_root#/}/'var/lib/krb5kdc/kdc.conf'
+)
+options=('!emptydirs')
+source=(https://web.mit.edu/kerberos/dist/krb5/${_pkgvermajor}/${pkgname}-${pkgver}.tar.gz{,.asc}
+        0001-krb5-config_LDFLAGS.patch::https://github.com/krb5/krb5/commit/0bfd22feb6493f34fdc894daaf680c3a2f2e7784.patch)
+sha512sums=('6f57479f13f107cd84f30de5c758eb6b9fc59171329c13e5da6073b806755f8d163eb7bd84767ea861ad6458ea0c9eeb00ee044d3bcad01ef136e9888564b6a2'
+            'SKIP'
+            '5debf9dd2d0da84ff6a9e18887fc1bbd0530cc131ac2292ea725f89da8cc84c4b864ebbd1c92eff11d63b98643bff910da3dda40ddc9e1c43f4ce7bd2b6f54dd')
+validpgpkeys=('2C732B1C0DBEF678AB3AF606A32F17FD0055C305'  # Tom Yu <tlyu@mit.edu>
+              'C4493CB739F4A89F9852CBC20CBA08575F8372DF') # Greg Hudson <ghudson@mit.edu>
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+
+  # https://github.com/krb5/krb5/commit/0bfd22feb6493f34fdc894daaf680c3a2f2e7784
+  # https://krbdev.mit.edu/rt/Ticket/Display.html?id=9057
+  patch -Np1 < "${srcdir}"/0001-krb5-config_LDFLAGS.patch
+
+  # FS#25384
+  sed -i "/KRB5ROOT=/s/\/local//" src/util/ac_check_krb5.m4
+}
+
+build() {
+   cd ${pkgname}-${pkgver}/src
+   export CFLAGS+=" -fPIC -fno-strict-aliasing -fstack-protector-all"
+   ./configure --prefix=${pacman_root}/usr \
+               --sbindir=${pacman_root}/usr/bin \
+               --sysconfdir=${pacman_root}/etc \
+               --localstatedir=${pacman_root}/var/lib \
+               --enable-shared \
+               --disable-rpath \
+               --without-tcl \
+               --enable-dns-for-realm \
+               --with-ldap
+   make
+}
+
+package() {
+   cd ${pkgname}-${pkgver}/src
+   make DESTDIR="${pkgdir}" EXAMPLEDIR=${pacman_root}/usr/share/doc/${pkgname}/examples install
+
+   # Fix FS#29889
+   install -m 644 plugins/kdb/ldap/libkdb_ldap/kerberos.{ldif,schema} \
+     "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}/examples"
+
+   install -Dpm 644 config-files/krb5.conf -t "${pkgdir}/${pacman_root}/etc"
+   install -Dpm 644 config-files/kdc.conf -t "${pkgdir}/${pacman_root}/var/lib/krb5kdc"
+
+   install -Dm 644 util/ac_check_krb5.m4 -t "${pkgdir}/${pacman_root}/usr/share/aclocal"
+
+   install -Dm 644 "${srcdir}"/${pkgname}-${pkgver}/NOTICE \
+     "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+# vim: ts=2 sw=2 et:
