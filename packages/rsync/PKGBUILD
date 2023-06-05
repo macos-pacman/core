@@ -1,0 +1,70 @@
+# Maintainer: Christian Hesse <mail@eworm.de>
+
+pkgname=rsync
+_tag='b13e7a8ef4fa430223f66403506fb821caae5cfd' # git rev-parse v${pkgver}
+pkgver=3.2.7
+pkgrel=4
+pkgdesc='A fast and versatile file copying tool for remote and local files'
+arch=('x86_64' 'arm64')
+url='https://rsync.samba.org/'
+license=('GPL3')
+depends=('lz4' 'openssl' 'popt' 'xxhash' 'libxxhash.dylib'
+         'zlib' 'zstd')
+optdepends=('python: for rrsync')
+makedepends=('git')
+validpgpkeys=('0048C8B026D4C96F0E589C2F6C859FB14B96A8C5') # Wayne Davison <wayned@users.sourceforge.net>
+source=("git+https://github.com/WayneD/rsync#tag=${_tag}?signed")
+sha256sums=('SKIP')
+
+_backports=(
+)
+
+_reverts=(
+)
+
+prepare() {
+  cd "$srcdir/rsync"
+
+  local _c
+  for _c in "${_backports[@]}"; do
+    if [[ $_c == *..* ]]; then
+      git log --oneline --reverse "${_c}"
+    else
+      git log --oneline -1 "${_c}"
+    fi
+    git cherry-pick -n -m1 "${_c}"
+  done
+  for _c in "${_reverts[@]}"; do
+    git log --oneline -1 "${_c}"
+    git revert -n "${_c}"
+  done
+}
+
+build() {
+  cd "$srcdir/rsync"
+
+  CONFIG_SHELL=${SHELL} ./configure \
+    --prefix=${pacman_root}/usr \
+    --disable-debug \
+    --with-rrsync \
+    --disable-md2man \
+    --with-included-popt=no \
+    --with-included-zlib=no
+  make
+}
+
+check() {
+  cd "$srcdir/rsync"
+
+  # these two are broken
+  rm -f testsuite/{devices,devices-fake,chown,chown-fake}.test
+  touch testsuite/{devices,chown}-fake.test
+  chmod +x testsuite/{devices,chown}-fake.test
+
+  make test
+}
+
+package() {
+  cd "$srcdir/rsync"
+  make DESTDIR="$pkgdir" install
+}
