@@ -1,0 +1,9 @@
+--- a/scripts/libmakepkg/source/svn.sh.in	2023-06-02 22:33:25.008759938 +0800
++++ b/scripts/libmakepkg/source/svn.sh.in	2023-06-02 22:33:29.553093102 +0800
+@@ -94,5 +94,5 @@
+ 
+ 	msg2 "$(gettext "Creating working copy of %s %s repo...")" "${repo}" "svn"
+ 
+-	cp -au "$dir" "$srcdir"
++	cp -a "$dir" "$srcdir"
+ }
