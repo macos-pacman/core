@@ -4,12 +4,12 @@
 pkgbase=gdk-pixbuf2
 pkgname=(gdk-pixbuf2 gdk-pixbuf2-docs)
 pkgver=2.42.10
-pkgrel=2
+pkgrel=3
 pkgdesc="An image loading library"
 url="https://wiki.gnome.org/Projects/GdkPixbuf"
 arch=('x86_64' 'arm64')
 license=(LGPL)
-depends=(glib2 libpng libtiff libjpeg)
+depends=(glib2 libpng libtiff libjpeg shared-mime-info)
 makedepends=(gobject-introspection git meson gi-docgen python-docutils)
 optdepends=(
   "libwmf: Load .wmf and .apm"
