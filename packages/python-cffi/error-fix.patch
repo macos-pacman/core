@@ -1,0 +1,24 @@
+--- a/testing/support.py	2023-05-06 21:10:36.385909792 +0800
++++ b/testing/support.py	2023-05-06 21:10:59.054337951 +0800
+@@ -109,7 +109,8 @@
+         # assume a standard clang or gcc
+         extra_compile_args = ['-Werror', '-Wall', '-Wextra', '-Wconversion',
+                               '-Wno-unused-parameter',
+-                              '-Wno-unreachable-code']
++                              '-Wno-unreachable-code',
++                              '-Wno-null-pointer-subtraction']
+         # special things for clang
+         extra_compile_args.append('-Qunused-arguments')
+     else:
+--- a/testing/cffi1/test_recompiler.py	2023-05-07 03:26:34.700607905 +0800
++++ b/testing/cffi1/test_recompiler.py	2023-05-07 03:27:40.111442966 +0800
+@@ -33,6 +33,9 @@
+     if not os.environ.get('NO_CPP') and not no_cpp:   # test the .cpp mode too
+         kwds.setdefault('source_extension', '.cpp')
+         source = 'extern "C" {\n%s\n}' % (source,)
++        # broken otherwise
++        kwds['extra_compile_args'] = (kwds.get('extra_compile_args', []) +
++                                      ['-Wno-c++11-narrowing'])
+     elif sys.platform != 'win32' and not ignore_warnings:
+         # add '-Werror' to the existing 'extra_compile_args' flags
+         from testing.support import extra_compile_args
