@@ -1,0 +1,77 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Chocobo1 <chocobo1 AT archlinux DOT net>
+
+pkgbase=aom
+pkgname=(
+  aom
+  aom-docs
+)
+pkgver=3.6.1
+pkgrel=1
+pkgdesc="Alliance for Open Media video codec"
+url="https://aomedia.org/"
+arch=('x86_64' 'arm64')
+license=(
+  BSD
+  custom:PATENTS
+)
+depends=(
+  gcc-libs
+)
+makedepends=(
+  cmake
+  doxygen
+  ninja
+)
+source=(
+  https://storage.googleapis.com/aom-releases/libaom-$pkgver.tar.gz{,.asc}
+)
+b2sums=('c47b748e3dc43e39ecb55c4d61ea3d2d4a889bb8c6c399e29e14269757d271cd759a553f5da765bcdf7cd19546b408fce060d5ed3fb13e3aba4f8d22d612bf29'
+        'SKIP')
+validpgpkeys=(
+  B002F08B74A148DAA01F7123A48E86DB0B830498 # AOMedia release signing key <av1-discuss@aomedia.org>
+)
+
+if [ $(uname -m) = "x86_64" ]; then
+  makedepends+=('yasm')
+fi
+
+prepare() {
+  cd libaom-$pkgver
+}
+
+build() {
+  local cmake_options=(
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
+    -DCMAKE_BUILD_TYPE=Release
+    -DBUILD_SHARED_LIBS=1
+    -DENABLE_TESTS=0
+  )
+
+  # Upstream would like -O3
+  CFLAGS="${CFLAGS/-O2/-O3}"
+  CXXFLAGS="${CXXFLAGS/-O2/-O3}"
+
+  cmake -S libaom-$pkgver -B build -G Ninja "${cmake_options[@]}"
+  cmake --build build
+}
+
+package_aom() {
+  provides=(libaom.dylib)
+
+  DESTDIR="$pkgdir" cmake --install build
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
+}
+
+package_aom-docs() {
+  pkgdesc+=" (documentation)"
+  depends=()
+
+  mkdir -p "$pkgdir/${pacman_root}/usr/share/doc"
+  cp -r build/docs/html "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase"
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
+}
+
+# vim:set sw=2 sts=-1 et:
