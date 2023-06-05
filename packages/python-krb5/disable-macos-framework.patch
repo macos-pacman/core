@@ -1,0 +1,22 @@
+--- a/setup.py	2023-05-29 01:59:00.463044987 +0800
++++ b/setup.py	2023-05-29 01:59:11.831941254 +0800
+@@ -128,7 +128,7 @@
+                 ext = {
+                     "nt": "dll",
+                     "darwin": "dylib",
+-                }.get(os.name, "so")
++                }.get(os.name, "dylib")
+ 
+                 krb5_lib = f"lib{opt}.{ext}"
+                 break
+@@ -159,10 +159,6 @@
+     print(f"Using krb5-config at '{kc}'")
+ 
+     macos_native = False
+-    if sys.platform == "darwin":
+-        mac_ver = [int(v) for v in platform.mac_ver()[0].split(".")]
+-        macos_native = mac_ver >= [10, 7, 0]
+-
+     compile_args, raw_link_args = [
+         shlex.split(os.environ[e], posix=True) if e in os.environ else None
+         for e in ["KRB5_COMPILER_ARGS", "KRB5_LINKER_ARGS"]
