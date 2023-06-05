@@ -1,0 +1,94 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+pkgbase=gtk3
+pkgname=(gtk3)
+pkgver=3.24.37
+pkgrel=1
+pkgdesc="GObject-based multi-platform GUI toolkit"
+url="https://www.gtk.org/"
+arch=('x86_64' 'arm64')
+license=(LGPL)
+depends=(
+  atk
+  cairo
+  fontconfig
+  fribidi
+  gdk-pixbuf2
+  glib2
+  harfbuzz
+  libepoxy
+  pango
+)
+makedepends=(
+  git
+  gobject-introspection
+  gtk-doc
+  meson
+)
+_commit=013b629a2e5420cc01647f859226eb1a37ebe661  # tags/3.24.37^0
+source=(
+  "git+https://gitlab.gnome.org/GNOME/gtk.git#commit=$_commit"
+  gtk-query-immodules-3.0.hook
+)
+sha256sums=('SKIP'
+            'd2155274b14fce01141e29c4f3ae625778fd48c2a32ece8dcd8da4ab3e56da1b')
+
+pkgver() {
+  cd gtk
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd gtk
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
+      -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
+      -i ../gtk-query-immodules-3.0.hook
+}
+
+build() {
+  local meson_options=(
+    -D gtk_doc=true
+    -D introspection=true
+    -D man=true
+    -D quartz_backend=true
+    -D x11_backend=false
+  )
+
+  CFLAGS+=" -DG_DISABLE_CAST_CHECKS"
+  arch-meson gtk build "${meson_options[@]}"
+  meson compile -C build
+}
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
+  done
+}
+
+package_gtk3() {
+  optdepends=('evince: Default print preview command')
+  provides=(
+    libgailutil-3.dylib
+    libgdk-3.dylib
+    libgtk-3.dylib
+  )
+  conflicts=(gtk3-print-backends)
+  replaces=("gtk3-print-backends<=3.22.26-1")
+  install=gtk3.install
+
+  meson install -C build --destdir "$pkgdir"
+  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 gtk-query-immodules-3.0.hook
+
+  cd "$pkgdir"
+
+  # Built by GTK 4, shared with GTK 3
+  rm -f ${pacman_root#/}/usr/bin/gtk-update-icon-cache
+  rm -f ${pacman_root#/}/usr/share/man/man1/gtk-update-icon-cache.1
+}
+
+# vim:set sw=2 sts=-1 et:

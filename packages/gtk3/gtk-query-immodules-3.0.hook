@@ -1,0 +1,11 @@
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = %%PACMAN_ROOT_REL%%/usr/lib/gtk-3.0/3.0.0/immodules/*.dylib
+
+[Action]
+Description = Probing GTK3 input method modules...
+When = PostTransaction
+Exec = %%PACMAN_ROOT%%/usr/bin/gtk-query-immodules-3.0 --update-cache
