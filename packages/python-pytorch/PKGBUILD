@@ -5,14 +5,14 @@
 _pkgname=pytorch
 pkgname=python-${_pkgname}
 pkgver=2.0.1
-pkgrel=1
+pkgrel=2
 pkgdesc='Tensors and Dynamic neural networks in Python with strong GPU acceleration'
 arch=('x86_64' 'arm64')
 license=('BSD')
 url='https://pytorch.org'
 depends=('google-glog' 'gflags' 'openmp' 'pybind11' 'python' 'python-yaml' 'libuv'
          'python-numpy' 'python-sympy' 'protobuf' 'python-future'
-         'python-typing_extensions' 'python-jinja'
+         'python-typing_extensions' 'python-jinja' 'ffmpeg'
          'python-networkx' 'python-filelock' 'openblas')   # TODO: maybe opencv
 makedepends=('python' 'python-setuptools' 'python-yaml' 'python-numpy' 'cmake'
              'git' 'ninja' 'pkgconfig')
@@ -208,7 +208,7 @@ build() {
   export PYTORCH_BUILD_VERSION="${pkgver}"
   export PYTORCH_BUILD_NUMBER=1
   export CMAKE_C_COMPILER="clang"
-  export CMAKE_CXX_COMPILER="clang++"
+  export CMAKE_CXX_COMPILER="$srcdir/clang++-wrapper"
   export ATEN_NO_TEST="ON"
   export BUILD_TEST="OFF"
   # export CMAKE_INSTALL_PREFIX=${pacman_root}/usr
@@ -217,6 +217,8 @@ build() {
   export PROTOBUF_PROTOC_EXECUTABLE=${pacman_root}/usr/bin/protoc
   export CMAKE_BUILD_TYPE=Release
   export BUILD_CUSTOM_PROTOBUF=OFF
+  # export BUILD_CAFFE2=ON      -- currently broken with our protobuf
+  # export BUILD_CAFFE2_OPS=ON
   export USE_SYSTEM_PYBIND11=ON
   export USE_DISTRIBUTED=ON
   export BUILD_PYTHON=ON
@@ -231,10 +233,21 @@ build() {
   export USE_GLOG=ON
   export USE_MPS=ON
   export USE_METAL=ON
+  export USE_FFMPEG=ON
   export USE_PYTORCH_METAL=ON
   export USE_PYTORCH_METAL_EXPORT=ON
   export USE_COREML_DELEGATE=ON
 
+  cat <<'EOF' > $srcdir/clang++-wrapper
+#!/usr/bin/env bash
+# super ugly but whatever
+clang++ -std=c++17 "$@" -std=c++17 -DPROTOBUF_USE_DLLS=1
+EOF
+
+  chmod +x $srcdir/clang++-wrapper
+
+  # ugly hack
+  export CFLAGS+=" -DPROTOBUF_USE_DLLS=1 "
   python setup.py build
 }
 
