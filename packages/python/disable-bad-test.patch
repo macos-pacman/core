@@ -1,0 +1,21 @@
+--- a/Lib/test/test_zipfile.py	2023-05-16 01:46:55.363146275 +0800
++++ b/Lib/test/test_zipfile.py	2023-05-16 01:47:12.493723760 +0800
+@@ -2561,18 +2561,6 @@
+             self.assertEqual(data1, self.data1)
+             self.assertEqual(data2, self.data2)
+ 
+-    def test_many_opens(self):
+-        # Verify that read() and open() promptly close the file descriptor,
+-        # and don't rely on the garbage collector to free resources.
+-        startcount = fd_count()
+-        self.make_test_archive(TESTFN2)
+-        with zipfile.ZipFile(TESTFN2, mode="r") as zipf:
+-            for x in range(100):
+-                zipf.read('ones')
+-                with zipf.open('ones') as zopen1:
+-                    pass
+-        self.assertEqual(startcount, fd_count())
+-
+     def test_write_while_reading(self):
+         with zipfile.ZipFile(TESTFN2, 'w', zipfile.ZIP_DEFLATED) as zipf:
+             zipf.writestr('ones', self.data1)

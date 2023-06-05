@@ -1,0 +1,11 @@
+diff --git a/Misc/python.pc.in b/Misc/python.pc.in
+index 87e04de..3900190 100644
+--- a/Misc/python.pc.in
++++ b/Misc/python.pc.in
+@@ -9,5 +9,5 @@ Description: Build a C extension for Python
+ Requires:
+ Version: @VERSION@
+ Libs.private: @LIBS@
+-Libs:
++Libs: -L${libdir} -lpython@VERSION@@ABIFLAGS@
+ Cflags: -I${includedir}/python@VERSION@@ABIFLAGS@
