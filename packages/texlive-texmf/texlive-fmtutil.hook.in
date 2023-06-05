@@ -1,0 +1,18 @@
+[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = texlive-bin
+
+[Trigger]
+Type = File
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = %%PACMAN_ROOT_REL%%/var/lib/texmf/arch/installedpkgs/*.fmts
+
+[Action]
+Description = Updating TeXLive format files...
+When = PostTransaction
+Exec = %%PACMAN_ROOT%%/usr/share/libalpm/scripts/texlive-fmtutil
+

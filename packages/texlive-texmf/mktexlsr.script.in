@@ -1,0 +1,14 @@
+#!%%PACMAN_ROOT%%/usr/bin/bash
+
+%%PACMAN_ROOT%%/usr/bin/mktexlsr
+(cd %%PACMAN_ROOT%%/etc/texmf && %%PACMAN_ROOT%%/usr/bin/mtxrun --generate >/dev/null)
+# We need to remove directory "." from luatex cache to avoid absurd
+# behaviour.
+
+shopt -s nullglob
+for item in %%PACMAN_ROOT%%/var/lib/texmf/luatex-cache/context/*/trees/*.lua; do
+    if grep -F '["root"]="."' "$item" >/dev/null; then
+        rm -f "$item" "${item%.lua}.luc"
+    fi
+done
+

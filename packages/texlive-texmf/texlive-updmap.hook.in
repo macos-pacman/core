@@ -1,0 +1,13 @@
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = %%PACMAN_ROOT_REL%%/usr/bin/tex
+Target = %%PACMAN_ROOT_REL%%/var/lib/texmf/arch/installedpkgs/*.maps
+
+[Action]
+Description = Updating TeXLive font maps...
+When = PostTransaction
+Exec = %%PACMAN_ROOT%%/usr/share/libalpm/scripts/texlive-updmap
+
