@@ -1,0 +1,33 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Alexander Rødseth <rodseth@gmail.com>
+# Contributor: Marcin "avalan" Falkiewicz <avalatron@gmail.com>
+# Contributor: C Anthony Risinger <anthony@xtfx.me>
+
+pkgname=python-ply
+pkgver=3.11
+pkgrel=12
+pkgdesc='Implementation of lex and yacc parsing tools'
+arch=('any')
+url='https://www.dabeaz.com/ply/'
+license=('BSD')
+depends=('python')
+makedepends=('python-setuptools')
+source=("https://pypi.io/packages/source/p/ply/ply-$pkgver.tar.gz"
+        LICENSE)
+sha512sums=('37e39a4f930874933223be58a3da7f259e155b75135f1edd47069b3b40e5e96af883ebf1c8a1bbd32f914a9e92cfc12e29fec05cf61b518f46c1d37421b20008'
+            '4ecde3b4d0e572e487857b8616078cdd228f73a70f2106822526b4abf4d0c870288b2fab7d719b116f4ad9aec29d029869d982a31f1136d34ab53905fb57c139')
+
+check() {
+  cd "ply-$pkgver/test"
+  python testlex.py
+  python testyacc.py
+}
+
+package() {
+  cd "ply-$pkgver"
+  python setup.py install --root="$pkgdir"
+
+  install -Dm644 ../LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}
+
+# vim:set ts=2 sw=2 et:
