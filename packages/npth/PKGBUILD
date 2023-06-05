@@ -1,0 +1,50 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Gaetan Bisson <bisson@archlinux.org>
+
+pkgname=npth
+pkgver=1.6
+pkgrel=3
+pkgdesc='The new GNU portable threads library'
+arch=('x86_64' 'arm64')
+url="https://www.gnupg.org/software/npth/index.html"
+license=('LGPL2.1')
+depends=('glibc' 'sh')
+makedepends=('autoconf')
+provides=('libnpth.dylib')
+source=("https://gnupg.org/ftp/gcrypt/${pkgname}/${pkgname}-${pkgver}.tar.bz2"{,.sig}
+        "fix-macos-build.patch")
+sha512sums=('2ed1012e14a9d10665420b9a23628be7e206fd9348111ec751349b93557ee69f1176bcf7e6b195b35b1c44a5e0e81ee33b713f03d79a33d1ecd9037035afeda2'
+            'SKIP'
+            'debc721d9aeae639b848ca3004484ef78c52a8d8fa7eccb24aa2fb26022ed0a1abf69de8dc4cde368b5811fe650fe20b2c191e1dc33ba6e992a75f5233192e2d')
+b2sums=('665fdb2f4cbe59750b6b4b7c2701ee80a23a122df10c9f8be47c4af5f3bf5968f709637ab3f4878bb68609752fbb6ce1364e109fdfeba64e4db258733a33f3fc'
+        'SKIP'
+        '8d2d7fd7950d159953a28b6acca5b95a58f69b4861b94299c09615240911330bae5bd528b4b09fad6a0e484d282904379083fc455c390dfff9e73bea0dc4d4a8')
+validpgpkeys=(
+  'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6'  # Werner Koch (dist sig)
+  '46CC730865BB5C78EBABADCF04376F3EE0856959'  # David Shaw (GnuPG Release Signing Key)
+  '031EC2536E580D8EA286A9F22071B08A33BD3F06'  # NIIBE Yutaka (GnuPG Release Key) <gniibe@fsij.org>
+  'D238EA65D64C67ED4C3073F28A861B1C7EFD60D9'  # Werner Koch (Release Signing Key)
+)
+
+prepare() {
+  cd "${pkgname}-${pkgver}"
+  patch -Np1 -i ../fix-macos-build.patch
+}
+
+build() {
+  cd "${pkgname}-${pkgver}"
+  ./configure --prefix=${pacman_root}/usr
+  make
+}
+
+check() {
+  cd "${pkgname}-${pkgver}"
+  make check
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+  install -vDm 644 {README,NEWS,ChangeLog} \
+    -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+}
