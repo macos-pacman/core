@@ -1,0 +1,74 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Anatol Pomozov <anatol dot pomozov at gmail>
+# Contributor: Stéphane Gaudreault <stephane@archlinux.org>
+
+pkgname=openmpi
+pkgver=4.1.5
+pkgrel=1
+pkgdesc='High performance message passing library (MPI)'
+arch=('x86_64' 'arm64')
+url='https://www.open-mpi.org'
+license=('custom:OpenMPI')
+depends=(gcc-libs glibc hwloc libevent openpmix openssh zlib)
+makedepends=(gcc-fortran)
+optdepends=(
+  'gcc-fortran: fortran support'
+  'perl: for aggregate_profile.pl and profile2mat.pl'
+)
+provides=(
+  libmca_common_monitoring.dylib
+  libmca_common_ompio.dylib
+  libmca_common_sm.dylib
+  libmpi.dylib
+  libmpi_cxx.dylib
+  libmpi_mpifh.dylib
+  libmpi_usempi_ignore_tkr.dylib
+  libmpi_usempif08.dylib
+  libompitrace.dylib
+  libopen-pal.dylib
+  libopen-rte.dylib
+)
+source=(https://www.open-mpi.org/software/ompi/v${pkgver%.*}/downloads/$pkgname-$pkgver.tar.bz2)
+sha256sums=('a640986bc257389dd379886fdae6264c8cfa56bc98b71ce3ae3dfbd8ce61dbe3')
+b2sums=('135a8373ed6173b7a94def18e3b964c6b6050c909382e0dbb1898a6d261ae428931358121ef6d325d303f4f510017a94970f7c66b280a5fc460365821f36dece')
+
+build() {
+  local configure_options=(
+    --prefix=${pacman_root}/usr
+    --enable-builtin-atomics
+    --enable-mpi-cxx
+    --enable-mpi-fortran=all
+    --enable-pretty-print-stacktrace
+    --libdir=${pacman_root}/usr/lib
+    --sysconfdir=${pacman_root}/etc/$pkgname
+    --with-hwloc=external
+    --with-libevent=external
+    --with-pmix=external
+  )
+  cd $pkgname-$pkgver
+
+  # TODO: depend on prrte with openmpi >= 5
+  ./configure "${configure_options[@]}"
+  # prevent excessive overlinking due to libtool
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make V=1
+}
+
+check() {
+  make check -C $pkgname-$pkgver
+}
+
+package() {
+  depends+=(libpmix.dylib)
+
+  make DESTDIR="$pkgdir" install -C $pkgname-$pkgver
+
+  # remove pmix stuff (we already have pmix)
+  rm -r $pkgdir/${pacman_root}/usr/share/pmix
+  rm -f $pkgdir/${pacman_root}/usr/lib/pkgconfig/pmix.pc
+
+  install -Dm 644 $pkgname-$pkgver/LICENSE -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+}
+
+# vim: ts=2 sw=2 et:
