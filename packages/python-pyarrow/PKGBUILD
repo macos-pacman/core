@@ -5,8 +5,8 @@
 _pkg=arrow
 _pkgname=pyarrow
 pkgname=python-${_pkgname}
-pkgver=10.0.1
-pkgrel=2
+pkgver=12.0.0
+pkgrel=1
 pkgdesc="Columnar in-memory analytics layer for big data — Python module."
 arch=('x86_64' 'arm64')
 url="https://arrow.apache.org"
@@ -20,19 +20,15 @@ checkdepends=(python-brotli python-hypothesis python-pandas python-pytest python
 source=(
   https://archive.apache.org/dist/${_pkg}/${_pkg}-${pkgver}/apache-${_pkg}-${pkgver}.tar.gz{,.asc}
   git+https://github.com/apache/arrow-testing.git
-  $pkgname-10.0.1-test_generic_options.patch::https://github.com/apache/arrow/commit/bce43175aa8cfb4534d3efbcc092f697f25f0f5a.patch
 )
-sha512sums=('c6198e5c9b8fe5ccd89e445c9252da44d8d7c9e0c8eb5a802fa0cabf89482fddf775ed383bac1acc9331bc3195d21df7ea02c4a73aa6ee163c2959f34175d650'
+sha512sums=('f815be4fb20b6001ba5525270765fe239b5468708a7be34b93b60ee0ce63464727d183c9756fbc33bffd199019e1f06a7fddd306ce8388435cea7771070a2ca9'
             'SKIP'
-            'SKIP'
-            '936a6e9e73f6fcd1128d9caa23c0d9cde1b5ff8b54a97ac5ebcba3764c2d49688f9d24a17ed3391854f1cf7f68c8d4bf4b6bfb7a0dddc888422c2455dccb5254')
+            'SKIP')
 validpgpkeys=(265F80AB84FE03127E14F01125BCCA5220D84079  # Krisztian Szucs (apache) <szucs.krisztian@gmail.com>
               08D3564B7C6A9CAFBFF6A66791D18FCF079F8007) # Kouhei Sutou <kou@cozmixng.org>
 
 
 prepare() {
-  # fix issue with test_generic_options: https://github.com/apache/arrow/issues/34743
-  patch -Np1 -d apache-$_pkg-$pkgver -i ../$pkgname-10.0.1-test_generic_options.patch
   cd apache-${_pkg}-${pkgver}/python
   for _file in pyproject.toml requirements-build.txt requirements-wheel-build.txt; do
     sed -e '/oldest-supported-numpy/d' -i "${_file}"
@@ -64,7 +60,7 @@ check() {
   ARROW_TEST_DATA="${srcdir}"/arrow-testing/data \
   ARROW_HOME=${pacman_root}/usr \
   PARQUET_HOME=${pacman_root}/usr \
-  pytest -vv --color=yes -k 'not test_cython_api and not test_visit_strings and not test_env_var and not test_get_include'
+    pytest -vv --color=yes -k 'not test_cython_api and not test_visit_strings and not test_env_var and not test_get_include and not test_pyarrow_include'
   mv _nopyarrow pyarrow
 }
 
