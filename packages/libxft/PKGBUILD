@@ -1,0 +1,32 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=libxft
+pkgver=2.3.8
+pkgrel=1
+pkgdesc="FreeType-based font drawing library for X"
+arch=('x86_64' 'arm64')
+license=('custom')
+url="https://xorg.freedesktop.org/"
+depends=('fontconfig' 'libxrender')
+makedepends=('pkgconfig')
+source=(${url}/releases/individual/lib/libXft-${pkgver}.tar.xz{,.sig})
+sha512sums=('fc385d73e1acb701942c154ffb5a283d17891f21d3ac598c4a3fb375a7d6082734593062368c15cad67c1a94177dd15deed878ec5ea852188393b52e92c372c8'
+            'SKIP')
+#validpgpkeys=('4A193C06D35E7C670FA4EF0BA2FB9E081F2D130E') # "Alan Coopersmith <alan.coopersmith@oracle.com>"
+#validpgpkeys=('19882D92DDA4C400C22C0D56CC2AF4472167BE03') # Thomas E. Dickey (use for email) <dickey@his.com>
+validpgpkeys=('3BB639E56F861FA2E86505690FDD682D974CA72A') # Matt Turner <mattst88@gmail.com>
+
+build() {
+  cd libXft-${pkgver}
+  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc --disable-static
+  make
+}
+
+package() {
+  cd libXft-${pkgver}
+  make DESTDIR="${pkgdir}" install
+  install -d -m755 "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install -m644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/"
+
+}
