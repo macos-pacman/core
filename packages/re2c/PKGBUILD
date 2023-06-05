@@ -1,0 +1,37 @@
+# Maintainer:
+# Contributor: nut543 <kfs1@online.no>
+# Contributor: Dale Blount <dale@archlinux.org>
+
+pkgname=re2c
+pkgver=3.0
+pkgrel=2
+arch=('x86_64' 'arm64')
+depends=(gcc-libs)
+makedepends=(cmake)
+checkdepends=(python)
+pkgdesc='A tool for generating C-based recognizers from regular expressions'
+url='https://re2c.org'
+license=('public domain')
+source=(re2c-$pkgver.tar.gz::https://github.com/skvadrik/re2c/archive/$pkgver.tar.gz)
+sha256sums=('acc6e49ec9638d4a75578f161945567d52bfcb85da998212adaef6328f5bdcc5')
+
+pacman_root=$(pacman-root-dir)
+
+build() {
+  cd $pkgname-$pkgver
+  cmake -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
+  cmake --build build
+}
+
+check() {
+  cd $pkgname-$pkgver
+  cmake --build build --target check
+}
+
+package() {
+  cd $pkgname-$pkgver
+  DESTDIR="$pkgdir" cmake --install build
+  install -Dm644 LICENSE "$pkgdir/${pacman_root}"/usr/share/licenses/$pkgname/LICENSE
+}
