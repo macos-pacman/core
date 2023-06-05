@@ -1,0 +1,45 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Tobias Powalowski <tpowa@archlinux.org>
+
+pkgname=libassuan
+pkgver=2.5.5
+pkgrel=1
+pkgdesc='IPC library used by some GnuPG related software'
+url="https://www.gnupg.org/related_software/libassuan/"
+arch=('x86_64' 'arm64')
+license=('GPL3')
+depends=('glibc' 'libgpg-error')
+provides=('libassuan.dylib')
+source=("https://gnupg.org/ftp/gcrypt/${pkgname}/${pkgname}-${pkgver}.tar.bz2"{,.sig}
+        "fix-macos-build.patch")
+sha512sums=('70117f77aa43bbbe0ed28da5ef23834c026780a74076a92ec775e30f851badb423e9a2cb9e8d142c94e4f6f8a794988c1b788fd4bd2271e562071adf0ab16403'
+            'SKIP'
+            'debc721d9aeae639b848ca3004484ef78c52a8d8fa7eccb24aa2fb26022ed0a1abf69de8dc4cde368b5811fe650fe20b2c191e1dc33ba6e992a75f5233192e2d')
+b2sums=('24952e97c757b97c387ab4c2c4bf7b040f2874e9326c129805c7f5326fa14d80e083b0842e336a635531a2c8d4a66d428c816bae6b175f1c4518add1ffa3554d'
+        'SKIP'
+        '8d2d7fd7950d159953a28b6acca5b95a58f69b4861b94299c09615240911330bae5bd528b4b09fad6a0e484d282904379083fc455c390dfff9e73bea0dc4d4a8')
+validpgpkeys=('6DAA6E64A76D2840571B4902528897B826403ADA') # "Werner Koch (dist signing 2020)"
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../fix-macos-build.patch
+}
+
+build() {
+  cd "${pkgname}-${pkgver}"
+  ./configure --prefix=${pacman_root}/usr --enable-static
+  make
+}
+
+check() {
+  cd "${pkgname}-${pkgver}"
+  make check
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+  install -vDm 644 {AUTHORS,NEWS,README,ChangeLog} \
+    -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+}
