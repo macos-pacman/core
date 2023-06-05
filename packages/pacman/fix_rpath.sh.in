@@ -312,11 +312,14 @@ fix_rpath() {
 
 		case "${_lib}" in
 			# rpath -- fix this.
-			"@rpath"*"${_lib_name}"*)
+			"@rpath"*"${_lib_name}"* | "@executable_path"*"${_lib_name}"* | "@loader_path"*"${_lib_name}"*)
 				local _rpath _tmpmsg _rpath_list
 				IFS=$'\n' read -r -d '' -a _rpath_list < <(_get_all_rpath_cmds "${_file}") || true
 
+				# replace all 3 possibilities
 				_fixed="${_change_target#'@rpath/'}"
+				_fixed="${_fixed#'@loader_path/'}"
+				_fixed="${_fixed#'@executable_path/'}"
 
 				_rpath=""
 				_tmpmsg=""

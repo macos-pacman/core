@@ -4,7 +4,7 @@
 
 pkgname=pacman
 pkgver=6.0.2
-pkgrel=5
+pkgrel=6
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64' 'arm64')
 url="https://www.archlinux.org/pacman/"
@@ -61,7 +61,7 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             '6b66c29a0a15689952e7ebb79df7b2a39123d9de6d51f150dc4cc48e739814c9'  # makepkg-rpath-check.patch
             'c22049fba34aa3d019815f48b112c518236a9e696105478dfaaedb15c9d522a4'  # mac_checksums.sh.in
             'd06b09730d38cf9a9aa4285827fecafa5db20415f3499faa2f2faa2aafc50b44'  # check_rpath.sh.in
-            '27ac528fe95f8292e5df76f9199a4f12863a159c91d17251e6fe36982f58196a'  # fix_rpath.sh.in
+            'ac3e4c96e056ed05267fbd0ff31df71e130be2b505156bf32c04b2a3d401ea2d'  # fix_rpath.sh.in
             '69b76b9a2eab66a3d9219d32f379cad426678de6c18485fab132348930f36ac9'  # fix-bin-true.patch
             '9febf40a6b8d6ce9c730ffaea357492700f34b27f9606abc82e1b882871d15ce'  # pacman.conf
             '228b258555625929480f78eacc60e0cab56c2bc1c0aa6138205022dffb9f2464'  # makepkg.conf
