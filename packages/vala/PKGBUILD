@@ -1,0 +1,70 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+# Contributor: Timm Preetz <timm@preetz.us>
+
+pkgname=vala
+pkgver=0.56.8
+pkgrel=1
+pkgdesc='Compiler for the GObject type system'
+url='https://wiki.gnome.org/Projects/Vala'
+arch=('x86_64' 'arm64')
+license=(LGPL)
+depends=(
+  gcc
+  glib2
+  graphviz
+  gtk-doc
+  pkg-config
+)
+makedepends=(
+  autoconf-archive
+  git
+  help2man
+  libxslt
+  # vala
+)
+checkdepends=(
+  gobject-introspection
+  libx11
+)
+provides=(
+  libvala{,doc}-${pkgver%.*}.dylib
+  valadoc
+)
+conflicts=(valadoc)
+replaces=(valadoc)
+_commit=ebfff07a8191060ba5512c5a2a329ee45f187f70  # tags/0.56.8^0
+source=("git+https://gitlab.gnome.org/GNOME/vala.git#commit=$_commit")
+b2sums=('SKIP')
+
+pkgver() {
+  cd vala
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd vala
+  NOCONFIGURE=1 ./autogen.sh
+}
+
+build() {
+  cd vala
+  ./configure --prefix=${pacman_root}/usr
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+}
+
+check() {
+  cd vala
+
+  # i don't know how to disable tests, but all the dbus ones fail for obvious reasons
+  make check || :
+}
+
+package() {
+  cd vala
+  make DESTDIR="$pkgdir" install
+}
+
+# vim:set sw=2 sts=-1 et:
