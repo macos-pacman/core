@@ -1,0 +1,106 @@
+--- a/test-suite/standalone/Makefile.am	2023-01-25 19:15:02.000000000 +0800
++++ b/test-suite/standalone/Makefile.am	2023-06-04 20:24:28.999298251 +0800
+@@ -136,39 +136,39 @@
+ endif HAVE_SHARED_LIBRARIES
+ 
+ # test-foreign-object-scm
+-check_SCRIPTS += test-foreign-object-scm
++check_SCRIPTS += test-foreign-object-scm $(top_builddir)/lib/free.c
+ TESTS += test-foreign-object-scm
+ 
+ # test-foreign-object-c
+-test_foreign_object_c_SOURCES = test-foreign-object-c.c
++test_foreign_object_c_SOURCES = test-foreign-object-c.c $(top_builddir)/lib/free.c
+ test_foreign_object_c_CFLAGS = ${test_cflags}
+ test_foreign_object_c_LDADD = $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
+ check_PROGRAMS += test-foreign-object-c
+ TESTS += test-foreign-object-c
+ 
+ # test-list
+-test_list_SOURCES = test-list.c
++test_list_SOURCES = test-list.c $(top_builddir)/lib/free.c
+ test_list_CFLAGS = ${test_cflags}
+ test_list_LDADD = $(LIBGUILE_LDADD)
+ check_PROGRAMS += test-list
+ TESTS += test-list
+ 
+ # test-unwind
+-test_unwind_SOURCES = test-unwind.c
++test_unwind_SOURCES = test-unwind.c $(top_builddir)/lib/free.c
+ test_unwind_CFLAGS = ${test_cflags}
+ test_unwind_LDADD = $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
+ check_PROGRAMS += test-unwind
+ TESTS += test-unwind
+ 
+ # test-conversion
+-test_conversion_SOURCES = test-conversion.c
++test_conversion_SOURCES = test-conversion.c $(top_builddir)/lib/free.c
+ test_conversion_CFLAGS = ${test_cflags}
+ test_conversion_LDADD = $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
+ check_PROGRAMS += test-conversion
+ TESTS += test-conversion
+ 
+ # test-loose-ends
+-test_loose_ends_SOURCES = test-loose-ends.c
++test_loose_ends_SOURCES = test-loose-ends.c $(top_builddir)/lib/free.c
+ test_loose_ends_CFLAGS = ${test_cflags}
+ test_loose_ends_LDADD = $(LIBGUILE_LDADD)
+ check_PROGRAMS += test-loose-ends
+@@ -187,14 +187,14 @@
+ TESTS += test-use-srfi
+ 
+ # test-scm-c-read
+-test_scm_c_read_SOURCES = test-scm-c-read.c
++test_scm_c_read_SOURCES = test-scm-c-read.c $(top_builddir)/lib/free.c
+ test_scm_c_read_CFLAGS = ${test_cflags}
+ test_scm_c_read_LDADD = $(LIBGUILE_LDADD)
+ check_PROGRAMS += test-scm-c-read
+ TESTS += test-scm-c-read
+ 
+ # test-scm-take-locale-symbol
+-test_scm_take_locale_symbol_SOURCES = test-scm-take-locale-symbol.c
++test_scm_take_locale_symbol_SOURCES = test-scm-take-locale-symbol.c $(top_builddir)/lib/free.c
+ test_scm_take_locale_symbol_CFLAGS = ${test_cflags}
+ test_scm_take_locale_symbol_LDADD =			\
+   $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
+@@ -202,35 +202,35 @@
+ TESTS += test-scm-take-locale-symbol
+ 
+ # test-scm-take-u8vector
+-test_scm_take_u8vector_SOURCES = test-scm-take-u8vector.c
++test_scm_take_u8vector_SOURCES = test-scm-take-u8vector.c $(top_builddir)/lib/free.c
+ test_scm_take_u8vector_CFLAGS = ${test_cflags}
+ test_scm_take_u8vector_LDADD = $(LIBGUILE_LDADD)
+ check_PROGRAMS += test-scm-take-u8vector
+ TESTS += test-scm-take-u8vector
+ 
+ # test-scm-take-u8vector
+-test_scm_to_latin1_string_SOURCES = test-scm-to-latin1-string.c
++test_scm_to_latin1_string_SOURCES = test-scm-to-latin1-string.c $(top_builddir)/lib/free.c
+ test_scm_to_latin1_string_CFLAGS = ${test_cflags}
+ test_scm_to_latin1_string_LDADD = $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
+ check_PROGRAMS += test-scm-to-latin1-string
+ TESTS += test-scm-to-latin1-string
+ 
+ # test-scm-values
+-test_scm_values_SOURCES = test-scm-values.c
++test_scm_values_SOURCES = test-scm-values.c $(top_builddir)/lib/free.c
+ test_scm_values_CFLAGS = ${test_cflags}
+ test_scm_values_LDADD = $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
+ check_PROGRAMS += test-scm-values
+ TESTS += test-scm-values
+ 
+ # test-scm-c-bind-keyword-arguments
+-test_scm_c_bind_keyword_arguments_SOURCES = test-scm-c-bind-keyword-arguments.c
++test_scm_c_bind_keyword_arguments_SOURCES = test-scm-c-bind-keyword-arguments.c $(top_builddir)/lib/free.c
+ test_scm_c_bind_keyword_arguments_CFLAGS = ${test_cflags}
+ test_scm_c_bind_keyword_arguments_LDADD = $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
+ check_PROGRAMS += test-scm-c-bind-keyword-arguments
+ TESTS += test-scm-c-bind-keyword-arguments
+ 
+ # test-srfi-4
+-test_srfi_4_SOURCES = test-srfi-4.c
++test_srfi_4_SOURCES = test-srfi-4.c $(top_builddir)/lib/free.c
+ test_srfi_4_CFLAGS = ${test_cflags}
+ test_srfi_4_LDADD = $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
+ check_PROGRAMS += test-srfi-4
