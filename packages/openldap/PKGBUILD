@@ -1,0 +1,156 @@
+# Maintainer:
+# Contributor: George Rawlinson <grawlinson@archlinux.org>
+
+pkgbase=openldap
+pkgname=('openldap' 'libldap')
+pkgver=2.6.4
+pkgrel=2
+arch=('x86_64' 'arm64')
+url="https://www.openldap.org/"
+license=('custom')
+makedepends=('libtool' 'libsasl' 'unixodbc' 'libsodium')
+options=('!makeflags' 'emptydirs')
+source=(
+  https://www.openldap.org/software/download/OpenLDAP/openldap-release/${pkgbase}-${pkgver}.tgz{,.asc}
+)
+sha256sums=('d51704e50178430c06cf3d8aa174da66badf559747a47d920bb54b2d4aa40991'
+            'SKIP')
+validpgpkeys=('3CE269B5398BC8B785645E987F67D5FD1CE1CBCE') # OpenLDAP Project <project@openldap.org> https://www.openldap.org/software/download/OpenLDAP/gpg-pubkey.txt
+options=(!lto)
+
+# extra modules found in contrib/slapd-modules
+_extra_modules=(
+  'nssov'
+  'autogroup'
+  'lastbind'
+  'passwd/sha2'
+  'allowed'
+  'noopsrch'
+)
+
+prepare() {
+  cd ${pkgbase}-${pkgver}
+
+  # change perms from 0644 to 0755
+  sed -i 's|-m 644 $(LIBRARY)|-m 755 $(LIBRARY)|' libraries/{liblber,libldap}/Makefile.in
+
+  # change rundir to /run/openldap
+  sed -i 's|#define LDAPI_SOCK LDAP_RUNDIR LDAP_DIRSEP "run" LDAP_DIRSEP "ldapi"|#define LDAPI_SOCK LDAP_DIRSEP "run" LDAP_DIRSEP "openldap" LDAP_DIRSEP "ldapi"|' include/ldap_defaults.h
+  sed -i 's|%LOCALSTATEDIR%/run|/run/openldap|' servers/slapd/slapd.{conf,ldif}
+  sed -i 's|-$(MKDIR) $(DESTDIR)$(localstatedir)/run|-$(MKDIR) $(DESTDIR)/run/openldap|' servers/slapd/Makefile.in
+
+  # disable docs
+  sed -i -e 's/tests doc/tests/' Makefile.in
+}
+
+build() {
+  cd ${pkgbase}-${pkgver}
+  autoconf
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --libexecdir=${pacman_root}/usr/lib \
+    --sysconfdir=${pacman_root}/etc \
+    --localstatedir=${pacman_root}/var/lib/openldap \
+    --sbindir=${pacman_root}/usr/bin \
+    --enable-dynamic \
+    --enable-syslog \
+    --enable-ipv6 \
+    --enable-local \
+    --enable-crypt \
+    --enable-spasswd \
+    --enable-modules \
+    --enable-backends \
+    --enable-argon2 \
+    --with-argon2=libsodium \
+    --disable-wt \
+    --enable-overlays=mod \
+    --with-cyrus-sasl \
+    --with-threads \
+    --without-systemd
+
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+
+  make
+
+  # build extra modules
+  for module in "${_extra_modules[@]}"; do
+    make -C "contrib/slapd-modules/$module" \
+      OPT="$CFLAGS $CPPFLAGS" \
+      prefix=${pacman_root}/usr \
+      libexecdir=${pacman_root}/usr/lib \
+      sysconfdir=${pacman_root}/etc/openldap
+  done
+}
+
+check() {
+  cd ${pkgbase}-${pkgver}
+  make test
+}
+
+package_libldap() {
+  pkgdesc="Lightweight Directory Access Protocol (LDAP) client libraries"
+  depends=('libsasl')
+  backup=(${pacman_root#/}/'etc/openldap/ldap.conf')
+
+  cd ${pkgbase}-${pkgver}
+  for dir in include libraries doc/man/man3 ; do
+    pushd ${dir}
+    make DESTDIR="${pkgdir}" install
+    popd
+  done
+  install -Dm644 -t "$pkgdir/${pacman_root}/usr/share/man/man5" doc/man/man5/ldap.conf.5
+
+  # remove duplicate conf files
+  rm "${pkgdir}"/${pacman_root}/etc/openldap/*.default
+
+  # shared library versioning
+  ln -sf liblber.dylib "${pkgdir}"/${pacman_root}/usr/lib/liblber.2.dylib
+  ln -sf libldap.dylib "${pkgdir}"/${pacman_root}/usr/lib/libldap.2.dylib
+
+  # license
+  install -Dm644 -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}" LICENSE
+}
+
+package_openldap() {
+  pkgdesc="Lightweight Directory Access Protocol (LDAP) client and server"
+  depends=("libldap>=${pkgver}" 'libtool' 'unixodbc' 'perl' 'libsodium')
+  backup=(${pacman_root#/}/'etc/openldap/slapd.conf' ${pacman_root#/}/'etc/openldap/slapd.ldif')
+
+  cd ${pkgbase}-${pkgver}
+  for dir in clients servers doc/man/man{1,5,8}; do
+    pushd ${dir}
+    make DESTDIR="${pkgdir}" install
+    popd
+  done
+
+  # install extra modules
+  for module in "${_extra_modules[@]}"; do
+    make -C "contrib/slapd-modules/$module" \
+      prefix=${pacman_root}/usr \
+      libexecdir=${pacman_root}/usr/lib \
+      sysconfdir=${pacman_root}/etc/openldap \
+      DESTDIR="$pkgdir" install
+
+    # passwd/sha2 has no man page, so skip it
+    if [ -f "contrib/slapd-modules/$module/slapo-$module.5" ]; then
+      install -m644 -t "$pkgdir/${pacman_root}/usr/share/man/man5" \
+        "contrib/slapd-modules/$module/slapo-$module.5"
+    fi
+  done
+
+  # should be in libldap package
+  rm -f "${pkgdir}"/${pacman_root}/usr/share/man/man5/ldap.conf.5
+
+  # let systemd-tmpfiles generate this directory
+  rm -r "${pkgdir}"/run
+
+  # get rid of duplicate conf files
+  rm "${pkgdir}"/${pacman_root}/etc/openldap/*.default
+
+  ln -sf ../lib/slapd "${pkgdir}"/${pacman_root}/usr/bin/slapd
+
+  chmod 640 "${pkgdir}"/${pacman_root}/etc/openldap/slapd.{conf,ldif}
+
+  # license
+  install -Dm644 -t "${pkgdir}"/${pacman_root}/usr/share/licenses/"${pkgname}" LICENSE
+}
