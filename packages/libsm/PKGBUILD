@@ -1,0 +1,29 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=libsm
+pkgver=1.2.4
+pkgrel=1
+pkgdesc="X11 Session Management library"
+arch=('x86_64' 'arm64')
+license=('custom')
+url="https://xorg.freedesktop.org/"
+depends=('libice')
+makedepends=('xorg-util-macros' 'xtrans' 'xorgproto')
+source=(${url}/releases/individual/lib/libSM-${pkgver}.tar.xz{,.sig})
+sha512sums=('7f1d41b7b6c5dd456c49ccad7740c3ba9791a2793fa50fd94814a4164ce2e20c4a0a0ad42a87708e494ed5c23f611be6d3ccd9ef1e9add6d46ac545e2b0f6f86'
+            'SKIP')
+validpgpkeys=('4A193C06D35E7C670FA4EF0BA2FB9E081F2D130E') # Alan Coopersmith <alanc@freedesktop.org>
+
+build() {
+  cd libSM-${pkgver}
+  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc
+  make
+}
+
+package() {
+  cd libSM-${pkgver}
+  make DESTDIR="${pkgdir}" install
+
+  install -Dm644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/COPYING"
+}
