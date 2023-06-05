@@ -1,0 +1,34 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-invoke
+pkgver=2.1.2
+pkgrel=1
+pkgdesc="Pythonic task execution"
+url="https://github.com/pyinvoke/invoke"
+license=('BSD')
+arch=('any')
+depends=('python-fluidity' 'python-lexicon' 'python-yaml')
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+checkdepends=('python-pytest' 'python-pytest-relaxed' 'python-icecream')
+source=("https://pypi.io/packages/source/i/invoke/invoke-$pkgver.tar.gz")
+sha512sums=('9b36c554f7927ce05b82a37f391f38c7c481d118ba68f887d617536c86774a783712cc58c4f75495dc173df72012bd2552b5119da3cd6d6d1c57a47f1ff45c4e')
+
+prepare() {
+  rm -r invoke-$pkgver/invoke/vendor
+}
+
+build() {
+  cd invoke-$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd invoke-$pkgver
+  PYTHONPATH="$PWD"/build/lib pytest -s tests -k 'not pty'
+}
+
+package() {
+  cd invoke-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+}
