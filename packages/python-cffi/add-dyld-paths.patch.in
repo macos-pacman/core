@@ -1,0 +1,17 @@
+--- a/c/_cffi_backend.c	2023-06-03 14:24:30.906304857 +0800
++++ b/c/_cffi_backend.c	2023-06-03 14:27:12.521669068 +0800
+@@ -4550,6 +4550,14 @@
+ #endif
+ 
+     handle = dlopen(filename_or_null, flags);
++
++    // hacks to search pacman_root as well
++    if (handle == NULL && filename_or_null[0] != '/') {
++        char tmp[1024];
++        snprintf(&tmp[0], 1024, "%%PACMAN_ROOT%%/usr/lib/%s", filename_or_null);
++        handle = dlopen(tmp, flags);
++    }
++
+     PyMem_Free(filename_or_null);
+ 
+ #ifdef MS_WIN32
