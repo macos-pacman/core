@@ -2,8 +2,8 @@
 # Contributor: Guillaume Horel <guillaume.horel@gmail.com>
 
 pkgname=arrow
-pkgver=10.0.1
-pkgrel=8
+pkgver=12.0.0
+pkgrel=1
 pkgdesc="Columnar in-memory analytics layer for big data."
 arch=('x86_64' 'arm64')
 url="https://arrow.apache.org"
@@ -16,13 +16,20 @@ conflicts=(parquet-cpp)
 makedepends=(boost cmake flatbuffers gmock python-numpy git clang)
 source=(https://archive.apache.org/dist/${pkgname}/${pkgname}-${pkgver}/apache-${pkgname}-${pkgver}.tar.gz{,.asc}
         git+https://github.com/apache/parquet-testing.git
-        git+https://github.com/apache/arrow-testing.git)
-sha512sums=(c6198e5c9b8fe5ccd89e445c9252da44d8d7c9e0c8eb5a802fa0cabf89482fddf775ed383bac1acc9331bc3195d21df7ea02c4a73aa6ee163c2959f34175d650
+        git+https://github.com/apache/arrow-testing.git
+        'fix-protobuf.patch::https://patch-diff.githubusercontent.com/raw/apache/arrow/pull/35673.patch')
+sha512sums=(f815be4fb20b6001ba5525270765fe239b5468708a7be34b93b60ee0ce63464727d183c9756fbc33bffd199019e1f06a7fddd306ce8388435cea7771070a2ca9
             SKIP
             SKIP
-            SKIP)
+            SKIP
+            6258e91e54670c6596a74cbb3bf238c7a1d112c11e762804cfb63953c0d9776fe989623a87bd74f6e2915924e4c3dad81f49aea6d368c9256cc9367210b74f39)
 validpgpkeys=(265F80AB84FE03127E14F01125BCCA5220D84079  # Krisztian Szucs (apache) <szucs.krisztian@gmail.com>
               08D3564B7C6A9CAFBFF6A66791D18FCF079F8007) # Kouhei Sutou <kou@cozmixng.org>
+
+prepare() {
+  cd apache-arrow-$pkgver
+  patch -Np1 -i ../fix-protobuf.patch
+}
 
 build(){
   CC=clang \
@@ -35,6 +42,7 @@ build(){
     -DCMAKE_INSTALL_PREFIX="${pacman_root}/usr" \
     -DCMAKE_INSTALL_LIBDIR="lib" \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DPROTOBUF_USE_DLLS=1" \
     -DARROW_BUILD_STATIC=OFF \
     -DARROW_DEPENDENCY_SOURCE=SYSTEM \
     -DARROW_BUILD_TESTS=ON \
@@ -75,7 +83,7 @@ package(){
   make -C build DESTDIR="${pkgdir}" install
   find "${pkgdir}"/${pacman_root}/usr/lib/ -name '*testing*' -delete
 
-  local _f; for _f in ${pkgdir}/${pacman_root}/usr/bin/* ${pkgdir}/${pacman_root}/usr/lib/*.dylib; do
+  local _f; for _f in ${pkgdir}/${pacman_root}/usr/lib/*.dylib; do
     fix_rpath "${_f}"
   done
 }
