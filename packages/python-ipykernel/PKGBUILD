@@ -1,0 +1,33 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Kyle Keen <keenerd@gmail.com>
+
+_pyname=ipykernel
+pkgname=python-$_pyname
+pkgver=6.23.1
+pkgrel=1
+pkgdesc='The ipython kernel for Jupyter'
+arch=(any)
+url='https://pypi.org/project/ipykernel/'
+license=(BSD)
+depends=(python-comm python-tornado ipython python-jupyter-client python-psutil python-nest-asyncio python-appnope)
+makedepends=(python-build python-installer python-hatchling)
+checkdepends=(python-pytest-timeout python-pytest-asyncio python-flaky python-ipyparallel python-matplotlib python-debugpy)
+optdepends=('python-debugpy: debugger support')
+source=(https://github.com/ipython/ipykernel/archive/v$pkgver/$pkgname-$pkgver.tar.gz)
+sha256sums=('f40f5c371c5e1a555ba407714cb266ec54909eab40f9fe66148b7f0774677df4')
+
+build() {
+  cd $_pyname-$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd $_pyname-$pkgver
+  pytest -v -W "ignore::DeprecationWarning"
+}
+
+package() {
+  cd $_pyname-$pkgver
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
+}
