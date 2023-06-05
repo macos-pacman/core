@@ -1,0 +1,101 @@
+--- a/test/t.chown	2023-05-03 13:24:47.156624723 +0800
++++ b/test/t.chown	2023-05-03 13:26:18.304081725 +0800
+@@ -7,7 +7,8 @@
+ # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1023286
+ echo "echo foo > $tmp/bar &&
+       echo baz > $tmp/blub &&
+-      chown --reference=$tmp/bar $tmp/blub &&
++      chown \$(stat -f '%u:%g' $tmp/bar) $tmp/blub &&
+-      stat -c owner:%u $tmp/blub" > $tmp/sh
++      stat -f 'owner:%u' $tmp/blub" > $tmp/sh
++chmod +x $tmp/sh
+ run_fakeroot -- \
+     ${posixshell} $tmp/sh > $tmp/out
+--- a/test/defs.in	2023-05-03 15:16:38.151887508 +0800
++++ b/test/defs.in	2023-05-03 15:16:45.524365031 +0800
+@@ -10,7 +10,7 @@
+ 
+ case $VERBOSE in
+   x)  set -x;;                # Debug mode.
+-  '') exec >/dev/null 2>&1;;  # By default, be silent.
++  *)  ;;
+ esac
+ 
+ run_fakeroot ()
+--- a/test/cp-atest	2023-05-04 23:42:32.129266969 +0800
++++ b/test/cp-atest	2023-05-04 23:43:29.482836181 +0800
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/opt/pacman/usr/bin/bash
+ set -e
+ echo cp-atest:
+ TMP="$tmp"
+@@ -16,14 +16,14 @@
+ chown 1:2 empty
+ cp -a empty empty-a
+ cp -r empty empty-r
+-empty_mode=`stat -c %a empty`
+-empty_owner=`stat -c %u:%g empty`
+-empty_a_mode=`stat -c %a empty-a`
+-empty_a_owner=`stat -c %u:%g empty-a`
+-empty_r_mode=`stat -c %a empty-r`
+-empty_r_owner=`stat -c %u:%g empty-r`
++empty_mode=`stat -f '%p' empty`
++empty_owner=`stat -f '%u:%g' empty`
++empty_a_mode=`stat -f '%p' empty-a`
++empty_a_owner=`stat -f '%u:%g' empty-a`
++empty_r_mode=`stat -f '%p' empty-r`
++empty_r_owner=`stat -f '%u:%g' empty-r`
+ 
+-if ! [ "${empty_mode} ${empty_owner}" = "644 1:2" ]
++if ! [ "${empty_mode} ${empty_owner}" = "100644 1:2" ]
+ then
+ 	echo "'chmod' failed '${empty_mode} ${empty_owner}'">&2
+ 	exit 1
+--- a/test/compare-tar	2023-05-05 00:12:49.370853789 +0800
++++ b/test/compare-tar	2023-05-05 00:22:20.435362467 +0800
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/opt/pacman/usr/bin/bash
+ ROOTGROUP=root
+ 
+ SYSNAME="`uname -s 2>/dev/null`"
+@@ -17,8 +17,8 @@
+ set -e
+ echo compare-tar:
+ 
+-gzip -dc $1 | tar -tvf - |awk '{print $1, $2, $3, $NF}' |sed -e "s/$ROOTGROUP/root/" |cut -c2- |sort > tmp-1
+-gzip -dc $2 | tar -tvf - |awk '{print $1, $2, $3, $NF}' |sed -e "s/$ROOTGROUP/root/" |cut -c2- |sort > tmp-2
++gzip -dc $1 | bsdtar -tvf - |awk '{print $1, $2, $3, $NF}' |sed -e "s/$ROOTGROUP/root/" |cut -c2- |sort > tmp-1
++gzip -dc $2 | bsdtar -tvf - |awk '{print $1, $2, $3, $NF}' |sed -e "s/$ROOTGROUP/root/" |cut -c2- |sort > tmp-2
+ 
+ diff tmp-1 tmp-2 > tmp-diff || true
+ 
+--- a/test/tartest	2023-05-05 00:09:44.464978592 +0800
++++ b/test/tartest	2023-05-05 00:22:08.403484869 +0800
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/opt/pacman/usr/bin/bash
+ set -e
+ echo tartest:
+ TMP="$tmp"
+@@ -77,7 +77,7 @@
+ rm -f tartest.tar.gz
+ uudecode ${SRCDIR}/tartest.tar.gz.uue
+ 
+-tar -cf - tar | gzip -9 > faketar.tar.gz
++bsdtar -cf - tar | gzip -9 > faketar.tar.gz
+ 
+ ${SRCDIR}/compare-tar tartest.tar.gz faketar.tar.gz
+ 
+@@ -88,8 +88,8 @@
+ 
+ rm -rf tar
+ 
+-gzip -dc tartest.tar.gz | tar xf -
+-tar cf - tar | gzip -9 >tartest.test.tar.gz
++gzip -dc tartest.tar.gz | bsdtar xf -
++bsdtar cf - tar | gzip -9 >tartest.test.tar.gz
+ 
+ ${SRCDIR}/compare-tar tartest.tar.gz tartest.test.tar.gz
+ 

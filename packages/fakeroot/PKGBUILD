@@ -1,0 +1,47 @@
+# Maintainer:  Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: Jochem Kossen <j.kossen@home.nl>
+
+pkgname=fakeroot
+pkgver=1.31
+pkgrel=3
+pkgdesc='Tool for simulating superuser privileges'
+arch=('x86_64' 'arm64')
+license=('GPL')
+url='https://tracker.debian.org/pkg/fakeroot'
+depends=('glibc' 'bash')
+checkdepends=('sharutils')
+source=("https://deb.debian.org/debian/pool/main/f/$pkgname/${pkgname}_${pkgver}.orig.tar.gz"
+        'fix-tests.patch'
+        'macos-fix.patch')
+sha256sums=('63886d41e11c56c7170b9d9331cca086421b350d257338ef14daad98f77e202f'
+            'f8d1c965c38c778cd18ecc655037c18741e5c30497952ab47e1388c51ececd13'
+            '47292a64b4af8c95f3f84566934f40b68c1dcfdb510875ff2836c901b8823821')
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../fix-tests.patch
+  patch -Np1 -i ../macos-fix.patch
+}
+
+build() {
+  cd $pkgname-$pkgver
+
+  CONFIG_SHELL=${SHELL} ./configure --prefix=${pacman_root}/usr \
+    --libdir=${pacman_root}/usr/lib/libfakeroot \
+    --with-ipc=sysv
+
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+
+  export DYLD_LIBRARY_PATH="${PWD}/.libs/:${DYLD_LIBRARY_PATH}"
+  make check
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+}
