@@ -1,0 +1,39 @@
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Maintainer: Jaroslav Lichtblau <svetlemodry@archlinux.org>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+# Contributor: Daniel Micay <danielmicay@gmail.com>
+
+pkgname=python-pygit2
+pkgver=1.12.1
+pkgrel=1
+pkgdesc='Python bindings for libgit2'
+arch=('x86_64' 'arm64')
+url="https://github.com/libgit2/pygit2"
+license=('GPL2')
+depends=('libgit2.dylib' 'python-cffi' 'python-six' 'python-cached-property')
+makedepends=('cython' 'python-build' 'python-cffi' 'python-installer' 'python-setuptools' 'git' 'python-six' 'python-wheel')
+checkdepends=('python-pytest-runner')
+source=("$url/archive/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha256sums=('a1da2bf04bcacb2a1bc70536b2507766520873ec6feb046102a73c143e83959a')
+
+prepare() {
+	cd "pygit2-$pkgver"
+	# Disable tests that do stuff online
+	sed -e '/has_network/s/True/False/' -i test/utils.py
+}
+
+build() {
+	cd "pygit2-$pkgver"
+	python -m build -wn
+}
+
+check() {
+	cd "pygit2-$pkgver"
+	local _pyver=cpython-$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
+	PYTHONPATH="$PWD/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-$_pyver" pytest
+}
+
+package() {
+	cd "pygit2-$pkgver"
+	LANG=en_US.UTF8 python -m installer -d "${pkgdir}" dist/*.whl
+}
