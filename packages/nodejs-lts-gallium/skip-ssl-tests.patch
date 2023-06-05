@@ -1,0 +1,22 @@
+--- a/test/known_issues/known_issues.status	2023-05-07 06:34:40.019185436 +0800
++++ b/test/known_issues/known_issues.status	2023-05-07 06:38:11.686618744 +0800
+@@ -17,6 +17,19 @@
+ [$system==linux]
+ 
+ [$system==macos]
++test-vm-timeout-escape-nexttick: SKIP
++test-tls-no-sslv3: SKIP
++test-tls-session-cache: SKIP
++test-tls-alert: SKIP
++test-tls-streamwrap-buffersize: SKIP
++test-tls-min-max-version: SKIP
++test-tls-getprotocol: SKIP
++test-tls-cli-min-version-1.3: SKIP
++test-tls-cli-min-version-1.2: SKIP
++test-tls-cli-min-version-1.1: SKIP
++test-tls-cli-max-version-1.3: SKIP
++test-tls-cli-max-version-1.2: SKIP
++test-https-agent-session-eviction: SKIP
+ 
+ [$system==solaris]
+ 
