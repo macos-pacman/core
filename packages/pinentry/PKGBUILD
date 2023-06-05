@@ -1,0 +1,52 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Gaetan Bisson <bisson@archlinux.org>
+
+pkgname=pinentry
+pkgver=1.2.1
+pkgrel=1
+pkgdesc='Collection of simple PIN or passphrase entry dialogs which utilize the Assuan protocol'
+url='https://gnupg.org/related_software/pinentry/'
+arch=('x86_64' 'arm64')
+license=('GPL')
+depends=('glibc' 'ncurses' 'libassuan')
+source=("https://www.gnupg.org/ftp/gcrypt/${pkgname}/${pkgname}-${pkgver}.tar.bz2"{,.sig}
+        "fix-broken-configure.patch")
+sha256sums=('457a185e5a85238fb945a955dc6352ab962dc8b48720b62fc9fa48c7540a4067'
+            'SKIP'
+            'ff764c9aa7b6b44a6eb3981034872bbba640da8afe8ef7560848954af624f12e')
+validpgpkeys=(
+  'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6' # Werner Koch (dist sig)
+  '6DAA6E64A76D2840571B4902528897B826403ADA' # Werner Koch (dist signing 2020)
+  'AC8E115BF73E2D8D47FA9908E98E9B2D19C6C8BD' # Niibe Yutaka (GnuPG Release Key)
+)
+
+prepare() {
+	cd $pkgname-$pkgver
+
+	patch -Np1 -i ../fix-broken-configure.patch
+}
+
+build() {
+  cd "${pkgname}-${pkgver}"
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --enable-pinentry-tty \
+    --enable-pinentry-curses \
+    --enable-fallback-curses \
+    --disable-pinentry-emacs \
+    --disable-pinentry-gtk2 \
+    --disable-pinentry-gnome3 \
+    --disable-pinentry-qt \
+    --disable-libsecret \
+    --with-libiconv-prefix=${pacman_root}/usr
+
+  make
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+}
+
+# vim: ts=2 sw=2 et:
