@@ -1,0 +1,32 @@
+# Maintainer: Anatol Pomozov
+
+pkgname=aws-c-sdkutils
+pkgver=0.1.9
+pkgrel=1
+pkgdesc='AWS SDK utility library'
+arch=('x86_64' 'arm64')
+url='https://github.com/awslabs/aws-c-sdkutils'
+license=(Apache)
+depends=(aws-c-common)
+makedepends=(cmake)
+source=(aws-c-sdkutils-$pkgver.zip::https://github.com/awslabs/aws-c-sdkutils/archive/v$pkgver.zip)
+sha256sums=('b23b06c831d6984ebf4a26ef70b13567aff347522dcc1d8ab4a064809eeb5e77')
+
+build() {
+  cd aws-c-sdkutils-$pkgver
+
+  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${pacman_root}/usr -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake --build build
+}
+
+check() {
+  cd aws-c-sdkutils-$pkgver
+  cmake --build build --target test
+}
+
+package() {
+  cd aws-c-sdkutils-$pkgver
+
+  cmake --build build --target install -- DESTDIR="$pkgdir/"
+  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}
