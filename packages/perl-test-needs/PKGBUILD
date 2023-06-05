@@ -1,0 +1,29 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=perl-test-needs
+pkgver=0.002010
+pkgrel=1
+pkgdesc="Skip tests when modules not available"
+arch=('any')
+license=('PerlArtistic')
+url="https://metacpan.org/release/Test-Needs"
+depends=('perl')
+options=('!emptydirs')
+source=("https://cpan.metacpan.org/authors/id/H/HA/HAARG/Test-Needs-$pkgver.tar.gz")
+sha512sums=('1dde33f0b161a9cb99d1add141706ae015472a16620c38c159e3ae9654d749c275c7a4a979082c2720999305bf25129e7b178a9afdd6f4b4dfc9ee00281c76eb')
+
+build() {
+  cd Test-Needs-$pkgver
+  perl Makefile.PL INSTALLDIRS=vendor
+  make
+}
+
+check() {
+  cd Test-Needs-$pkgver
+  make test
+}
+
+package() {
+  cd Test-Needs-$pkgver
+  make DESTDIR="$pkgdir" install
+}
