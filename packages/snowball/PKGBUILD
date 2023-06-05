@@ -1,0 +1,56 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+
+pkgbase=snowball
+pkgname=(snowball libstemmer)
+pkgver=2.2.0
+pkgrel=2
+pkgdesc="String processing language for creating stemming algorithms"
+url="https://snowballstem.org/"
+arch=('x86_64' 'arm64')
+license=(BSD)
+makedepends=(git)
+_commit=48a67a2831005f49c48ec29a5837640e23e54e6b  # tags/v2.2.0^0
+source=("git+https://github.com/snowballstem/snowball#commit=$_commit"
+		"fix-archive.patch")
+sha256sums=('SKIP'
+			'13b586420832105caa266f4692a6c806271f03594245191e8841c8e3774181fd')
+
+pkgver() {
+  cd snowball
+  git describe --tags | sed 's/^v//;s/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd snowball
+
+  patch -Np1 -i ../fix-archive.patch
+}
+
+build() {
+  cd snowball
+  make
+}
+
+# No check - needs external test data
+
+package_snowball() {
+  depends=(libstemmer)
+
+  cd snowball
+
+  install -Dt "$pkgdir/${pacman_root}/usr/bin" snowball stemwords
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 COPYING
+}
+
+package_libstemmer() {
+  pkgdesc="Stemming library supporting several languages"
+  depends=(glibc)
+
+  cd snowball
+
+  install -Dt "$pkgdir/${pacman_root}/usr/include" -m644 include/libstemmer.h
+  install -Dm644 libstemmer.a "$pkgdir/${pacman_root}/usr/lib/libstemmer.a"
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 COPYING
+}

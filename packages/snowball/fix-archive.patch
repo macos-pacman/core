@@ -1,0 +1,22 @@
+diff --git a/GNUmakefile b/GNUmakefile
+index 98eb1fa..016284f 100644
+--- a/GNUmakefile
++++ b/GNUmakefile
+@@ -223,7 +223,7 @@ libstemmer/modules_utf8.h libstemmer/mkinc_utf8.mak: libstemmer/mkmodules.pl lib
+ libstemmer/libstemmer.o: libstemmer/modules.h $(C_LIB_HEADERS)
+ 
+ libstemmer.a: libstemmer/libstemmer.o $(RUNTIME_OBJECTS) $(C_LIB_OBJECTS)
+-	$(AR) -cru $@ $^
++	$(AR) -crus $@ $^
+ 
+ examples/%.o: examples/%.c
+ 	$(CC) $(CFLAGS) $(INCLUDES) $(CPPFLAGS) -c -o $@ $<
+@@ -418,7 +418,7 @@ dist_libstemmer_c: \
+ 	echo 'CPPFLAGS=-Iinclude' >> $${dest}/Makefile && \
+ 	echo 'all: libstemmer.a stemwords$$(EXEEXT)' >> $${dest}/Makefile && \
+ 	echo 'libstemmer.a: $$(snowball_sources:.c=.o)' >> $${dest}/Makefile && \
+-	echo '	$$(AR) -cru $$@ $$^' >> $${dest}/Makefile && \
++	echo '	$$(AR) -crus $$@ $$^' >> $${dest}/Makefile && \
+ 	echo 'stemwords$$(EXEEXT): examples/stemwords.o libstemmer.a' >> $${dest}/Makefile && \
+ 	echo '	$$(CC) $$(CFLAGS) -o $$@ $$^' >> $${dest}/Makefile && \
+ 	echo 'clean:' >> $${dest}/Makefile && \
