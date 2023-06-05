@@ -1,0 +1,93 @@
+# Maintainer
+
+pkgbase=python-bootstrap
+pkgname=(python-build python-installer python-tomli python-pep517 python-setuptools python-flit-core python-wheel python-packaging)
+pkgver=0.1
+pkgrel=1
+arch=(any)
+license=('custom')
+makedepends=(python git)
+url="https://gitlab.archlinux.org/archlinux/python-bootstrap"
+source=(
+	'python-bootstrap::git+https://gitlab.archlinux.org/archlinux/python-bootstrap.git#branch=3.11'
+	'packaging::git+https://github.com/pypa/packaging.git#tag=23.0'
+	'packaging.patch'
+)
+sha256sums=('SKIP' 'SKIP'
+	'78341c6e4f702816ff051ad867615974de0839d0b279601e2ffcf40ef7d7457d'
+)
+
+# this shit is weirdly broken
+# it will fail the first time; run again with makepkg -e (don't reset sources)
+# and it'll work.
+
+prepare() {
+  cd $srcdir/python-bootstrap
+  git submodule update --init --recursive
+  patch -Np1 < ../packaging.patch
+
+  mv $srcdir/packaging $srcdir/python-bootstrap/external/
+}
+
+
+build() {
+  unset SOURCE_DATE_EPOCH
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.build
+}
+
+package_python-build() {
+  depends=(python-pep517 python)
+  pkgdesc="A simple, correct PEP 517 build frontend"
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.install dist/build-*-py3-none-any.whl -d $pkgdir/
+}
+
+package_python-installer() {
+  depends=(python-pep517 python)
+  pkgdesc="Low-level library for installing a Python package from a wheel distribution"
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.install dist/installer-*-py3-none-any.whl -d $pkgdir/
+}
+
+package_python-flit-core() {
+  depends=(python-pep517 python)
+  pkgdesc="Simplified packaging of Python modules (core backend)"
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.install dist/flit_core-*-py3-none-any.whl -d $pkgdir/
+}
+
+package_python-pep517() {
+  pkgdesc="Wrappers to build Python packages using PEP 517 hooks"
+  depends=(python)
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.install dist/pep517-*-py3-none-any.whl -d $pkgdir/
+}
+
+package_python-setuptools() {
+  pkgdesc="Easily download, build, install, upgrade, and uninstall Python packages"
+  depends=(python)
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.install dist/setuptools-*-py3-none-any.whl -d $pkgdir/
+}
+
+package_python-tomli() {
+  pkgdesc="A lil' TOML parser"
+  depends=(python)
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.install dist/tomli-*-py3-none-any.whl -d $pkgdir/
+}
+
+package_python-wheel() {
+  pkgdesc="A built-package format for Python"
+  depends=(python)
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.install dist/wheel-*-py2.py3-none-any.whl -d $pkgdir/
+}
+
+package_python-packaging() {
+  pkgdesc="Core utilities for Python packages"
+  depends=(python python-build python-installer python-flit-core)
+  cd $srcdir/python-bootstrap
+  python -m bootstrap.install dist/packaging-*-py3-none-any.whl -d $pkgdir/
+}

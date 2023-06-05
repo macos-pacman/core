@@ -1,0 +1,16 @@
+diff --git a/bootstrap/__init__.py b/bootstrap/__init__.py
+index 1deba2b..450c5a4 100644
+--- a/bootstrap/__init__.py
++++ b/bootstrap/__init__.py
+@@ -37,6 +37,11 @@ PACKAGES = {
+         EXTERNAL / 'installer' / 'src',
+         {'installer'},
+     ),
++    'packaging': Package(
++        EXTERNAL / 'packaging',
++        EXTERNAL / 'packaging' / 'src',
++        {'packaging'},
++    ),
+     # dependencies
+     'setuptools': Package(
+         EXTERNAL / 'setuptools',
