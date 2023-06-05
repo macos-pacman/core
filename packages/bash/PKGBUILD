@@ -1,0 +1,78 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Giancarlo Razzolini <grazzolini@archlinux.org>
+# Contributor:  Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: Aaron Griffin <aaron@archlinux.org>
+
+pkgname=bash
+pkgver=5.2.15
+pkgrel=1
+pkgdesc='The GNU Bourne Again shell'
+arch=(x86_64 arm64)
+license=(GPL)
+url='https://www.gnu.org/software/bash/bash.html'
+backup=(${pacman_root#/}/etc/bash.bash{rc,_logout}
+        ${pacman_root#/}/etc/skel/.bash{rc,_profile,_logout})
+depends=(readline glibc ncurses)
+optdepends=('bash-completion: for tab completion')
+provides=('sh')
+source=(https://ftp.gnu.org/gnu/bash/bash-$pkgver.tar.gz{,.sig}
+        system.bashrc
+        system.bash_logout)
+validpgpkeys=('7C0135FB088AAF6C66C650B9BB5869F064EA74AB') # Chet Ramey
+sha256sums=('13720965b5f4fc3a0d4b61dd37e7565c741da9a5be24edc2ae00182fc1b3588c'
+            'SKIP'
+            'd73d271a0123f5a05422b3acd9f45efd76c36f9be3e4eaeac9207c8084ae7be7'
+            '025bccfb374a3edce0ff8154d990689f30976b78f7a932dc9a6fcef81821811e'
+)
+
+pacman_root=$(pacman-root-dir)
+
+build() {
+  cd $pkgname-$pkgver
+
+  bash_args=(
+    '-DDEFAULT_PATH_VALUE=\"${pacman_root}/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin\"' \
+    '-DSTANDARD_UTILS_PATH=\"/usr/bin\"' \
+    '-DSYS_BASHRC=\"${pacman_root}/etc/bash.bashrc\"' \
+    '-DSYS_BASH_LOGOUT=\"${pacman_root}/etc/bash.bash_logout\"' \
+    '-DNON_INTERACTIVE_LOGIN_SHELLS'
+  )
+
+  export CFLAGS="${CFLAGS} ${bash_args[@]}"
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --with-curses \
+    --enable-readline \
+    --without-bash-malloc \
+    --disable-nls \
+    --with-included-gettext \
+    --with-installed-readline \
+    --without-libintl-prefix \
+    --without-libiconv-prefix
+  make
+}
+
+check() {
+  make -C $pkgname-$pkgver -j1 check < /dev/null
+}
+
+package() {
+  make -C $pkgname-$pkgver DESTDIR="$pkgdir" install
+  ln -s bash "$pkgdir/${pacman_root}/usr/bin/sh"
+  ln -s bash "$pkgdir/${pacman_root}/usr/bin/rbash"
+
+  # fix shared libs
+  local _l _libs
+  IFS=$'\n' read -r -d '' -a _libs < <(find "$pkgdir/${pacman_root}/usr/lib/bash" -type f) || true
+  for _l in "${_libs[@]}"; do
+    fix_rpath "${pacman_root}" "${pkgdir}" "${_l}"
+  done
+
+  # system-wide configuration files
+  install -Dm644 system.bashrc "$pkgdir/${pacman_root}/etc/bash.bashrc"
+  install -Dm644 system.bash_logout "$pkgdir/${pacman_root}/etc/bash.bash_logout"
+}
+
+# vim: ts=2 sw=2 et:
