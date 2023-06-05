@@ -1,0 +1,37 @@
+# Maintainer: Eli Schwartz <eschwartz@archlinux.org>
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: lp76 <l.peduto@gmail.com>
+# Contributor: Daenyth <Daenyth+Arch AT gmail DOT com>
+# Contributor: Gaetan Bisson <bisson@archlinux.org>
+
+pkgname=ncdu
+pkgver=1.18.1
+pkgrel=1
+pkgdesc='Disk usage analyzer with an ncurses interface'
+url='https://dev.yorhel.nl/ncdu'
+license=('MIT')
+depends=('ncurses' 'bash')
+arch=('x86_64' 'arm64')
+source=("https://dev.yorhel.nl/download/${pkgname}-${pkgver}.tar.gz"{,.asc})
+sha256sums=('7c0fa1eb29d85aaed4ba174164bdbb8f011b5c390d017c57d668fc7231332405'
+            'SKIP')
+b2sums=('fc64ea50cbc7bd2f5b0026ea1e87f18a25693f8ac8eb01468dcbf4d1185f71c472074217ed3088d9a029239547ce9dffe0fbf4b2d4cd8e0904657bd1e2bf6f84'
+        'SKIP')
+validpgpkeys=('74460D32B80810EBA9AFA2E962394C698C2739FA') # Yoran Heling <projects@yorhel.nl>
+
+build() {
+    cd "${srcdir}/${pkgname}-${pkgver}"
+
+    ./configure \
+      --prefix=${pacman_root}/usr \
+      --with-ncursesw \
+      --with-shell=${pacman_root}/bin/bash \
+    make
+}
+
+package() {
+    cd "${srcdir}/${pkgname}-${pkgver}"
+
+    make DESTDIR="${pkgdir}" install
+    install -Dm644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+}
