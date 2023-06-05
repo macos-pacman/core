@@ -1,0 +1,44 @@
+# Maintainer: Andrew Crerar <crerar@archlinux.org>
+# Maintainer: Morten Linderud <foxboron@archlinux.org>
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Hideaki Takahashi <mymelo+aur@gmail.com>
+# Contributor: Vincent Demeester <vincent@sbr.io>
+# Contributor: Josh VanderLinden <arch@cloudlery.com>
+
+pkgname=python-docker
+pkgver=6.1.2
+pkgrel=1
+pkgdesc="A Python library for the Docker Engine API"
+arch=('any')
+url="https://github.com/docker/docker-py"
+license=("Apache")
+depends=('python-packaging' 'python-requests' 'python-urllib3' 'python-websocket-client')
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-setuptools-scm' 'python-wheel')
+checkdepends=('flake8' 'python-coverage' 'python-paramiko' 'python-pytest'
+'python-pytest-cov' 'python-pytest-timeout')
+optdepends=('python-paramiko: for connections using the SSH protocol')
+provides=('python-docker-py')
+conflicts=('python-docker-py')
+replaces=('python-docker-py')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/docker/docker-py/archive/$pkgver.tar.gz")
+sha512sums=('13c2711c44ae7b781187abaa7518ed86dd37192a44b6fff2c0090bfd8edb82555d15fb9d1681de9db47839f8dbcf17cc03fb88ed4e0e0052032dbcc9ed4c0078')
+
+prepare() {
+  sed -i 's/==.*$//' docker-py-"$pkgver"/{,test-}requirements.txt
+}
+
+build() {
+  cd docker-py-"$pkgver"
+  export SETUPTOOLS_SCM_PRETEND_VERSION=$pkgver
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd docker-py-"$pkgver"
+  py.test --cov=docker tests/unit
+}
+
+package() {
+  cd docker-py-"$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}
