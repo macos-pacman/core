@@ -1,0 +1,40 @@
+# Maintainer: Jaroslav Lichtblau <svetlemodry@archlinux.org>
+# Maintainer: Bruno Pagani <archange@archlinux.org>
+# Contributor: Stéphane Gaudreault <stephane@archlinux.org>
+
+pkgname=python-pyproj
+pkgver=3.5.0
+pkgrel=2
+pkgdesc="Python interfaces to PROJ.4 library"
+arch=('x86_64' 'arm64')
+url="https://github.com/pyproj4/pyproj"
+license=(custom)
+depends=(proj python)
+makedepends=(python-setuptools cython)
+checkdepends=(python-pytest python-certifi python-numpy python-pandas python-shapely python-xarray)
+source=(https://github.com/pyproj4/pyproj/archive/$pkgver/$pkgname-$pkgver.tar.gz)
+sha256sums=('7cfd001b6af602cace31895c98a486e0570b8a2f4e7c8bb97a0e9f64e8cf029f')
+
+prepare() {
+  # Remove RPATH
+  sed -i 's/library_dirs if os.name.*/None/' pyproj-$pkgver/setup.py
+}
+
+build() {
+  export PROJ_DIR=${pacman_root}/usr
+  cd pyproj-$pkgver
+  python setup.py build
+}
+
+#check() {
+#  cd pyproj-$pkgver
+#  local python_version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+#  PYTHONPATH="${PWD}"/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version} \
+#    pytest -vv --color=yes
+#}
+
+package() {
+  cd pyproj-$pkgver
+  python setup.py install --root="${pkgdir}" --optimize=1 --skip-build
+  install -Dm644 LICENSE_proj "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE
+}
