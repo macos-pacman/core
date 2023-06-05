@@ -1,0 +1,11 @@
+  cd $_hkgname-$pkgver
+
+  local _license_name=${license_name-LICENSE}
+
+  runhaskell Setup haddock --executables --internal --hoogle --hyperlinked-source
+  runhaskell Setup copy --destdir="$pkgdir"
+  install -D -m644 "${_license_name}" "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+  rm "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/${_license_name}
+
+  # now yeet the non-docs
+  rm -rf ${pkgdir}/${pacman_root}/usr/{lib,bin}

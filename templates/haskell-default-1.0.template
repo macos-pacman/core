@@ -1,0 +1,13 @@
+# default haskell build steps
+
+build() {
+  # template input; name=haskell-build; version=1.0;
+}
+
+check() {
+  # template input; name=haskell-check; version=1.0;
+}
+
+package() {
+  # template input; name=haskell-package; version=1.0;
+}
