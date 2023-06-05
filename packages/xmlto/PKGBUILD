@@ -5,12 +5,12 @@
 
 pkgname=xmlto
 pkgver=0.0.28
-pkgrel=4
+pkgrel=5
 pkgdesc="Convert xml to many other formats"
 arch=('x86_64' 'arm64')
 url="https://pagure.io/xmlto/"
 license=('GPL')
-depends=('libxslt' 'gnu-getopt')
+depends=('libxslt' 'gnu-getopt' 'gnu-coreutils')
 makedepends=('docbook-xsl')
 source=("https://releases.pagure.org/xmlto/${pkgname}-${pkgver}.tar.bz2")
 md5sums=('93bab48d446c826399d130d959fe676f')
@@ -19,8 +19,8 @@ sha256sums=('1130df3a7957eb9f6f0d29e4aa1c75732a7dfb6d639be013859b5c7ec5421276')
 build() {
   cd "$srcdir/${pkgname}-${pkgver}"
 
-  ./configure BASH=/bin/bash --prefix=${pacman_root}/usr \
-                             --mandir=${pacman_root}/usr/share/man
+  ./configure BASH=${pacman_root}/usr/bin/bash --prefix=${pacman_root}/usr \
+                                               --mandir=${pacman_root}/usr/share/man
   make
 }
 
