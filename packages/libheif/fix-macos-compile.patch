@@ -1,0 +1,25 @@
+--- a/libheif/plugins/CMakeLists.txt	2023-05-14 19:45:47.655412041 +0800
++++ b/libheif/plugins/CMakeLists.txt	2023-05-14 19:47:19.819516554 +0800
+@@ -11,10 +11,10 @@
+                     MODULE ${${optionName}_sources} ${${optionName}_extra_plugin_sources}
+                     ../heif_plugin.cc
+                     )
+-            set_target_properties(heif-${name}
+-                    PROPERTIES
+-                    VERSION ${PROJECT_VERSION}
+-                    SOVERSION ${PROJECT_VERSION_MAJOR})
++#            set_target_properties(heif-${name}
++#                    PROPERTIES
++#                    VERSION ${PROJECT_VERSION}
++#                    SOVERSION ${PROJECT_VERSION_MAJOR})
+             target_compile_definitions(heif-${name}
+                     PUBLIC
+                     LIBHEIF_EXPORTS
+@@ -22,6 +22,7 @@
+             target_compile_definitions(heif-${name} PRIVATE PLUGIN_${defineName}=1)
+             target_include_directories(heif-${name} PRIVATE ${PROJECT_SOURCE_DIR} ${libheif_BINARY_DIR} ${libheif_SOURCE_DIR} ${${varName}_INCLUDE_DIR})
+             target_link_libraries(heif-${name} PRIVATE ${${varName}_LIBRARIES} ${${varName}_LINKDIR} heif)
++            target_link_options(heif-${name} PUBLIC -Wl,-undefined,dynamic_lookup)
+ 
+             install(TARGETS heif-${name}
+                     LIBRARY DESTINATION ${PLUGIN_DIRECTORY}
