@@ -1,0 +1,59 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Ray Rashif <schiv@archlinux.org>
+# Contributor:  Ionut Biru <ibiru@archlinux.org>
+# Contributor: Hugo Doria <hugo@archlinux.org>
+
+pkgname=lame
+pkgver=3.100
+pkgrel=4
+pkgdesc='A high quality MPEG Audio Layer III (MP3) encoder'
+arch=('x86_64' 'arm64')
+url=http://lame.sourceforge.net/
+license=(LGPL)
+depends=(ncurses)
+provides=(libmp3lame.dylib)
+makedepends=()
+source=(
+  https://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz
+  $pkgname.pc.in
+)
+sha256sums=('ddfe36cab873794038ae2c1210557ad34857a4b6bdc515785d1da9e175b1da1e'
+            'b0c78319b9fb9d17d341d45579c04893187809aa377295d16f809f4a09abf391')
+b2sums=('6954d30cfd3951ea07762ba5dd7ff27038b78455f423099a225ebf748abddf9970e444456ca5a6179bd381e2205b32293392cb757c203901674860710fe2c183'
+        '44b325ab042a832d82ab2f28df8ece8dec358e3a526fd58c6a4e13464f323a138a78509e819b420de1157ef1611a6bb80353a0681d742d8812ab16f2dc0584d4')
+
+if [ "$CARCH" = "x86_64" ]; then
+  makedepends+=('nasm')
+fi
+
+prepare() {
+  sed -e "s/VERSION/$pkgver/" $pkgname.pc.in > $pkgname.pc
+
+  sed -i.bak -e "/lame_init_old/d" $srcdir/$pkgname-$pkgver/include/libmp3lame.sym
+}
+
+build() {
+  cd $pkgname-$pkgver
+
+  local _args=()
+  if [ "$CARCH" = "x86_64" ]; then
+    _args=("--enable-nasm")
+  fi
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --enable-mp3rtp \
+    --enable-shared \
+    "${_args[@]}"
+  make
+}
+
+check() {
+  make test -C $pkgname-$pkgver
+}
+
+package() {
+  make DESTDIR="$pkgdir" install -C $pkgname-$pkgver
+  install -vDm 644 $pkgname.pc -t "$pkgdir/${pacman_root}/usr/lib/pkgconfig/"
+}
+# vim: ts=2 sw=2 et:
