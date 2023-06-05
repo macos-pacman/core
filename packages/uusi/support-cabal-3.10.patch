@@ -1,0 +1,22 @@
+--- a/uusi.cabal	2023-05-19 21:01:36.593713127 +0800
++++ b/uusi.cabal	2001-09-09 09:46:40.000000000 +0800
+@@ -33,7 +33,7 @@
+ common common-options
+   build-depends:
+     , base   >=4.8 && <5
++    , Cabal  ^>=3.2 || ^>=3.10
+-    , Cabal  ^>=3.2 || ^>=3.4
+     , text
+ 
+   ghc-options:
+--- a/app/Main.hs	2023-05-19 21:01:36.596007096 +0800
++++ b/app/Main.hs	2001-09-09 09:46:40.000000000 +0800
+@@ -6,7 +6,7 @@
+ import Control.Monad (unless, when)
+ import qualified Data.Text as T
+ import qualified Data.Text.IO as T
++import Distribution.Simple.PackageDescription (readGenericPackageDescription)
+-import Distribution.PackageDescription.Parsec (readGenericPackageDescription)
+ import Distribution.PackageDescription.PrettyPrint (showGenericPackageDescription)
+ import Distribution.Uusi.Core
+ import Distribution.Uusi.Types

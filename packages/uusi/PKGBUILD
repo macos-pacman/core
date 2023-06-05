@@ -1,0 +1,53 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=uusi
+pkgver=0.4.2.0
+pkgrel=1
+pkgdesc="Tweak .cabal files"
+url="https://github.com/berberman/uusi"
+license=("MIT")
+arch=('x86_64' 'arm64')
+depends=('ghc-libs')
+makedepends=('ghc')
+source=("https://hackage.haskell.org/packages/archive/$pkgname/$pkgver/$pkgname-$pkgver.tar.gz"
+        'support-cabal-3.10.patch')
+sha512sums=('0d859230940ccf035578a61ecea6165c94de2865e860bb22addcaeaa89a2c214bf46bde8bcce1f0b04a1cd1b58d4d1a2271ca69904ba6055a421ebb4e40c1f7b'
+            '08923a466af87cf035b9cba5ab6a62747b82014575d2d3fb48d1a92f2846ffc2490cbc34ee65499c189de710f650cf923f3faa12d32d615ea62e9bd875979536')
+
+prepare() {
+  cd $pkgname-$pkgver
+
+  patch -Np1 -i ../support-cabal-3.10.patch
+}
+
+
+build() {
+  cd $pkgname-$pkgver
+  export CABAL_DIR="${srcdir}/dist"
+
+  # no hunit, no tests
+  runhaskell Setup configure -O2 --enable-static --enable-shared \
+    --prefix=${pacman_root}/usr \
+    --docdir=${pacman_root}/usr/share/doc/$pkgname \
+    --datasubdir=$pkgname \
+    --dynlibdir='$libdir' \
+    --disable-tests \
+    --ghc-option=-fllvm -v
+
+  runhaskell Setup build -v
+}
+
+package() {
+  cd $pkgname-$pkgver
+  export CABAL_DIR="${srcdir}/dist"
+
+  runhaskell Setup copy -v0 --destdir="$pkgdir"
+  fix_rpath ${pkgdir}/${pacman_root}/usr/lib/libHS${pkgname}-${pkgver}-*.dylib
+
+  install -D -m644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+  rm -f "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/LICENSE
+}
+
+
+
+
