@@ -1,0 +1,85 @@
+# Maintainer: Eric Bélanger <eric@archlinux.org>
+
+pkgname=tcl
+pkgver=8.6.13
+pkgrel=1
+pkgdesc="Powerful, easy-to-learn dynamic programming language"
+arch=('x86_64' 'arm64')
+url="http://tcl.sourceforge.net/"
+license=('custom')
+depends=('zlib')
+options=('staticlibs' '!lto')
+source=(https://downloads.sourceforge.net/sourceforge/tcl/tcl${pkgver}-src.tar.gz)
+sha256sums=('43a1fae7412f61ff11de2cfd05d28cfc3a73762f354a417c62370a54e2caf066')
+
+prepare() {
+  cd tcl${pkgver}
+  # we build the tcl sqlite interface in sqlite-tcl package
+  rm -rf pkgs/sqlite3*
+}
+
+build() {
+  cd tcl${pkgver}/unix
+
+  export TCL_PACKAGE_PATH=${pacman_root}/usr/lib
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --mandir=${pacman_root}/usr/share/man \
+    --enable-threads \
+    --enable-corefoundation \
+    --disable-rpath
+
+  make
+}
+
+check() {
+  cd tcl${pkgver}/unix
+  make test
+}
+
+package() {
+  cd tcl${pkgver}/unix
+  make INSTALL_ROOT="${pkgdir}" install install-private-headers
+  ln -sf tclsh${pkgver%.*} "${pkgdir}/$pacman_root/usr/bin/tclsh"
+  ln -sf libtcl${pkgver%.*}.dylib "${pkgdir}/$pacman_root/usr/lib/libtcl.dylib"
+  install -Dm644 ../license.terms "${pkgdir}/$pacman_root/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm644 tcl.m4 -t "$pkgdir"/$pacman_root/usr/share/aclocal
+  chmod 644 "$pkgdir/$pacman_root/usr/lib/libtclstub8.6.a"
+
+  # fix the install name of libraries
+  local _libs=(
+    'itcl4.2.3/libitcl4.2.3.dylib'
+    'tdbc1.1.5/libtdbc1.1.5.dylib'
+    'thread2.8.8/libthread2.8.8.dylib'
+    'tdbcodbc1.1.5/libtdbcodbc1.1.5.dylib'
+    'tdbcmysql1.1.5/libtdbcmysql1.1.5.dylib'
+    'tdbcpostgres1.1.5/libtdbcpostgres1.1.5.dylib'
+  )
+  local _f
+  for _f in ${_libs[@]}; do
+    install_name_tool -id ${pacman_root}/usr/lib/${_f} ${pkgdir}/${pacman_root}/usr/lib/${_f}
+  done
+
+
+  # remove buildroot traces
+  _tclver=8.6
+  sed -e "s#${srcdir}/tcl${pkgver}/unix#/usr/lib#" \
+      -e "s#${srcdir}/tcl${pkgver}#/usr/include#" \
+      -e "s#'{/usr/lib} '#'/usr/lib/tcl$_tclver'#" \
+      -i.bak "${pkgdir}/$pacman_root/usr/lib/tclConfig.sh"
+
+  tdbcver=tdbc1.1.5
+  sed -e "s#${srcdir}/tcl${pkgver}/unix/pkgs/$tdbcver#/usr/lib/$tdbcver#" \
+      -e "s#${srcdir}/tcl${pkgver}/pkgs/$tdbcver/generic#/usr/include#" \
+      -e "s#${srcdir}/tcl${pkgver}/pkgs/$tdbcver/library#/usr/lib/tcl${pkgver%.*}#" \
+      -e "s#${srcdir}/tcl${pkgver}/pkgs/$tdbcver#/usr/include#" \
+      -i.bak "${pkgdir}/$pacman_root/usr/lib/$tdbcver/tdbcConfig.sh"
+
+  itclver=itcl4.2.3
+  sed -e "s#${srcdir}/tcl${pkgver}/unix/pkgs/$itclver#/usr/lib/$itclver#" \
+      -e "s#${srcdir}/tcl${pkgver}/pkgs/$itclver/generic#/usr/include#" \
+      -e "s#${srcdir}/tcl${pkgver}/pkgs/$itclver#/usr/include#" \
+      -i.bak "${pkgdir}/$pacman_root/usr/lib/$itclver/itclConfig.sh"
+
+  find ${pkgdir} -iname "*.bak" -delete
+}
