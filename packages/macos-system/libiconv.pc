@@ -1,0 +1,11 @@
+prefix=/opt/pacman/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libiconv
+Version: 1.11
+Description: iconv
+Requires:
+Libs: -L${libdir} -liconv
+Cflags:

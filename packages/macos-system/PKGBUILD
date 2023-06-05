@@ -1,0 +1,112 @@
+pkgname=(macos-system macos-accelerate-blas-lapack)
+pkgver=13.3
+pkgrel=13
+pkgdesc='builtin macos packages'
+arch=('x86_64' 'arm64')
+license=(MIT)
+groups=('base')
+
+source=(
+	"install.cpp"
+	"pacman-root-dir"
+	"https://github.com/BLAKE2/BLAKE2/archive/20190724.tar.gz"
+	"libiconv.pc"
+)
+sha256sums=(
+	'da4c971e6bb58c7f36304aeb1194938c377959ca03047955bdd165f6e5a5fddb'
+	'44b17a5ab53dd9e5ed1a4ee9af89a596e0ccffe20bec6ef66b8ed170f37ac8e5'
+	'7f2c72859d462d604ab3c9b568c03e97b50a4052092205ad18733d254070ddc2'
+	'4b7cd081ade824f3e4b13d624e5ff15fa810c93d84df12147004a3d1cc0d2b32'
+)
+
+pacman_root=$(dirname $(which pacman))/../../
+
+_file_cmds_list=('stat' 'cp' 'chmod' 'chown' 'mknod' 'mkfifo' 'ls')
+
+prepare() {
+	cd $srcdir
+}
+
+build() {
+	cd $srcdir
+	c++ -o "install" -std=c++17 -Wall ${CXXFLAGS} install.cpp
+
+	cd BLAKE2-20190724/b2sum
+	if uname -m | grep -q "arm"; then
+		sed 's/..\/sse/..\/neon/g' makefile > makefile.2
+		rm makefile
+		mv makefile.2 Makefile
+	fi
+
+	CFLAGS+=" -Wno-c99-extensions " make NO_OPENMP=1
+}
+
+package_macos-accelerate-blas-lapack() {
+  conflicts=('blas' 'cblas' 'lapack')
+  provides=(
+  	# accelerate/veclib
+  	'blas' 'cblas' 'lapack'
+  )
+
+  # do nothing, this package is literally empty
+}
+
+package_macos-system() {
+  provides=(
+  	'sh'
+  	'pam'
+  	'bison=2.3'
+  	'flex=2.6.4'
+  	'ncurses=5.7'
+  	'readline=6.0'
+  	'curl=7.79.1'
+  	'bzip2=1.0.8'
+  	'awk'
+  	'libldap'
+  	'glibc'
+  	'gzip'
+  	'findutils'
+  	'perl'
+  	'git'
+  	'gcc-libs'
+  	'zlib'
+  	'libiconv=1.11'
+  	'krb5'
+  	'make=3.81'
+  	'libnsl'
+  	'acl'
+  	'file'
+  	'coreutils'
+  	'openssh'
+  	'gperf=3.0.3'
+  )
+
+	mkdir -p $pkgdir/$pacman_root/usr/bin/
+	cp $srcdir/install $pkgdir/$pacman_root/usr/bin/install
+	cp $srcdir/pacman-root-dir $pkgdir/$pacman_root/usr/bin/pacman-root-dir
+
+	chmod a+x ${pkgdir}/${pacman_root}/usr/bin/*
+
+	cd BLAKE2-20190724/b2sum
+	make install PREFIX=$pkgdir/$pacman_root/usr
+
+	mkdir -p $pkgdir/$pacman_root/usr/lib/pkgconfig/
+	cp $srcdir/libiconv.pc ${pkgdir}/${pacman_root}/usr/lib/pkgconfig/iconv.pc
+
+	cd ${pkgdir}/${pacman_root}/usr/lib/pkgconfig/
+	ln -sf iconv.pc libiconv.pc
+
+	cd ${pkgdir}/${pacman_root}/usr/bin
+	echo -e '#!/bin/sh\nshasum -a 256 "$@"' > sha256sum
+	echo -e '#!/bin/sh\nshasum -a 512 "$@"' > sha512sum
+
+	chmod 755 sha{256,512}sum
+}
+
+
+
+
+
+
+
+
