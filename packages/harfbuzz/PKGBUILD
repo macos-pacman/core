@@ -1,0 +1,166 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgbase=harfbuzz
+pkgname=(
+  harfbuzz
+  harfbuzz-cairo
+  harfbuzz-icu
+  harfbuzz-utils
+  harfbuzz-docs
+)
+pkgver=7.2.0
+pkgrel=1
+pkgdesc="OpenType text shaping engine"
+url="https://www.freedesktop.org/wiki/Software/HarfBuzz"
+arch=('x86_64' 'arm64')
+license=(MIT)
+makedepends=(
+  cairo
+  chafa
+  freetype2
+  git
+  glib2
+  gobject-introspection
+  graphite
+  gtk-doc
+  icu
+  meson
+  python
+  ragel
+)
+checkdepends=(
+  python-fonttools
+  python-setuptools
+)
+_commit=a321c4fee56b15247c10f9aa3db7e7ccb3b8173b  # tags/7.2.0^0
+source=("git+https://github.com/harfbuzz/harfbuzz#commit=$_commit")
+b2sums=('SKIP')
+
+pkgver() {
+  cd harfbuzz
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd harfbuzz
+}
+
+build() {
+  local meson_options=(
+    -D graphite2=enabled
+    -D coretext=enabled
+    -D chafa=enabled
+    -D cairo=enabled
+  )
+  # Harfbuzz wants no exceptions
+  CFLAGS="${CFLAGS/-fexceptions/}"
+  CXXFLAGS="${CXXFLAGS/-fexceptions/}"
+
+  arch-meson harfbuzz build "${meson_options[@]}"
+  meson compile -C build
+}
+
+check() {
+  mkdir -p tmp
+  TMPDIR="$PWD/tmp" meson test -C build --print-errorlogs
+  rm -r tmp
+}
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p "$(dirname "$f")" || true
+  done
+}
+
+package_harfbuzz() {
+  depends=(
+    libfreetype.dylib
+    libglib-2.0.dylib
+    libgobject-2.0.dylib
+    libgraphite2.dylib
+  )
+  optdepends=('harfbuzz-utils: utilities')
+  provides=(libharfbuzz{,-subset,-gobject}.dylib)
+
+  meson install -C build --destdir "$pkgdir"
+
+  ( cd "$pkgdir"
+
+    _pick hb-cairo ${pacman_root#/}/usr/lib/libharfbuzz-cairo*
+    _pick hb-cairo ${pacman_root#/}/usr/lib/pkgconfig/harfbuzz-cairo.pc
+    _pick hb-cairo ${pacman_root#/}/usr/include/harfbuzz/hb-cairo.h
+
+    _pick hb-icu ${pacman_root#/}/usr/lib/libharfbuzz-icu*
+    _pick hb-icu ${pacman_root#/}/usr/lib/pkgconfig/harfbuzz-icu.pc
+    _pick hb-icu ${pacman_root#/}/usr/include/harfbuzz/hb-icu.h
+
+    _pick hb-utils ${pacman_root#/}/usr/bin
+
+    _pick hb-docs ${pacman_root#/}/usr/share/gtk-doc
+  )
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
+}
+
+package_harfbuzz-cairo() {
+  pkgdesc+=" - Cairo integration"
+  depends=(
+    libcairo.dylib
+    libharfbuzz.dylib
+  )
+  provides=(libharfbuzz-cairo.dylib)
+
+  mv hb-cairo/* "$pkgdir"
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
+}
+
+package_harfbuzz-icu() {
+  pkgdesc+=" - ICU integration"
+  depends=(
+    libharfbuzz.dylib
+    libicuuc.dylib
+  )
+  provides=(libharfbuzz-icu.dylib)
+
+  mv hb-icu/* "$pkgdir"
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
+}
+
+package_harfbuzz-utils() {
+  pkgdesc+=" - Utilities"
+  depends=(
+    harfbuzz
+    harfbuzz-cairo
+    libcairo.dylib
+    libchafa.dylib
+    libfreetype.dylib
+    libglib-2.0.dylib
+    libgobject-2.0.dylib
+    libharfbuzz-cairo.dylib
+    libharfbuzz-gobject.dylib
+    libharfbuzz-subset.dylib
+    libharfbuzz.dylib
+  )
+
+  mv hb-utils/* "$pkgdir"
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
+}
+
+package_harfbuzz-docs() {
+  pkgdesc+=" - Documentation"
+  depends=()
+
+  mv hb-docs/* "$pkgdir"
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
+}
+
+# vim:set sw=2 sts=-1 et:
