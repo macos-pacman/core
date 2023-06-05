@@ -1,0 +1,32 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=libxfixes
+pkgver=6.0.1
+pkgrel=1
+pkgdesc="X11 miscellaneous 'fixes' extension library"
+arch=('x86_64' 'arm64')
+url="https://xorg.freedesktop.org/"
+license=('custom')
+depends=('libx11')
+makedepends=('xorg-util-macros' 'xorgproto')
+source=(${url}/releases/individual/lib/libXfixes-${pkgver}.tar.xz{,.sig})
+sha512sums=('b46deffb30cd73ec8a127390d99f2ba2f3ab78f334fdba227f1f461441644a0c169b0d13ffa47576fa458780e7a6db664ff8b93e9195fb217262efd8128f1ffe'
+            'SKIP')
+validpgpkeys=('4A193C06D35E7C670FA4EF0BA2FB9E081F2D130E') # "Alan Coopersmith <alan.coopersmith@oracle.com>"
+#validpgpkeys=('C41C985FDCF1E5364576638B687393EE37D128F8') # Matthieu Herrb <matthieu.herrb@laas.fr>
+#validpgpkeys+=('3C2C43D9447D5938EF4551EBE23B7E70B467F0BF') # Peter Hutterer (Who-T) <office@who-t.net>
+
+build() {
+  cd "libXfixes-${pkgver}"
+  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc --disable-static
+  make
+}
+
+package() {
+  cd "libXfixes-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+
+  install -m755 -d "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install -m644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/"
+}
