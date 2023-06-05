@@ -1,0 +1,32 @@
+pkgname=python-pyobjc-framework-cocoa
+pkgver=9.1.1
+pkgrel=1
+pkgdesc="Wrappers for the core Cocoa frameworks: CoreFoundation, Foundation and AppKit"
+url="https://github.com/ronaldoussoren/pyobjc"
+license=('MIT')
+arch=('any')
+depends=('python' 'python-pyobjc-core')
+makedepends=('python-build' 'python-installer')
+checkdepends=('python-pytest')
+source=("https://files.pythonhosted.org/packages/source/p/pyobjc-framework-Cocoa/pyobjc-framework-Cocoa-$pkgver.tar.gz")
+sha256sums=('345c32b6d1f3db45f635e400f2d0d6c0f0f7349d45ec823f76fc1df43d13caeb')
+
+
+build() {
+  cd pyobjc-framework-Cocoa-${pkgver}
+  python -m build -wn
+}
+
+check() {
+  cd pyobjc-framework-Cocoa-${pkgver}
+  PYTHONPATH="${PWD}/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-${CARCH}-cpython-311/:${PYTHONPATH}" \
+    python -m pytest -vv \
+      --deselect 'PyObjCTest/test_cfrunloop.py::TestRunLoop::testFunctions10_7' \
+      -W "ignore::pytest.PytestCollectionWarning" \
+      < /dev/null
+}
+
+package() {
+  cd pyobjc-framework-Cocoa-${pkgver}
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}
