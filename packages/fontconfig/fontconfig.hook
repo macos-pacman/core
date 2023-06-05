@@ -1,0 +1,14 @@
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = %%PACMAN_ROOT_REL%%/etc/fonts/conf.d/*
+Target = %%PACMAN_ROOT_REL%%/usr/share/fonts/*
+Target = %%PACMAN_ROOT_REL%%/usr/share/fontconfig/conf.avail/*
+Target = %%PACMAN_ROOT_REL%%/usr/share/fontconfig/conf.default/*
+
+[Action]
+Description = Updating fontconfig cache...
+When = PostTransaction
+Exec = %%PACMAN_ROOT%%/usr/bin/fc-cache -s

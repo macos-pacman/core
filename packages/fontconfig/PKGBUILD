@@ -1,0 +1,88 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=fontconfig
+pkgver=2.14.2
+pkgrel=1
+pkgdesc="Library for configuring and customizing font access"
+url=https://www.freedesktop.org/wiki/Software/fontconfig/
+arch=('x86_64' 'arm64')
+license=(custom)
+depends=(
+  expat
+  freetype2
+)
+makedepends=(
+  git
+  gperf
+  meson
+)
+provides=(fontconfig-docs)
+conflicts=(fontconfig-docs)
+replaces=('fontconfig-docs<2:2.13.93-1')
+backup=(${pacman_root#/}/etc/fonts/fonts.conf)
+install=fontconfig.install
+_commit=7861a719616b4b132b9cac089c6c64f47832edb1  # tags/2.14.2^0
+source=(
+  "git+https://gitlab.freedesktop.org/fontconfig/fontconfig.git#commit=$_commit"
+  40-fontconfig-config.script
+  40-fontconfig-config.hook
+  fontconfig.hook
+  fontconfig.install.in
+  fontconfig.install
+)
+b2sums=('SKIP'
+        '216f458e466edde06cef770b7ef66b7fbd9181019e99deda4d259910035adf7b8157d817008221354cdd217b7a8d8bbc0dc776ba1ec583e0a55079c8232fac7c'
+        '78c41373d174ba1c08bdd0a90dae436585027f1f2800a7c520e41353b62404c2b86b438fad83633ec6035c92cbfee9566d249fb5093b7bf9faeeb8f540fd4d2c'
+        '7de66ff0dc0cbbbb1921f87bcce8be07ec68ade1d979300dae4f4f6863e8f71c0994ac9b67a15d6541c8cdc9a54f42da1cec2a98b047f1715d7fb90a11d3fa21'
+        '7f37db93a501cccb57ad3a94662511bad52dd8f0b7c5a874611452c40639fa332e905445ca6f7dfdfa45670c2003f218818e85bf738eb02440e180cf0e6f7837'
+        'SKIP')
+
+prepare() {
+  _files=('fontconfig.hook' '40-fontconfig-config.hook')
+  for _f in "${_files[@]}"; do
+    echo "patching pacman root for ${_f}"
+    sed -i.bak -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" $_f
+    sed -i.bak -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" $_f
+  done
+
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../fontconfig.install.in > ../fontconfig.install
+}
+
+pkgver() {
+  cd fontconfig
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+build() {
+  local meson_options=(
+    --sysconfdir=${pacman_root}/etc
+    --localstatedir=${pacman_root}/var
+    -D default-hinting=slight
+    -D default-sub-pixel-rendering=rgb
+    -D doc=disabled
+  )
+  arch-meson fontconfig build "${meson_options[@]}"
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package() {
+  depends+=(
+    libexpat.dylib
+    libfreetype.dylib
+  )
+  provides+=(libfontconfig.dylib)
+
+  meson install -C build --destdir "$pkgdir"
+
+  install -Dm644 *.hook -t "$pkgdir/${pacman_root}/usr/share/libalpm/hooks"
+  install -D 40-fontconfig-config.script \
+    "$pkgdir/${pacman_root}/usr/share/libalpm/scripts/40-fontconfig-config"
+  install -Dm644 fontconfig/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+}
+
+# vim:set sw=2 sts=-1 et:
