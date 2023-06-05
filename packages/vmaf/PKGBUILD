@@ -1,0 +1,34 @@
+# Maintainer: Daniel Bermond <dbermond@archlinux.org>
+
+pkgname=vmaf
+pkgver=2.3.1
+pkgrel=1
+pkgdesc='Perceptual video quality assessment algorithm based on multi-method fusion'
+arch=('x86_64' 'arm64')
+url='https://github.com/Netflix/vmaf/'
+license=('BSD')
+depends=('gcc-libs')
+makedepends=('meson' 'doxygen')
+options=('!lto')
+source=("https://github.com/Netflix/vmaf/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('8d60b1ddab043ada25ff11ced821da6e0c37fd7730dd81c24f1fc12be7293ef2')
+
+if [ $CARCH = "x86_64" ]; then
+  makedepends+=(nasm)
+fi
+
+build() {
+    arch-meson "${pkgname}-${pkgver}/libvmaf/build" "${pkgname}-${pkgver}/libvmaf"
+    ninja -v -C "${pkgname}-${pkgver}/libvmaf/build"
+}
+
+check() {
+    ninja -v -C "${pkgname}-${pkgver}/libvmaf/build" test
+}
+
+package() {
+    DESTDIR="$pkgdir" ninja -v -C "${pkgname}-${pkgver}/libvmaf/build" install
+    install -D -m755 "${pkgname}-${pkgver}/libvmaf/build/tools/vmafossexec" -t "${pkgdir}/${pacman_root}/usr/bin"
+    install -D -m644 "${pkgname}-${pkgver}/LICENSE" -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+    cp -R "${pkgname}-${pkgver}/model" "${pkgdir}/${pacman_root}/usr/share"
+}
