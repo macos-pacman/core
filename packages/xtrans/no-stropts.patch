@@ -1,0 +1,11 @@
+--- a/Xtranslcl.c
++++ b/Xtranslcl.c
+@@ -81,7 +81,7 @@ let gotServerError = false;
+ #ifdef __sun
+ # include <stropts.h>
+ #else
+-# include <sys/stropts.h>
++# include <sys/ioctl.h>
+ #endif
+ #include <sys/wait.h>
+ #include <sys/types.h>
