@@ -1,0 +1,99 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=nss
+pkgver=3.89.1
+pkgrel=1
+pkgdesc="Network Security Services"
+url="https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS"
+arch=('x86_64' 'arm64')
+license=(
+  GPL
+  MPL
+)
+depends=(
+  'nspr>=4.35'
+  'p11-kit>=0.23.19'
+  sh
+  sqlite
+  zlib
+)
+makedepends=(
+  perl
+  python
+)
+source=("https://ftp.mozilla.org/pub/security/nss/releases/NSS_${pkgver//./_}_RTM/src/nss-${pkgver}.tar.gz"
+        'fix-macos-crypto.patch')
+sha256sums=('3adaedb9e70c3c5f40603bf60a01e336190a6dbe01929d395f16b01fe84a0156'
+            'f3f6cd65801f0b9ab98789336d028a537539af3b81afb345f3301d72cfde6a84')
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../fix-macos-crypto.patch
+}
+
+build() {
+  cd $pkgname-$pkgver/nss
+  make all \
+    BUILD_OPT=1 \
+    NSS_DISABLE_GTESTS=1 \
+    NSS_USE_SYSTEM_SQLITE=1 \
+    NSPR_INCLUDE_DIR=${pacman_root}/usr/include/nspr \
+    NSPR_LIB_DIR=${pacman_root}/usr/lib \
+    USE_64=1
+}
+
+package() {
+  cd $pkgname-$pkgver
+
+  local nsprver="$(pkg-config --modversion nspr)"
+  local libdir=${pacman_root}/usr/lib includedir=${pacman_root}/usr/include/nss
+
+  sed nss/pkg/pkg-config/nss.pc.in \
+    -e "s,%prefix%,/usr,g" \
+    -e "s,%exec_prefix%,\${prefix},g" \
+    -e "s,%libdir%,$libdir,g" \
+    -e "s,%includedir%,$includedir,g" \
+    -e "s,%NSPR_VERSION%,$nsprver,g" \
+    -e "s,%NSS_VERSION%,$pkgver,g" |
+    install -Dvm644 /dev/stdin "$pkgdir$libdir/pkgconfig/nss.pc"
+
+  ln -s nss.pc "$pkgdir$libdir/pkgconfig/mozilla-nss.pc"
+
+  local _releasedir="Darwin$(uname -r)_clang_64_OPT.OBJ"
+  install -Dt "$pkgdir$libdir" dist/${_releasedir}/lib/*.dylib
+
+  local vmajor vminor vpatch
+  { read vmajor; read vminor; read vpatch; } \
+    < <(awk '/#define.*NSS_V(MAJOR|MINOR|PATCH)/ {print $3}' nss/lib/nss/nss.h)
+
+  sed nss/pkg/pkg-config/nss-config.in \
+    -e "s,@prefix@,/usr,g" \
+    -e "s,@exec_prefix@,/usr,g" \
+    -e "s,@libdir@,$libdir,g" \
+    -e "s,@includedir@,$includedir,g" \
+    -e "s,@MOD_MAJOR_VERSION@,$vmajor,g" \
+    -e "s,@MOD_MINOR_VERSION@,$vminor,g" \
+    -e "s,@MOD_PATCH_VERSION@,$vpatch,g" |
+    install -Dv /dev/stdin "$pkgdir/${pacman_root}/usr/bin/nss-config"
+
+  install -Dt "$pkgdir/${pacman_root}/usr/bin" \
+    dist/${_releasedir}/bin/{*util,shlibsign,signtool,signver,ssltap}
+
+  install -Dt "$pkgdir$includedir" -m644 dist/public/nss/*.h
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/man/man1" -m644 \
+    nss/doc/nroff/{*util,signtool,signver,ssltap}.1
+
+  # Replace built-in trust with p11-kit connection
+  ln -s pkcs11/p11-kit-trust.so "$pkgdir$libdir/p11-kit-trust.so"
+  ln -sf p11-kit-trust.so "$pkgdir$libdir/libnssckbi.so"
+
+  # fix rpaths
+  local _f
+  for _f in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/*; do
+    fix_rpath "${pacman_root}" "${pkgdir}" "${_f}"
+  done
+}
+
+# vim:set sw=2 sts=-1 et:
