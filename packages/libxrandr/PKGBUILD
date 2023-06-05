@@ -1,0 +1,33 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Alexander Baldeck <alexander@archlinux.org>
+
+pkgname=libxrandr
+pkgver=1.5.3
+pkgrel=1
+pkgdesc="X11 RandR extension library"
+arch=('x86_64' 'arm64')
+license=('custom')
+url="https://xorg.freedesktop.org/"
+depends=('libxext' 'libxrender')
+makedepends=('xorg-util-macros' 'xorgproto')
+source=(${url}/releases/individual/lib/libXrandr-${pkgver}.tar.xz{,.sig})
+sha512sums=('0c385fc304a872048ffca5cfb8789dfe3132e3126894d54b2fe642dff19d286e7ade1d2f6da894e03788df9c5cf31427c674e987143037b7d385b19285590edb'
+            'SKIP')
+#validpgpkeys=('10A6D91DA1B05BD29F6DEBAC0C74F35979C486BE') # Dave Airlie <airlied@redhat.com> 
+#validpgpkeys+=('C41C985FDCF1E5364576638B687393EE37D128F8') # Matthieu Herrb <matthieu.herrb@laas.fr>
+validpgpkeys+=('4A193C06D35E7C670FA4EF0BA2FB9E081F2D130E') # Alan Coopersmith <alan.coopersmith@oracle.com>
+
+build() {
+  cd libXrandr-${pkgver}
+  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc
+  make
+}
+
+package() {
+  cd libXrandr-${pkgver}
+  make DESTDIR="${pkgdir}" install
+
+  install -d -m755 "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install -m644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/"
+}
