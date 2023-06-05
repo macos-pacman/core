@@ -1,0 +1,53 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+
+# after a .so bump first rebuild dirmngr
+# with sudo testing-x86_64-build -- -I libgcrypt-1.6.0-1-x86_64.pkg.tar.xz
+# then cp /usr/lib/libgcrypt.so.11 /var/lib/archbuild/staging-x86_64/root/usr/lib/ and do staging-x86_64-build
+
+pkgname=libgcrypt
+pkgver=1.10.2
+pkgrel=1
+pkgdesc="General purpose cryptographic library based on the code from GnuPG"
+arch=('x86_64' 'arm64')
+url="https://www.gnupg.org"
+license=('LGPL')
+depends=('libgpg-error')
+options=('!emptydirs')
+# https://www.gnupg.org/download/integrity_check.html
+source=(https://gnupg.org/ftp/gcrypt/${pkgname}/${pkgname}-${pkgver}.tar.bz2{,.sig}
+        'fix-macos-build.patch'
+)
+sha256sums=('3b9c02a004b68c256add99701de00b383accccf37177e0d6c58289664cce0c03'
+            'SKIP'
+            'cb3bf780eb6475d9605c5cb059071f6dbbae9a4c954808bddbb7dd013e7a4e0e')
+#validpgpkeys=('6DAA6E64A76D2840571B4902528897B826403ADA') # "Werner Koch (dist signing 2020)"
+validpgpkeys=('AC8E115BF73E2D8D47FA9908E98E9B2D19C6C8BD') # Niibe Yutaka (GnuPG Release Key)
+
+prepare() {
+  cd "${pkgname}"-${pkgver}
+
+  patch -Np1 -i ../fix-macos-build.patch
+}
+
+build() {
+  cd "${pkgname}"-${pkgver}
+  ./configure --prefix=${pacman_root}/usr \
+	--disable-static \
+	--disable-asm \
+	--disable-padlock-support
+
+  # some weird shit: homebrew says these must be compiled without optimisations.
+  CFLAGS=${CFLAGS/-O2/-O0} CXXFLAGS=${CXXFLAGS/-O2/-O0} make -C random rndjent.o rndjent.lo
+
+  make
+}
+
+check() {
+  cd "${pkgname}"-${pkgver}
+  make check
+}
+
+package() {
+  cd "${pkgname}"-${pkgver}
+  make DESTDIR="${pkgdir}" install
+}
