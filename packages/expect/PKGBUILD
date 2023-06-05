@@ -1,0 +1,68 @@
+# Maintainer:  Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Allan McRae <allan@archlinux.org>
+
+pkgname=expect
+pkgver=5.45.4
+pkgrel=4
+pkgdesc='A tool for automating interactive applications'
+arch=('x86_64' 'arm64')
+url='https://www.nist.gov/el/msid/expect.cfm'
+license=(custom)
+depends=(tcl automake)
+source=(https://downloads.sourceforge.net/project/expect/Expect/$pkgver/expect${pkgver}.tar.gz
+        expect-5.45-format-security.patch
+        https://raw.githubusercontent.com/Homebrew/formula-patches/49c39ceebb547fc1965ae2c8d423fd8c082b52a7/expect/headers.diff)
+sha256sums=('49a7da83b0bdd9f46d04a04deec19c7767bb9a323e40c4781f89caf760b92c34'
+            'b141e1a18186aaedb48ad503f34848413819f7a55789d86d04f14e8ae4cacc56'
+            '7a4d5c958b3e51a08368cae850607066baf9c049026bec11548e8c04cec363ef')
+
+prepare() {
+  cd expect${pkgver}
+  patch -Np0 -i ${srcdir}/expect-5.45-format-security.patch
+  patch -Np1 -i ${srcdir}/headers.diff
+
+  local _am=${pacman_root}/usr/share/automake-*
+  cp ${_am}/config.sub tclconfig/
+  cp ${_am}/config.guess tclconfig/
+
+  autoreconf -fiv
+}
+
+build() {
+  cd expect${pkgver}
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --mandir=${pacman_root}/usr/share/man
+
+  make
+}
+
+check() {
+  cd expect${pkgver}
+  make test
+}
+
+package() {
+  cd expect${pkgver}
+  make DESTDIR="$pkgdir" install
+  install -Dm644 README "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/README"
+
+  # unfuck the paths
+  local _dl=libexpect${pkgver}.dylib
+  local _exe=${pacman_root}/usr/bin/expect
+  local _dlp=${pacman_root}/usr/lib/expect${pkgver}/${_dl}
+
+  echo "running install_name_tool"
+  install_name_tool -change ${_dl} ${_dlp} ${pkgdir}/${_exe}
+  install_name_tool -id ${_dlp} ${pkgdir}/${_dlp}
+
+  ln -sf ${_dlp} ${pkgdir}/${pacman_root}/usr/lib/${_dl}
+
+  # they forgot
+  chmod +x ${pkgdir}/${pacman_root}/usr/bin/*
+
+  # avoid file conflict with the more powerful mkpasswd from the whois package
+  mv -v "$pkgdir"/${pacman_root}/usr/bin/mkpasswd{,-expect}
+  mv -v "$pkgdir"/${pacman_root}/usr/share/man/man1/mkpasswd{,-expect}.1
+}
