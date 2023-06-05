@@ -1,0 +1,199 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Dan McGee <dan@archlinux.org>
+
+pkgbase=postgresql
+pkgname=('postgresql-libs' 'postgresql-docs' 'postgresql')
+pkgver=15.2
+_majorver=${pkgver%.*}
+pkgrel=2
+pkgdesc='Sophisticated object-relational DBMS'
+url='https://www.postgresql.org/'
+arch=('x86_64' 'arm64')
+license=('custom:PostgreSQL')
+makedepends=('krb5' 'libxml2' 'python' 'perl' 'tcl>=8.6.0' 'openssl>=1.0.0'
+             'zlib' 'icu' 'libldap' 'llvm' 'clang' 'libxslt')
+source=(https://ftp.postgresql.org/pub/source/v${pkgver}/postgresql-${pkgver}.tar.bz2
+        postgresql-run-socket.patch
+        postgresql-run-socket.patch.patch
+        postgresql-check-db-dir)
+sha256sums=('99a2171fc3d6b5b5f56b757a7a3cb85d509a38e4273805def23941ed2b8468c7'
+            '1c3f7ba96400cf5064093f8a839df9076eaa064df020e6ec9c5e7ab8b6d527c6'
+            '22afb3b02a21e55673171f0b68da13859fed0a69258b824c60cc5b5c5a8ada17'
+            '907a5fb1247bca266d409b80f64dd11956959b2f1e76bcd0ba1b3c03412f54aa')
+b2sums=('5f8b8b111122a4cdd7913132491b9dc9287bc725d5310004e94a05c8994ce4e9e9c7a6abb26e13a6f77bc2e04bbda06d81393ce31d6372e4f05f5d07796274fe'
+        'd7a9d4d8281c5cdf642b5d6f7ebb03bdde00afc520bee4cac9fd18a2c25e4bc0aa59f3c3c9f44c257860e2560d126646f2ba81693f966fe93eb4e041adbb0b88'
+        'fbae75a858d8720ec905a245db13086a279c17367ae5d64f050688f6855878ac68d8eb273d5eed81fa809a6cba2202151148301c19533bc8c99b2ae7e86b9541'
+        '5e9a14891840089e2cfec8e1329756b2ce1c692e7e47ef869d4aed26ff64d43479edac39be5c6de83849da6253efd8b44558a1edab3bb565aeb81ec9ca07e4d3')
+
+# Upstream provides md5 and sha256
+
+prepare() {
+  cd postgresql-${pkgver}
+
+  cp ../postgresql-run-socket.patch ./
+
+  patch -Np1 < <(sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../postgresql-run-socket.patch.patch)
+  patch -Np1 < postgresql-run-socket.patch
+
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../../postgresql.install.in > ../../postgresql.install
+}
+
+build() {
+  cd postgresql-${pkgver}
+  local configure_options=(
+    --prefix=${pacman_root}/usr
+    --mandir=${pacman_root}/usr/share/man
+    --datadir=${pacman_root}/usr/share/postgresql
+    --sysconfdir=${pacman_root}/etc
+    --with-gssapi
+    --with-libxml
+    --with-openssl
+    --with-perl
+    --with-python
+    --with-tcl
+    --with-readline
+    --with-system-tzdata=/usr/share/zoneinfo
+    --with-icu
+    --with-ldap
+    --with-pam
+    --with-llvm
+    --with-libxslt
+    --with-lz4
+    --with-zstd
+    --enable-nls
+    --enable-thread-safety
+  )
+
+  ./configure "${configure_options[@]}"
+  make world
+}
+
+_postgres_check() {
+  make "${1}" NO_TEMP_INSTALL=1 || (find . -name regression.diffs | \
+    while read -r line; do
+      echo "make ${1} failure: ${line}"
+      cat "${line}"
+    done; exit 1)
+}
+
+check() {
+  cd postgresql-${pkgver}
+
+  rm -rf tmp_install
+
+  # fix the things in tmp_install
+  make temp-install
+  local _f
+  for _f in tmp_install/${pacman_root}/usr/bin/* \
+            tmp_install/${pacman_root}/usr/lib/*.dylib \
+            tmp_install/${pacman_root}/usr/lib/postgresql/*.so \
+            src/test/isolation/isolationtester \
+            src/interfaces/ecpg/test/{thread,sql,preproc,pgtypeslib,connect,compat_oracle,compat_informix}/*; do
+    replace_lib_paths_with_rpath "${pacman_root}" "${_f}" tmp_install/${pacman_root}/usr/lib/
+  done
+
+  _postgres_check check
+  _postgres_check check-world
+}
+
+package_postgresql-libs() {
+  pkgdesc="Libraries for use with PostgreSQL"
+  depends=('krb5' 'openssl>=1.0.0' 'readline>=6.0' 'zlib' 'libldap')
+  provides=('postgresql-client' 'libpq.dylib' 'libecpg.dylib' 'libecpg_compat.dylib' 'libpgtypes.dylib')
+  conflicts=('postgresql-client')
+
+  cd postgresql-${pkgver}
+
+  # install license
+  install -Dm 644 COPYRIGHT -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+
+  # install libs and non-server binaries
+  for dir in src/interfaces src/bin/pg_config src/bin/pg_dump src/bin/psql src/bin/scripts; do
+    make -C ${dir} DESTDIR="${pkgdir}" install
+  done
+
+  for util in pg_config pg_dump pg_dumpall pg_restore psql \
+      clusterdb createdb createuser dropdb dropuser pg_isready reindexdb vacuumdb; do
+    install -Dm 644 doc/src/sgml/man1/${util}.1 "${pkgdir}"/${pacman_root}/usr/share/man/man1/${util}.1
+  done
+
+  cd src/include
+
+  install -d "${pkgdir}"/${pacman_root}/usr/include/{libpq,postgresql/internal/libpq}
+
+  # these headers are needed by the public headers of the interfaces
+  install -m 644 pg_config.h "${pkgdir}/${pacman_root}/usr/include"
+  install -m 644 pg_config_os.h "${pkgdir}/${pacman_root}/usr/include"
+  install -m 644 pg_config_ext.h "${pkgdir}/${pacman_root}/usr/include"
+  install -m 644 postgres_ext.h "${pkgdir}/${pacman_root}/usr/include"
+  install -m 644 libpq/libpq-fs.h "${pkgdir}/${pacman_root}/usr/include/libpq"
+  install -m 644 pg_config_manual.h "${pkgdir}/${pacman_root}/usr/include"
+
+  # these he aders are needed by the not-so-public headers of the interfaces
+  install -m 644 c.h "${pkgdir}/${pacman_root}/usr/include/postgresql/internal"
+  install -m 644 port.h "${pkgdir}/${pacman_root}/usr/include/postgresql/internal"
+  install -m 644 postgres_fe.h "${pkgdir}/${pacman_root}/usr/include/postgresql/internal"
+  install -m 644 libpq/pqcomm.h "${pkgdir}/${pacman_root}/usr/include/postgresql/internal/libpq"
+}
+
+package_postgresql-docs() {
+  pkgdesc="HTML documentation for PostgreSQL"
+  options+=('docs')
+
+  cd postgresql-${pkgver}
+
+  install -Dm 644 COPYRIGHT -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+
+  make -C doc/src/sgml DESTDIR="${pkgdir}" install-html
+  # chown -R root:root "${pkgdir}/${pacman_root}/usr/share/doc/postgresql/html"
+
+  # clean up
+  rmdir "${pkgdir}"/${pacman_root}/usr/share/man/man{1,3,7}
+  rmdir "${pkgdir}"/${pacman_root}/usr/share/man
+}
+
+package_postgresql() {
+  pkgdesc='Sophisticated object-relational DBMS'
+  depends=("postgresql-libs>=${pkgver}" 'krb5' 'libxml2' 'readline>=6.0'
+           'openssl>=1.0.0' 'icu' 'libldap' 'llvm-libs'
+           'libxslt' 'lz4' 'zstd')
+  optdepends=('python: for PL/Python 3 support'
+              'perl: for PL/Perl support'
+              'tcl: for PL/Tcl support'
+              'postgresql-old-upgrade: upgrade from previous major version using pg_upgrade'
+              'logrotate: rotates system logs automatically')
+  options+=('staticlibs')
+  install=postgresql.install
+
+  cd postgresql-${pkgver}
+
+  # install
+  make DESTDIR="${pkgdir}" install
+  make -C contrib DESTDIR="${pkgdir}" install
+  make -C doc/src/sgml DESTDIR="${pkgdir}" install-man
+
+  # we don't want these, they are in the -libs package
+  for dir in src/interfaces src/bin/pg_config src/bin/pg_dump src/bin/psql src/bin/scripts; do
+    make -C ${dir} DESTDIR="${pkgdir}" uninstall
+  done
+  for util in pg_config pg_dump pg_dumpall pg_restore psql \
+      clusterdb createdb createuser dropdb dropuser pg_isready reindexdb vacuumdb; do
+    rm "${pkgdir}"/${pacman_root}/usr/share/man/man1/${util}.1
+  done
+
+  install -Dm 644 COPYRIGHT -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+
+  cd "${srcdir}"
+  install -Dm 755 postgresql-check-db-dir -t "${pkgdir}/${pacman_root}/usr/bin"
+
+  # need to fix the rpath for this guy
+  fix_rpath "${pacman_root}" "${pkgdir}" "${pkgdir}/${pacman_root}/usr/lib/postgresql/pgxs/src/test/isolation/isolationtester"
+
+  # clean up unneeded installed items
+  rm -rf "${pkgdir}/${pacman_root}/usr/include/postgresql/internal"
+  rm -rf "${pkgdir}/${pacman_root}/usr/include/libpq"
+  find "${pkgdir}/${pacman_root}/usr/include" -maxdepth 1 -type f -execdir rm {} +
+  rmdir "${pkgdir}/${pacman_root}/usr/share/doc/postgresql/html"
+}
+
+# vim:set sw=2 sts=-1 et:

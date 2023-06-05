@@ -1,0 +1,7 @@
+post_upgrade() {
+  # Prints the warning message if the database version on disk
+  # does not match the PostgreSQL major version.
+  if [ -d /opt/pacman/var/lib/postgres/data ]; then
+	/opt/pacman/usr/bin/postgresql-check-db-dir /opt/pacman/var/lib/postgres/data || true
+  fi
+}

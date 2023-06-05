@@ -1,0 +1,11 @@
+--- a/postgresql-run-socket.patch	2023-05-11 19:21:39.027952895 +0800
++++ b/postgresql-run-socket.patch	2023-05-11 19:22:06.821645339 +0800
+@@ -6,7 +6,7 @@
+   */
+  #ifndef WIN32
+ -#define DEFAULT_PGSOCKET_DIR  "/tmp"
+-+#define DEFAULT_PGSOCKET_DIR  "/run/postgresql"
+++#define DEFAULT_PGSOCKET_DIR  "%%PACMAN_ROOT%%/var/run/postgresql"
+  #else
+  #define DEFAULT_PGSOCKET_DIR ""
+  #endif
