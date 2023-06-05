@@ -1,0 +1,95 @@
+# Maintainer:	Dmytro Meleshko	<qzlgeb.zryrfuxb@tznvy.pbz(rot13)>
+# Contributor:	farseerfc	<farseerfc@archlinuxcn.org>
+# Contributor:	refujee		<gmail.com: refujee>
+# Contributor:	sausageandeggs	<archlinux.us: sausageandeggs>
+# Contributor:	Jesse Jaara	<gmail.com: jesse.jaara>
+# Mesonification is based on <https://aur.archlinux.org/cgit/aur.git/commit/PKGBUILD?h=powder-toy-git&id=65c5f88eb2df75df77c4da139859232d7d94f2c0>
+
+pkgname=powder-toy
+_appexe="${pkgname}"
+_appid=uk.co.powdertoy.tpt
+_appvendor=powdertoy
+pkgver=97.0.352
+pkgrel=1
+pkgdesc="Desktop version of the classic falling sand physics sandbox, simulates air pressure, velocity & heat!"
+arch=('x86_64' 'arm64')
+depends=('glibc' 'sdl2' 'fftw' 'zlib' 'libpng' 'curl' 'jsoncpp' 'bzip2')
+makedepends=('meson' 'ninja')
+url="https://powdertoy.co.uk/"
+license=('GPL3')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/The-Powder-Toy/The-Powder-Toy/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('3ab27e1b9a84db1da7342e61232ad5be981ca1ddf001c4924fd08b61cc8d287a')
+
+build() {
+  cd "The-Powder-Toy-${pkgver}"
+
+  local extra_flags=(
+    -Dignore_updates=true
+    -Dinstall_check=false
+    -Dapp_exe="${_appexe}"
+    -Dapp_id="${_appid}"
+    -Dapp_vendor="${_appvendor}"
+    -Dlua=none
+    -Dworkaround_elusive_bzip2=true
+    -Dworkaround_elusive_bzip2_lib_dir=${pacman_root}/usr/lib
+    -Dworkaround_elusive_bzip2_include_dir=${pacman_root}/usr/include
+    -Dworkaround_elusive_bzip2_static=true
+  )
+
+  if [ "$CARCH" = "x86_64" ]; then
+    extra_flags+=(-Dx86_sse="sse3")
+  fi
+
+  msg2 "building ${pkgname} with the following extra flags: ${extra_flags[*]}"
+  arch-meson --buildtype=release build "${extra_flags[@]}"
+  meson compile -C build
+}
+
+check() {
+  cd "The-Powder-Toy-${pkgver}"
+  meson test -C build
+}
+
+package() {
+  cd "The-Powder-Toy-${pkgver}"
+
+  cd build
+  local appdir="${pkgdir}/Applications/The Powder Toy.app"
+  mkdir -p "${appdir}/Contents/Resources"
+
+  sed \
+    -e "s/@APPNAME@/The Powder Toy/g" \
+    -e "s/@APPEXE@/${_appexe}/g" \
+    -e "s/@APPID@/${_appid}/g" \
+    -e "s/SUBST_SAVE_VERSION/$(echo ${pkgver} | cut -d. -f1)/g" \
+    -e "s/SUBST_MINOR_VERSION/$(echo ${pkgver} | cut -d. -f2)/g" \
+    -e "s/SUBST_BUILD_NUM/$(echo ${pkgver} | cut -d. -f3)/g" \
+    -e "s/SUBST_MACOS_MIN_VER/${MACOS_MAJOR}.0/g" \
+    resources/Info.plist > "${appdir}"/Contents/Info.plist
+
+	mkdir -p "${appdir}"/Contents/MacOS
+	cp ${_appexe} "${appdir}"/Contents/MacOS/${_appexe}
+
+  mkdir -p icon_exe.iconset
+  cp ../resources/generated_icons/icon_exe_16.png icon_exe.iconset/icon_16x16.png
+	cp ../resources/generated_icons/icon_exe_32.png icon_exe.iconset/icon_32x32.png
+	cp ../resources/generated_icons/icon_exe.png    icon_exe.iconset/icon_128x128.png
+
+	iconutil -c icns icon_exe.iconset
+  cp icon_exe.icns "${appdir}"/Contents/Resources/icon_exe.icns
+
+  mkdir -p icon_cps.iconset
+	cp ../resources/generated_icons/icon_cps_16.png icon_cps.iconset/icon_16x16.png
+	cp ../resources/generated_icons/icon_cps_32.png icon_cps.iconset/icon_32x32.png
+	cp ../resources/generated_icons/icon_cps.png    icon_cps.iconset/icon_128x128.png
+	iconutil -c icns icon_cps.iconset
+	cp icon_cps.icns "${appdir}"/Contents/Resources/icon_cps.icns
+}
+
+
+
+
+
+
+
+
