@@ -1,0 +1,29 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+
+pkgname=sdl2_net
+epoch=1
+pkgver=2.2.0
+pkgrel=1
+pkgdesc="A small sample cross-platform networking library (Version 2)"
+arch=('x86_64' 'arm64')
+url="https://github.com/libsdl-org/SDL_net"
+license=('MIT')
+depends=(sdl2)
+source=("https://github.com/libsdl-org/SDL_net/releases/download/release-${pkgver}/SDL2_net-${pkgver}.tar.gz"{,.sig})
+sha512sums=('fa22f1a2c777aac6932551b5adc925288c424dc1af46a974fdb2e3579205b40b204db01d2a8c4048aa333a200efc241f784b9bc9276277e8ab4d23edb023ab69'
+            'SKIP')
+validpgpkeys=('1528635D8053A57F77D1E08630A59377A7763BE6') # Sam Lantinga
+
+build() {
+  cd "${srcdir}/SDL2_net-${pkgver}/"
+
+  ./configure --disable-static --prefix=${pacman_root}/usr
+  make
+}
+
+package() {
+  cd "${srcdir}/SDL2_net-${pkgver}/"
+
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 LICENSE.txt "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+}
