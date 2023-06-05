@@ -1,0 +1,54 @@
+# Maintainer: Bruno Pagani <archange@archlinux.org>
+# Contributor: Guillaume Horel <guillaume.horel@gmail.com>
+
+_pkg=orc
+pkgname=apache-${_pkg}
+pkgver=1.8.3
+pkgrel=1
+pkgdesc="Columnar storage for Hadoop workloads."
+arch=('x86_64' 'arm64')
+url="https://orc.apache.org"
+license=(Apache)
+depends=(lz4 protobuf snappy zlib zstd)
+makedepends=(cmake)
+checkdepends=(gtest)
+source=(https://dlcdn.apache.org/${_pkg}/${_pkg}-${pkgver}/${_pkg}-${pkgver}.tar.gz{,.asc})
+sha256sums=(a78678ec425c8129d63370cb8a9bacb54186aa66af1e2bec01ce92e7eaf72e20 SKIP)
+validpgpkeys=(F28C9C925C188C35E345614DEDA00CE834F0FC5C) # Dongjoon Hyun (CODE SIGNING KEY) <dongjoon@apache.org>
+
+prepare(){
+  cd ${_pkg}-${pkgver}
+  sed -i 's/orc STATIC/orc SHARED/' c++/src/CMakeLists.txt
+}
+
+build(){
+  cmake -B build -S ${_pkg}-${pkgver} \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX="${pacman_root}/usr" \
+    -DLZ4_HOME="${pacman_root}/usr" \
+    -DPROTOBUF_HOME="${pacman_root}/usr" \
+    -DSNAPPY_HOME="${pacman_root}/usr" \
+    -DZLIB_HOME="${pacman_root}/usr" \
+    -DZSTD_HOME="${pacman_root}/usr" \
+    -DGTEST_HOME="${pacman_root}/usr" \
+    -DORC_PREFER_STATIC_PROTOBUF=OFF \
+    -DORC_PREFER_STATIC_SNAPPY=OFF \
+    -DORC_PREFER_STATIC_LZ4=OFF \
+    -DORC_PREFER_STATIC_ZSTD=OFF \
+    -DORC_PREFER_STATIC_ZLIB=OFF \
+    -DBUILD_LIBHDFSPP=OFF \
+    -DBUILD_JAVA=OFF \
+    -DINSTALL_VENDORED_LIBS=OFF \
+    -DCMAKE_CXX_STANDARD=14 \
+    -DSTOP_BUILD_ON_WARNING=OFF
+  make -C build
+}
+
+check(){
+  # Some tests failures https://github.com/apache/orc/issues/1068
+  make -C build test-out || echo "Warning: Tests failed"
+}
+
+package(){
+  make DESTDIR="${pkgdir}" -C build install
+}
