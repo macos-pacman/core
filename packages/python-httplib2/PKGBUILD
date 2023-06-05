@@ -1,0 +1,84 @@
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Alexander Rødseth <rodseth@gmail.com>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Giorgio Lando <patroclo7@gmail.com>
+# Contributor: Nicolas Quienot <niQo@aur>
+# Contributor: Jesse Young <jesse.young@gmail.com>
+# Contributor: Anton Eliasson <devel@antoneliasson.se>
+
+pkgname=python-httplib2
+pkgver=0.22.0
+pkgrel=3
+pkgdesc='Comprehensive HTTP client library, supporting many features'
+arch=('any')
+url='https://github.com/httplib2/httplib2'
+license=('MIT')
+depends=(
+  'ca-certificates'
+  'python'
+  'python-pyparsing'
+)
+makedepends=(
+  'git'
+  'python-build'
+  'python-installer'
+  'python-wheel'
+  'python-setuptools'
+)
+checkdepends=(
+  'flake8'
+  'python-pytest-cov'
+  'python-pytest-forked'
+  'python-pytest-timeout'
+  'python-pytest-xdist'
+  'python-pytest-randomly'
+  'python-future'
+  'python-cryptography'
+  'python-six'
+)
+_commit=09eee8a81f552cbaa74f603f2dd9bcc3311ff6d7
+source=(
+  "$pkgname::git+$url#commit=$_commit"
+  'fix-socks-error.patch'
+)
+sha512sums=('SKIP'
+            '3ec0f8e4278ee6a6ed99365be8369a7fbb31f5bf79f99024a1a37ac127e916f5e490a6ecb1f33179faf1834f7d26fee8f966937b2560c81d2be5df7349276c6e')
+
+pkgver() {
+  cd "$pkgname"
+
+  git describe --tags | sed 's/^v//'
+}
+
+prepare() {
+  cd "$pkgname"
+
+  # patch -p1 -i "$srcdir/use-system-certificates.patch"
+  patch -Np1 -i ../fix-socks-error.patch
+
+  sed -e 's/==/>=/' -i requirements-test.txt
+}
+
+build() {
+  cd "$pkgname"
+
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd "$pkgname"
+  # test_client_cert_password_verified fails with cryptography 36 https://github.com/httplib2/httplib2/issues/221
+  PYTHONPATH=build/lib pytest -k 'not test_client_cert_password_verified and not test_server_not_found_error_is_raised_for_invalid_hostname and not test_socks5_auth and not test_connection_close'
+}
+
+package() {
+  cd "$pkgname"
+
+  python setup.py install --root="$pkgdir" --optimize=1
+
+  # license
+  install -vDm644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" LICENSE
+}
+
+# vim:set ts=2 sw=2 et:

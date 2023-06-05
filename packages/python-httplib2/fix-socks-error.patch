@@ -1,0 +1,11 @@
+--- a/tests/test_proxy.py	2023-05-13 23:53:24.330135119 +0800
++++ b/tests/test_proxy.py	2023-05-13 23:53:46.466814375 +0800
+@@ -202,7 +202,7 @@
+             proxy_pass=u"pass_str",
+         )
+         http = httplib2.Http(proxy_info=proxy_info)
+-        with tests.assert_raises(httplib2.socks.Socks5AuthError):
++        with tests.assert_raises(httplib2.socks.SOCKS5AuthError):
+             http.request(uri, "GET")
+ 
+ 
