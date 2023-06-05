@@ -1,0 +1,91 @@
+# Maintainer: Bruno Pagani <archange@archlinux.org>
+
+_pkg=xarray
+pkgname=python-${_pkg}
+pkgver=2023.04.2
+pkgrel=1
+pkgdesc="N-D labeled arrays and datasets in Python"
+arch=(any)
+url="https://xarray.pydata.org/"
+license=(Apache)
+depends=(python-numpy python-packaging python-pandas)
+makedepends=(python-setuptools python-setuptools-scm)
+optdepends=(
+  'python-netcdf4: netCDF4 support'
+  'python-scipy: interpolation features & fallback for netCDF3 support'
+#  'python-pydap: fallback for accessing OPeNDAP'
+#  'python-h5netcdf: alternative for netCDF4 support'
+#  'python-zarr: chunked, compressed N-dimensional arrays'
+  'python-cftime: datetimes support for non-standard calendars or distant dates'
+#  'python-pseudonetcdf: atmospheric science specific file formats support'
+#  'python-rasterio: GeoTiffs and other gridded raster datasets support'
+#  'python-iris: conversion to and from iris’ Cube objects'
+#  'python-cfgrib: mapping GRIB files to CDF4'
+  'python-bottleneck: faster NaN-skipping and rolling window aggregations'
+#  'python-numbagg: faster exponential rolling window operations'
+#  'python-flox: faster GroupBy reductions'
+  'python-dask: parallel computation'
+  'python-distributed: parallel computation'
+  'python-matplotlib: plotting support'
+#  'python-cartopy: plotting of cartographic data'
+  'python-seaborn: better color palettes for plots'
+#  'python-nc-time-axis: plotting of cftime.datetime objects'
+#  'python-sparse: sparse arrays support'
+  'python-pint: units of measure support'
+)
+checkdepends=(
+    python-pytest
+    python-pytest-xdist
+    python-aiobotocore
+    python-aiohttp
+    python-bottleneck
+    python-boto3
+    python-cftime
+    python-dask
+    python-distributed
+    python-fsspec
+    python-h5py
+    python-hypothesis
+    python-lxml
+    python-matplotlib
+    python-netcdf4
+    python-numexpr
+    python-numpy
+    python-pint
+    python-requests
+    python-scipy
+    python-seaborn
+)
+#source=(https://files.pythonhosted.org/packages/source/${_pkg::1}/${_pkg}/${_pkg}-${pkgver}.tar.gz)
+source=(https://github.com/pydata/xarray/archive/refs/tags/v${pkgver}/${pkgname}-${pkgver}.tar.gz)
+sha256sums=('c35d7b6b6d906dea2c54195d1ab6cd7ac022d1a3bcbd9f9205776626b2f32ecc')
+
+build() {
+  cd ${_pkg}-${pkgver}
+  python setup.py build
+}
+
+check() {
+  cd ${_pkg}-${pkgver}
+  # https://github.com/pydata/xarray/issues/4281
+  # these guys segfault
+  pytest -vv --color=yes \
+    --deselect xarray/tests/test_distributed.py::test_serializable_locks \
+    --deselect 'xarray/tests/test_backends.py::test_open_mfdataset_manyfiles[netcdf4-20-True-5-5]' \
+    --deselect 'xarray/tests/test_backends.py::test_open_mfdataset_manyfiles[netcdf4-20-True-5-None]' \
+    --deselect 'xarray/tests/test_backends.py::test_open_mfdataset_manyfiles[netcdf4-20-True-None-5]' \
+    --deselect 'xarray/tests/test_backends.py::test_open_mfdataset_manyfiles[netcdf4-20-True-None-None]' \
+    --deselect 'xarray/tests/test_backends.py::test_open_mfdataset_manyfiles[netcdf4-20-True-None-None]' \
+    --deselect 'xarray/tests/test_backends.py::TestDask::test_save_mfdataset_compute_false_roundtrip'
+
+    # --deselect xarray/tests/test_distributed.py::test_async
+    # --deselect xarray/tests/test_computation.py::test_vectorize_dask_dtype_meta
+    # --deselect 'xarray/tests/test_distributed.py::test_dask_distributed_netcdf_roundtrip[scipy-NETCDF3_64BIT]'
+}
+
+package() {
+  cd ${_pkg}-${pkgver}
+  python setup.py install --root="${pkgdir}" --skip-build --optimize=1
+  # Remove tests
+  rm -r "${pkgdir}"$(python -c "import site; print(site.getsitepackages()[0])")/xarray/tests
+}
