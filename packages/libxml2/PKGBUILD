@@ -1,0 +1,85 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Tom Gundersen <teg@jklm.no>
+# Contributor: John Proctor <jproctor@prium.net>
+
+pkgname=libxml2
+pkgver=2.10.3
+pkgrel=2
+pkgdesc="XML C parser and toolkit"
+url="https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home"
+arch=('x86_64' 'arm64')
+license=(custom:MIT)
+depends=(
+  icu
+  ncurses
+  readline
+  xz
+  zlib
+)
+makedepends=(
+  git
+  python
+)
+source=("https://download.gnome.org/sources/libxml2/2.10/libxml2-2.10.3.tar.xz"
+        libxml2-2.9.8-python3-unicode-errors.patch
+        no-fuzz.diff
+        https://www.w3.org/XML/Test/xmlts20130923.tar.gz)
+sha256sums=('5d2cc3d78bec3dbe212a9d7fa629ada25a7da928af432c93060ff5c17ee28a9c'
+            '3d07a50fc0963bda05fc5269dedc51f108260699e25e455bb31f6d80c2a9cada'
+            '3908e7a53b20109bdfde143238f36e22a154dbb7d363b634e54c0a18328f4656'
+            '9b61db9f5dbffa545f4b8d78422167083a8568c59bd1129f94138f936cf6fc1f')
+
+pacman_root=$(pacman-root-dir)
+
+prepare() {
+  cd $pkgname-$pkgver
+
+  # Use xmlconf from conformance test suite
+  ln -s ../xmlconf
+
+  # https://src.fedoraproject.org/rpms/libxml2/tree/rawhide
+  patch -Np1 < ../libxml2-2.9.8-python3-unicode-errors.patch
+
+  # Do not run fuzzing tests
+  patch -Np1 < ../no-fuzz.diff
+}
+
+build() {
+  cd $pkgname-$pkgver
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --sysconfdir=${pacman_root}/etc \
+    --localstatedir=${pacman_root}/var \
+    --with-threads \
+    --with-history \
+    --with-python=${pacman_root}/usr/bin/python \
+    --with-icu \
+    --disable-static
+  sed -i.bak -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  rm libtool.bak
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+  make check
+}
+
+package_libxml2() {
+  optdepends=('python: Python bindings')
+  provides=(libxml2.dylib)
+
+  cd $pkgname-$pkgver
+
+  make DESTDIR="$pkgdir" install
+
+  mkdir -p ../doc/usr/share
+  mv "$pkgdir/${pacman_root}"/usr/share/{doc,gtk-doc} ../doc/usr/share/
+
+  install -Dm644 Copyright -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+}
+
+# vim:set sw=2 sts=-1 et:
