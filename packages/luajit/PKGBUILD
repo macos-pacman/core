@@ -10,7 +10,7 @@ pkgname=luajit
 # https://github.com/LuaJIT/LuaJIT/issues/665#issuecomment-784452583
 _commit=224129a8e64bfa219d35cd03055bf03952f167f6
 pkgver="2.1.0.beta3.r471.g${_commit::8}"
-pkgrel=1
+pkgrel=2
 pkgdesc='Just-in-time compiler and drop-in replacement for Lua 5.1'
 arch=('x86_64' 'arm64')
 url='https://luajit.org/'
@@ -35,4 +35,8 @@ package() {
   install -Dm644 COPYRIGHT "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/COPYRIGHT"
 
   ln -sf luajit-2.1.0-beta3 "$pkgdir/${pacman_root}/usr/bin/luajit"
+
+  # yeet the -Wl,-E thing from the pc file
+  sed -i.bak -e "s/-Wl,-E//g" ${pkgdir}/${pacman_root}/usr/lib/pkgconfig/luajit.pc
+  rm ${pkgdir}/${pacman_root}/usr/lib/pkgconfig/luajit.pc.bak
 }
