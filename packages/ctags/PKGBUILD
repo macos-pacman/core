@@ -1,0 +1,48 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Giovanni Scafora <giovanni@archlinux.org>
+# Contributor: John Proctor <jproctor@prium.net>
+
+pkgname=ctags
+_commit=3af413544a0ed0a4c52200894cfd6391f06d2e94
+pkgver=6.0.0
+pkgrel=1
+epoch=1
+pkgdesc='Generates an index file of language objects found in source files'
+url='https://ctags.io/'
+arch=('x86_64' 'arm64')
+license=('GPL')
+depends=('glibc' 'libxml2' 'jansson' 'libyaml'
+         'pcre2')
+makedepends=('git' 'python-docutils')
+provides=('universal-ctags')
+source=("git+https://github.com/universal-ctags/ctags.git#commit=$_commit")
+sha512sums=('SKIP')
+
+pkgver() {
+  git -C ctags describe --tags --match 'v*' | sed 's/^p//;s/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+prepare() {
+  cd ctags
+  autoreconf -fiv
+}
+
+build() {
+  cd ctags
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --sysconfdir=${pacman_root}/etc \
+    --localstatedir=${pacman_root}/var \
+    --libexecdir=${pacman_root}/usr/lib
+  make
+}
+
+check() {
+  make -C ctags check
+}
+
+package() {
+  make -C ctags DESTDIR="${pkgdir}" install
+}
+
+# vim:set sw=2 et:
