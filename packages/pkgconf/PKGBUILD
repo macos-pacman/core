@@ -1,0 +1,38 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Johannes Löthberg <johannes@kyriasis.com>
+# Contributor: Piotr Gorski <lucjan.lucjanov@gmail.com>
+# Contributor: Lucy <lucy@luz.lu>
+# Contributor: Bartlomiej Piotrowski <nospam@bpiotrowski.pl>
+
+pkgname=pkgconf
+pkgver=1.9.4
+pkgrel=1
+pkgdesc="Package compiler and linker metadata toolkit"
+url="https://github.com/pkgconf/pkgconf"
+license=(custom:ISC)
+arch=('x86_64' 'arm64')
+depends=(glibc sh)
+provides=(pkg-config pkgconfig libpkgconf.dylib)
+conflicts=(pkg-config)
+replaces=(pkg-config)
+groups=(base-devel)
+source=("https://distfiles.dereferenced.org/pkgconf/pkgconf-${pkgver}.tar.xz")
+sha256sums=('daccf1bbe5a30d149b556c7d2ffffeafd76d7b514e249271abdd501533c1d8ae')
+
+
+build() {
+	cd $pkgname-$pkgver
+	./configure --prefix=${pacman_root}/usr \
+		--with-system-libdir=/usr/lib:$(xcrun --show-sdk-path)/usr/lib \
+		--with-system-includedir=/usr/include:$(xcrun --show-sdk-path)/usr/include
+
+	make
+}
+
+package() {
+	cd $pkgname-$pkgver
+	make install DESTDIR="${pkgdir}"
+	ln -s pkgconf "$pkgdir/${pacman_root}/usr/bin/pkg-config"
+}
+
+# vim:set sw=2 et:
