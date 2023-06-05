@@ -1,0 +1,168 @@
+pkgname=llvm-project
+pkgver=15.0.7
+pkgrel=1
+arch=('x86_64' 'arm64')
+license=('Apache')
+url='https://llvm.org/'
+depends=(python)
+makedepends=('cmake' 'ninja' 'zlib' 'zstd' 'libffi' 'libedit' 'ncurses'
+             'libxml2' 'python-setuptools')
+options=('staticlibs')
+conflicts=('llvm' 'llvm-libs' 'clang' 'libc++' 'compiler-rt' 'lldb' 'lld' 'openmp')
+provides=(llvm=${pkgver} llvm-libs=${pkgver} clang=${pkgver} libc++=${pkgver} compiler-rt=${pkgver} lldb=${pkgver} lld=${pkgver} 'openmp')
+
+source=(
+	"https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}/llvm-project-${pkgver}.src.tar.xz"
+	'libstdcxx-on-macos.patch'
+)
+
+sha256sums=(
+	'8b5fcb24b4128cf04df1b0b9410ce8b1a729cb3c544e6da885d234280dedeac6'
+	'95f3b49c4bf7575b02836d7fd1172dda67bbbf5ed0a5cd1b5cedfccac84a03f6'
+)
+
+prepare() {
+	cd $srcdir/$pkgname-$pkgver.src
+	patch -Np1 -i ../libstdcxx-on-macos.patch
+}
+
+build() {
+	cd $srcdir/$pkgname-$pkgver.src
+	export CFLAGS+=" -Wno-profile-instr-unprofiled "
+	export CXXFLAGS+=" -Wno-profile-instr-unprofiled "
+
+	rm -rf build-s1 build-s2
+
+	cmake -S llvm -B build-s1 -G Ninja \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+		-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;pstl;openmp;lldb;lld" \
+		-DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
+		-DLLVM_PARALLEL_LINK_JOBS=1 \
+		-DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind" \
+		-DDEFAULT_SYSROOT=$(xcrun --show-sdk-path) \
+		-DBUILTINS_CMAKE_ARGS=-DCOMPILER_RT_ENABLE_IOS=OFF \
+		-DPGO_INSTRUMENT_LTO=Thin \
+		-DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
+		-C clang/cmake/caches/PGO.cmake
+
+	ninja -C build-s1 stage2-instrumented-generate-profdata
+
+	cmake -S llvm -B build-s2 -G Ninja \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_FLAGS="${CFLAGS/-O2/-O3}" \
+		-DCMAKE_CXX_FLAGS="${CXXFLAGS/-O2/-O3}" \
+		-DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+		-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;pstl;openmp;lldb;lld" \
+		-DLLVM_TARGETS_TO_BUILD="all" \
+		-DLLVM_PARALLEL_LINK_JOBS=1 \
+		-DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind" \
+		-DLLVM_INSTALL_UTILS=ON \
+		-DLLVM_BUILD_LLVM_DYLIB=ON \
+		-DLLVM_LINK_LLVM_DYLIB=ON \
+		-DLLVM_ENABLE_LTO=Thin \
+		-DCMAKE_LIBTOOL=build-s1/bin/llvm-libtool-darwin \
+		-DDEFAULT_SYSROOT=$(xcrun --show-sdk-path) \
+		-DCMAKE_C_COMPILER=$(pwd)/build-s1/bin/clang \
+		-DCMAKE_CXX_COMPILER=$(pwd)/build-s1/bin/clang++ \
+		-DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
+		-DBUILTINS_CMAKE_ARGS=-DCOMPILER_RT_ENABLE_IOS=OFF \
+		-DLLVM_PROFDATA_FILE=./build-s1/tools/clang/stage2-instrumented-bins/tools/clang/utils/perf-training/clang.profdata
+
+	ninja -C build-s2
+}
+
+
+
+
+
+
+
+# stolen from: https://src.fedoraproject.org/rpms/redhat-rpm-config/blob/rawhide/f/brp-llvm-compile-lto-elf
+check_convert_bitcode() {
+  local file_name=$(readlink -f "${1}") || return
+  local file_type=$(file "${file_name}")
+
+  if [[ "${file_type}" == *"LLVM bitcode"* ]]; then
+    msg2 "Compiling LLVM bitcode file ${file_name}"
+    ${pkgdir}/${pacman_root}/usr/bin/clang ${CFLAGS} -fno-lto -Wno-unused-command-line-argument \
+      -x ir ${file_name} -c -o ${file_name}
+
+  elif [[ "${file_type}" == *"current ar archive"* ]] && [[ $(basename "${file_name}") != "libclang_rt"* ]]; then
+
+    msg "Unpacking ar archive ${file_name} to check for LLVM bitcode components"
+    # create archive stage for objects
+    local archive_stage=$(mktemp -d)
+    local archive=${file_name}
+    pushd ${archive_stage} > /dev/null
+    ar x ${archive}
+
+    for archived_file in $(find . -type f); do
+      # only re-add object files
+      case "${archived_file}" in
+        *".o") ;;
+        *)
+          # echo "ignoring file ${archived_file}"
+          continue
+          ;;
+      esac
+
+      check_convert_bitcode ${archived_file}
+      msg2 "Repacking ${archived_file} into ${archive}"
+      ${pkgdir}/${pacman_root}/usr/bin/llvm-ar rs ${archive} ${archived_file}
+    done
+    popd > /dev/null
+  fi
+}
+
+
+
+package() {
+	cd $srcdir/$pkgname-$pkgver.src
+	DESTDIR="${pkgdir}" ninja -C build-s2 install
+
+	# hmm, this is needed for some reason.
+	_major=$(echo ${pkgver} | grep -Eo '[0-9]+' | head -1)
+	ln -s libLLVM.dylib ${pkgdir}/${pacman_root}/usr/lib/libLLVM-${_major}.dylib
+
+	msg 'Fixing dylib names'
+
+	# fix the damned install names
+	local _lib _libs
+	IFS=$'\n' read -r -d '' -a _libs < <(find ${pkgdir}/${pacman_root}/usr/lib -iname '*.dylib') || true
+
+	for _lib in "${_libs[@]}"; do
+	  fix_rpath "${pacman_root}" "${pkgdir}" "${_lib}"
+	done
+
+	local _exe _exes
+	IFS=$'\n' read -r -d '' -a _exes < <(find ${pkgdir}/${pacman_root}/usr/bin -type f) || true
+
+	for _exe in "${_exes[@]}"; do
+	  fix_rpath "${pacman_root}" "${pkgdir}" "${_exe}"
+	done
+
+  # note: don't do this any more -- i gave up on zig.
+#  msg 'Compiling LLVM bitcode to object code'
+#  local _f _files
+#  IFS=$'\n' read -r -d '' -a _files < <(find "${pkgdir}/${pacman_root}" -type f -iname "*.[ao]" -print) || true
+#  for _f in "${_files[@]}"; do
+#    check_convert_bitcode "${_f}"
+#  done
+
+	# need to codesign the debug server
+	msg2 'Codesigning debug server'
+	codesign --force -s - \
+	  --entitlements lldb/tools/debugserver/resources/debugserver-macosx-entitlements.plist \
+	  ${pkgdir}/${pacman_root}/usr/bin/debugserver
+}
+
+
+
+
+
+
+
+
+
+
