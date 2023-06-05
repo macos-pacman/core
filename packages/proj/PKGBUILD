@@ -1,0 +1,34 @@
+# Maintainer: Jaroslav Lichtblau <svetlemodry@archlinux.org>
+# Maintainer: Bruno Pagani <archange@archlinux.org>
+# Contributor: Mateusz Herych <heniekk@gmail.com>
+# Contributor: dibblethewrecker <dibblethewrecker.at.jiwe.dot.org>
+# Contributor: William Rea <sillywilly@gmail.com>
+
+pkgname=proj
+pkgver=9.2.1
+pkgrel=1
+pkgdesc="Cartographic Projections and Coordinate Transformations Library"
+arch=('x86_64' 'arm64')
+url="https://proj.org/"
+license=(MIT)
+depends=(curl libtiff sqlite)
+makedepends=(cmake gmock gtest)
+changelog=$pkgname.changelog
+source=(https://github.com/OSGeo/PROJ/releases/download/$pkgver/$pkgname-$pkgver.tar.gz)
+sha256sums=('15ebf4afa8744b9e6fccb5d571fc9f338dc3adcf99907d9e62d1af815d4971a1')
+
+build() {
+  cmake -B build -S $pkgname-$pkgver \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DUSE_EXTERNAL_GTEST=ON
+  cmake --build build
+}
+
+check(){
+  ctest --test-dir build || :
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+  install -Dm644 $pkgname-$pkgver/COPYING -t "${pkgdir}"/${pacman_root}/usr/share/licenses/$pkgname/
+}
