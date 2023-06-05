@@ -1,0 +1,21 @@
+pkgname=libtool
+pkgver=2.4.7
+pkgrel=3
+source=("https://mirror.freedif.org/GNU/libtool/${pkgname}-${pkgver}.tar.xz")
+sha256sums=("4f7f217f057ce655ff22559ad221a0fd8ef84ad1fc5fcb6990cecc333aa1635d")
+license=(GPL)
+arch=('x86_64' 'arm64')
+depends=("sh" "glibc")
+provides=(libltdl=${pkgver})
+
+build() {
+	cd $srcdir/$pkgname-$pkgver
+	./configure --prefix=${pacman_root}/usr --program-prefix=g
+
+	make
+}
+
+package() {
+	cd $srcdir/$pkgname-$pkgver
+	make install DESTDIR=$pkgdir
+}
