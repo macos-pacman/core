@@ -1,0 +1,158 @@
+# Maintainer: Ronald van Haren <ronald.archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: damir <damir@archlinux.org>
+# Contributor: Jason Taylor <jftaylor21@gmail.com>
+
+pkgbase=lapack
+pkgname=(lapack blas cblas lapacke lapack64 blas64 cblas64 lapacke64)
+pkgver=3.11.0
+pkgrel=2
+url='https://www.netlib.org/lapack'
+pkgdesc='Linear Algebra PACKage'
+makedepends=(gcc gcc-fortran cmake python)
+arch=('x86_64' 'arm64')
+license=(custom)
+source=(https://github.com/Reference-LAPACK/lapack/archive/v$pkgver/$pkgname-$pkgver.tar.gz LICENSE.blas)
+sha256sums=('4b9ba79bfd4921ca820e83979db76ab3363155709444a787979e81c22285ffa9'
+            '2420cd1331c5754071966389b26e6196c5cb086a2ade0080953af62e0c6d4107')
+
+build() {
+  export CC=gcc
+  export CXX=g++
+  cmake -B build -S $pkgname-$pkgver \
+    -DCMAKE_SKIP_RPATH=ON \
+    -DBUILD_SHARED_LIBS=ON \
+    -DBUILD_TESTING=OFF \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DCMAKE_Fortran_COMPILER=gfortran \
+    -DLAPACKE_WITH_TMG=ON \
+    -DCBLAS=ON \
+    -DBUILD_DEPRECATED=ON
+  cmake --build build
+
+  cmake -B build64 -S $pkgname-$pkgver \
+    -DCMAKE_SKIP_RPATH=ON \
+    -DBUILD_SHARED_LIBS=ON \
+    -DBUILD_TESTING=OFF \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DCMAKE_Fortran_COMPILER=gfortran \
+    -DLAPACKE_WITH_TMG=ON \
+    -DCBLAS=ON \
+    -DBUILD_DEPRECATED=ON \
+    -DBUILD_INDEX64=ON
+  cmake --build build64
+}
+
+package_lapack() {
+  depends=(blas)
+  conflicts=('lapack')
+
+  DESTDIR="$pkgdir" cmake --install build
+
+  rm -r "$pkgdir"/${pacman_root}/usr/lib/{libblas.*,libcblas.*,liblapacke.*}
+  rm -r "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/{blas.*,cblas.*,lapacke.*}
+  rm -r "$pkgdir"/${pacman_root}/usr/lib/cmake/{cblas*,lapacke*}
+  rm -r "$pkgdir"/${pacman_root}/usr/include
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}"/usr/lib/*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
+
+package_blas() {
+  pkgdesc='Basic Linear Algebra Subprograms'
+  depends=(gcc-libs)
+
+  DESTDIR="$pkgdir" cmake --install build/BLAS
+
+  install -Dm644 LICENSE.blas -t "$pkgdir"/${pacman_root}/usr/share/licenses/blas/
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}"/usr/lib/*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
+
+package_cblas() {
+  pkgdesc='C interface to BLAS'
+  depends=(blas)
+
+  DESTDIR="$pkgdir" cmake --install build/CBLAS
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}"/usr/lib/*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
+
+package_lapacke() {
+  pkgdesc='C interface to LAPACK'
+  depends=(lapack)
+
+  DESTDIR="$pkgdir" cmake --install build/LAPACKE
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}"/usr/lib/*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
+
+package_lapack64() {
+  pkgdesc='Linear Algebra PACKage (64-bit integers)'
+  depends=(blas64)
+
+  DESTDIR="$pkgdir" cmake --install build64
+
+  rm -r "$pkgdir"/${pacman_root}/usr/lib/{libblas64.*,libcblas64.*,liblapacke64.*}
+  rm -r "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/{blas64.*,cblas64.*,lapacke64.*}
+  rm -r "$pkgdir"/${pacman_root}/usr/lib/cmake/{cblas*,lapacke*}
+  rm -r "$pkgdir"/${pacman_root}/usr/include
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}"/usr/lib/*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
+
+package_blas64() {
+  pkgdesc='Basic Linear Algebra Subprograms (64-bit integers)'
+  depends=(gcc-libs)
+
+  DESTDIR="$pkgdir" cmake --install build64/BLAS
+
+  install -Dm644 LICENSE.blas -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}"/usr/lib/*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
+
+package_cblas64() {
+  pkgdesc='C interface to BLAS (64-bit integers)'
+  depends=(blas64)
+  optdepends=('cblas: development headers')
+
+  DESTDIR="$pkgdir" cmake --install build64/CBLAS
+  rm -r "$pkgdir"/${pacman_root}/usr/include # Provided by cblas
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}"/usr/lib/*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
+
+package_lapacke64() {
+  pkgdesc='C interface to LAPACK (64-bit integers)'
+  depends=(lapack64)
+  optdepends=('lapacke: development headers')
+
+  DESTDIR="$pkgdir" cmake --install build64/LAPACKE
+  rm -r "$pkgdir"/${pacman_root}/usr/include # Provided by lapacke
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}"/usr/lib/*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
