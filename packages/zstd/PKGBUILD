@@ -1,0 +1,54 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Andrzej Giniewicz <gginiu@gmail.com>
+# Contributor: Johan Förberg <johan@forberg.se>
+
+pkgname=zstd
+pkgver=1.5.4
+pkgrel=1
+pkgdesc='Zstandard - Fast real-time compression algorithm'
+url='https://facebook.github.io/zstd/'
+arch=('x86_64' 'arm64')
+license=(BSD GPL2)
+depends=(glibc gcc-libs zlib xz lz4)
+makedepends=(cmake)
+provides=(libzstd.dylib)
+source=(https://github.com/facebook/zstd/releases/download/v${pkgver}/zstd-${pkgver}.tar.gz{,.sig})
+sha256sums=('0f470992aedad543126d06efab344dc5f3e171893810455787d38347343a4424'
+            'SKIP')
+b2sums=('ffc5fcbbdf4ab04bc14b5037308bf4e879d4cbaaf863462ea1e8af3f1b86b935ee6036e49298c83ac42b00472c003e32c263c977f0ae7d64f31d9ae63c5c28cb'
+        'SKIP')
+validpgpkeys=(4EF4AC63455FC9F4545D9B7DEF8FE99528B52FFD)
+
+pacman_root=$(pacman-root-dir)
+
+build() {
+  cd ${pkgname}-${pkgver}
+
+  cmake -S build/cmake -B build -G "Unix Makefiles" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_STANDARD=11 \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DZSTD_ZLIB_SUPPORT=ON \
+    -DZSTD_LZMA_SUPPORT=ON \
+    -DZSTD_LZ4_SUPPORT=ON \
+    -DZSTD_BUILD_CONTRIB=ON \
+    -DZSTD_BUILD_STATIC=ON \
+    -DZSTD_PROGRAMS_LINK_SHARED=ON
+
+  cmake --build build
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  LD_LIBRARY_PATH="$(pwd)/build/lib" \
+    ctest -VV --test-dir build
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  DESTDIR="${pkgdir}" cmake --install build
+  install -Dm 644 LICENSE -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:
