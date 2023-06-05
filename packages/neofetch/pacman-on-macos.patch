@@ -1,0 +1,10 @@
+--- a/neofetch	2023-05-14 20:29:31.474899715 +0800
++++ b/neofetch	2023-05-14 20:30:28.232857994 +0800
+@@ -1571,6 +1571,7 @@
+             has port  && tot port installed && ((packages-=1))
+             has brew  && dir /usr/local/Cellar/*
+             has pkgin && tot pkgin list
++            has pacman-key && tot pacman -Qq --color never
+ 
+             has nix-store && {
+                 manager=nix-system && tot nix-store -q --requisites "/run/current-system/sw"
