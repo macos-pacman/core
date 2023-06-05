@@ -1,0 +1,52 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Clément Démoulins <clement@archivel.fr>
+# Contributor: Fazlul Shahriar <fshahriar@gmail.com>
+
+_pkgname=coveragepy
+pkgname=python-coverage
+pkgver=7.2.5
+pkgrel=1
+pkgdesc="A tool for measuring code coverage of Python programs"
+arch=('x86_64' 'arm64')
+url="https://nedbatchelder.com/code/coverage/"
+license=('Apache')
+depends=('python')
+optdepends=('python-tomli: for pyproject.toml support')
+makedepends=('python-setuptools')
+checkdepends=('python-flaky' 'python-hypothesis'
+              'python-pytest' 'python-pytest-xdist' 'python-tomli'
+              'python-unittest-mixins' 'python-virtualenv')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/nedbat/coveragepy/archive/$pkgver.tar.gz")
+sha512sums=('2fc8c2ba8fcb92f8e21a2be4536124c541f6a1d71251bdc21a2a1f341961a107e5b095edde7da0bad3657ecaa39d52ad3f9f30ffe75d214ea26f70cef1094d16')
+b2sums=('af5cdc9c720d59070b90be0d14cedb2db334a2a9b46b4afacad5273ef5e897e46a41f7c8d2da957a5c19a841e8a546cc6ef2116f8e2716917dd1eea6143b959b')
+
+build() {
+  cd $_pkgname-$pkgver
+  python setup.py build
+}
+
+check() {
+  cd $_pkgname-$pkgver
+
+  local python_version="$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')"
+  (
+    virtualenv "test_dir" --system-site-packages
+    . "test_dir/bin/activate"
+    export PYTHONPATH="${pacman_root}/usr/lib/python$python_version/site-packages:$PYTHONPATH"
+    export COVERAGE_NO_CONTRACTS=1
+    python setup.py --quiet clean develop
+    python igor.py zip_mods install_egg remove_extension
+    python igor.py test_with_tracer py
+    python setup.py --quiet build_ext --inplace
+    python igor.py test_with_tracer c
+  ) || echo "Known failing tests."
+}
+
+package() {
+  cd $_pkgname-$pkgver
+
+  python setup.py install --skip-build \
+    --optimize=1 \
+    --prefix=${pacman_root}/usr \
+    --root="$pkgdir"
+}
