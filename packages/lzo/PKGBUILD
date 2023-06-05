@@ -1,0 +1,41 @@
+# Contributor: Low Kian Seong <fastmail_low@speedymail.org>
+# Maintainer: dorphell <dorphell@archlinux.org>
+
+pkgname=lzo
+pkgver=2.10
+pkgrel=5
+pkgdesc="Portable lossless data compression library"
+arch=('x86_64' 'arm64')
+url="https://www.oberhumer.com/opensource/lzo"
+license=('GPL')
+depends=('glibc')
+provides=('liblzo2.dylib' 'libminilzo.dylib')
+source=(https://www.oberhumer.com/opensource/lzo/download/lzo-${pkgver}.tar.gz)
+sha256sums=('c0f892943208266f9b6543b3ae308fab6284c5c90e627931446fb49b4221a072')
+
+build() {
+  cd lzo-${pkgver}
+  ./configure --prefix=${pacman_root}/usr --enable-shared
+  make
+
+  # build minilzo
+  $CC $CPPFLAGS $CFLAGS -fpic -Iinclude/lzo -o minilzo/minilzo.o -c minilzo/minilzo.c
+  $CC $LDFLAGS -shared -o libminilzo.0.dylib -dynamiclib -install_name libminilzo.0.dylib minilzo/minilzo.o
+}
+
+check() {
+  cd lzo-${pkgver}
+  make test # Larger test
+  make check
+}
+
+package() {
+  cd lzo-${pkgver}
+  make DESTDIR="${pkgdir}" install
+
+  # install minilzo
+  install -m 755 libminilzo.0.dylib "${pkgdir}/${pacman_root}"/usr/lib
+  install -p -m 644 minilzo/minilzo.h ${pkgdir}/${pacman_root}/usr/include/lzo
+  cd "${pkgdir}"/${pacman_root}/usr/lib
+  ln -s libminilzo.0.dylib libminilzo.dylib
+}
