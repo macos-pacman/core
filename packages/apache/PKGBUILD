@@ -4,7 +4,7 @@
 
 pkgname=apache
 pkgver=2.4.57
-pkgrel=1
+pkgrel=2
 pkgdesc='A high performance Unix-based HTTP server'
 arch=('x86_64' 'arm64')
 url='https://www.apache.org/dist/httpd'
@@ -103,7 +103,7 @@ package() {
   ln -fs ${pacman_root}/usr/lib/httpd/modules "${pkgdir}/${pacman_root}/etc/httpd/modules"
 
   # set sane defaults
-  sed -e 's#/usr/lib/httpd/modules/#modules/#' \
+  sed -e "s#${pacman_root}/usr/lib/httpd/modules/#modules/#" \
       -e 's|#\(LoadModule negotiation_module \)|\1|' \
       -e 's|#\(LoadModule include_module \)|\1|' \
       -e 's|#\(LoadModule userdir_module \)|\1|' \
