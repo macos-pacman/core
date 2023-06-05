@@ -1,0 +1,70 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=gspell
+pkgver=1.12.1
+pkgrel=1
+pkgdesc="Spell-checking library for GTK applications"
+url="https://gitlab.gnome.org/GNOME/gspell"
+arch=('x86_64' 'arm64')
+license=(LGPL)
+depends=(
+  enchant
+  glib2
+  gtk3
+  icu
+)
+makedepends=(
+  autoconf-archive
+  git
+  gobject-introspection
+  gtk-doc
+  vala
+)
+_commit=d04dec63809b009c1ab12b2f80ceeeeab4709a48  # tags/1.12.1^0
+source=("git+https://gitlab.gnome.org/GNOME/gspell.git#commit=$_commit"
+        'fix-objc.patch')
+b2sums=('SKIP'
+        '0b8b086619cb8d20905e1d336470baf787f63c6b89c9664eaea268e818b6a86a5cc6683bba5b6dbe6ac57c09cc780ca5a7ca198c9a7a65d36f2ad1f5b80c79fb')
+
+pkgver() {
+  cd gspell
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd gspell
+  patch -Np1 -i ../fix-objc.patch
+
+  NOCONFIGURE=1 ./autogen.sh
+}
+
+build() {
+  local configure_options=(
+    --prefix=${pacman_root}/usr
+    --sysconfdir=${pacman_root}/etc
+    --localstatedir=${pacman_root}/var
+    --enable-gtk-doc
+  )
+
+  cd gspell
+  ./configure "${configure_options[@]}"
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make OBJCXX=clang++ OBJC=clang
+}
+
+package(){
+  depends+=(
+    libenchant-2.dylib
+    libgtk-3.dylib
+    libg{lib,object,io}-2.0.dylib
+    libicuuc.dylib
+    libpango.dylib
+  )
+  provides+=("libgspell-${pkgver%%.*}.dylib")
+
+  cd gspell
+  make DESTDIR="$pkgdir" install
+}
+
+# vim:set sw=2 sts=-1 et:
