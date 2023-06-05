@@ -1,0 +1,49 @@
+# Maintainer: Frederik Schwan <freswa at archlinux dot org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: Tom Newsom <Jeepster@gmx.co.uk>
+
+pkgname=texinfo
+pkgver=7.0.2
+pkgrel=3
+pkgdesc='GNU documentation system for on-line information and printed output'
+arch=(x86_64 arm64)
+url='https://www.gnu.org/software/texinfo/'
+license=(GPL3)
+depends=(ncurses gzip perl sh)
+optdepends=('perl-archive-zip: EPUB file output via texi2any')
+source=(https://ftp.gnu.org/pub/gnu/$pkgname/$pkgname-$pkgver.tar.xz{,.sig}
+        texinfo-install.hook.in
+        texinfo-remove.hook.in)
+sha256sums=('f211ec3261383e1a89e4555a93b9d017fe807b9c3992fb2dff4871dae6da54ad'
+            'SKIP'
+            'c288155d417680c7c0814f5509af40f32c887f90e049295c60d7e07a36e1cd3a'
+            'cccd67d01d18864d126f52923bb01892d7337c1b65b7bb31e99425152f059b6a')
+validpgpkeys=('EAF669B31E31E1DECBD11513DDBC579DAB37FBA9') # Gavin Smith
+
+prepare() {
+  cd $pkgname-$pkgver
+  sed -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
+      -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../texinfo-install.hook.in > texinfo-install.hook
+
+  sed -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
+      -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../texinfo-remove.hook.in > texinfo-remove.hook
+}
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure --prefix=${pacman_root}/usr
+  make
+}
+
+check() {
+  make -C $pkgname-$pkgver check
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+
+  install -dm755 "$pkgdir"/${pacman_root}/usr/share/libalpm/hooks/
+  install -m644 texinfo-{install,remove}.hook "$pkgdir"/${pacman_root}/usr/share/libalpm/hooks/
+}
