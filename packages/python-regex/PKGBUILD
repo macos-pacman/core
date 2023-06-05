@@ -1,0 +1,41 @@
+# Maintainer: Jelle van der Waa <jelle@archlinux.org>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+# Contributor: Eli Schwartz <eschwartz@archlinux.org>
+# Contributor: Nikola Milinković <nikmil@gmail.com>
+# Submitter: Xiao-Long Chen <chenxiaolong@cxl.epac.to>
+
+_pkgbase=regex
+pkgname=python-regex
+pkgver=2023.5.5
+pkgrel=1
+pkgdesc="Alternative python regular expression module."
+arch=('x86_64' 'arm64')
+url="https://github.com/mrabarnett/mrab-regex"
+license=('Python' 'Apache')
+depends=('python')
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+options=(!emptydirs)
+source=("https://files.pythonhosted.org/packages/source/r/${_pkgbase}/${_pkgbase}-${pkgver}.tar.gz")
+sha256sums=('7d76a8a1fc9da08296462a18f16620ba73bcbf5909e42383b253ef34d9d5141e')
+b2sums=('1eb63c85abcf37b83e2d8f03a18ea9ae0f80aed2d8d29b0141e5064ab30067d9146d9ec440b3bc043dfb569a8216349b67354c7b7b3c4faf6f447f4b910128dc')
+
+build() {
+  cd "regex-${pkgver}"
+
+  python -m build -wn
+}
+
+check() {
+  cd "regex-${pkgver}"
+
+  local _pyver=cpython-$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
+  cd "$PWD/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-$CARCH-$_pyver"
+  python -m unittest regex/test_regex.py
+}
+
+package() {
+  cd "regex-${pkgver}"
+
+  python -m installer --d "${pkgdir}" dist/*.whl
+  install -Dm644 LICENSE.txt "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE.txt
+}
