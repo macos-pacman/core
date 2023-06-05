@@ -33,9 +33,10 @@ prepare() {
       tools/distrib/python/grpcio_tools/protoc_lib_deps.py
   # ln -sf ../../../.. tools/distrib/python/grpcio_tools/grpc_root
 
+  # note ugly hack of manually defining PROTOBUF_USE_DLLS
   cmake -Bbuild-dir \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DNDEBUG -Wno-inconsistent-missing-override" \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DNDEBUG -Wno-inconsistent-missing-override -DPROTOBUF_USE_DLLS=1" \
     -DgRPC_INSTALL=ON \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_CXX_STANDARD=17 \
