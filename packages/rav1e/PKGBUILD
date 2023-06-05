@@ -1,0 +1,84 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Daniel Bermond <dbermond@archlinux.org>
+# Contributor: Chocobo1 <chocobo1@archlinux.net>
+
+pkgname=rav1e
+pkgver=0.6.3
+pkgrel=1
+pkgdesc='An AV1 encoder focused on speed and safety'
+arch=('x86_64' 'arm64')
+url=https://github.com/xiph/rav1e/
+license=(BSD)
+depends=(
+  gcc-libs
+  glibc
+  libgit2.dylib
+)
+makedepends=(
+  cargo-c
+  git
+  rust
+)
+provides=(librav1e.dylib)
+_tag=bc155a5801a0d402b16cd42ca1392168d299b70b
+source=(
+  git+https://github.com/xiph/rav1e.git#tag=${_tag}
+  Cargo-rav1e-${pkgver}.lock::https://github.com/xiph/rav1e/releases/download/v${pkgver}/Cargo.lock
+)
+b2sums=('SKIP'
+        '8a4c208534dcc2b6f272eb154aad5b01767b6d09c82735109646173efdda5cf4ed2d4775d437af5aa70cbc3e937d4f5c55eac4738c52441c3fdec7ee7e65ac38')
+
+if [ "${CHOST}" = "x86_64" ]; then
+  makedepends+=('nasm')
+fi
+
+pkgver() {
+  cd rav1e
+  git describe --tags | sed 's/^v//'
+}
+
+prepare() {
+  cp -f Cargo-rav1e-${pkgver}.lock rav1e/Cargo.lock
+  cargo fetch \
+    --locked \
+    --manifest-path rav1e/Cargo.toml
+}
+
+build() {
+  export LDFLAGS+=' -lgit2'
+  cargo build \
+    --release \
+    --frozen \
+    --manifest-path rav1e/Cargo.toml
+  cargo cbuild \
+    --release \
+    --frozen \
+    --prefix=${pacman_root}/usr \
+    --manifest-path rav1e/Cargo.toml
+}
+
+check() {
+  cargo test \
+    --release \
+    --frozen \
+    --manifest-path rav1e/Cargo.toml
+}
+
+package() {
+  cd rav1e
+  cargo install \
+    --frozen \
+    --offline \
+    --no-track \
+    --path . \
+    --root "${pkgdir}"/${pacman_root}/usr
+
+  cargo cinstall \
+    --release \
+    --frozen \
+    --prefix ${pacman_root}/usr \
+    --destdir "${pkgdir}"
+  install -Dm 644 LICENSE PATENTS -t "${pkgdir}"/${pacman_root}/usr/share/licenses/rav1e/
+}
+
+# vim: ts=2 sw=2 et:
