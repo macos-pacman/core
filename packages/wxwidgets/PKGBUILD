@@ -1,0 +1,56 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Eric Bélanger <eric@archlinux.org>
+
+pkgname=wxwidgets
+pkgver=3.2.2.1
+pkgrel=1
+arch=('x86_64' 'arm64')
+url='https://wxwidgets.org'
+pkgdesc="Cross-platform C++ GUI toolkit"
+license=(custom:wxWindows)
+depends=(libjpeg-turbo libpng libtiff pcre2 expat zlib)
+source=(https://github.com/wxWidgets/wxWidgets/releases/download/v$pkgver/wxWidgets-$pkgver.tar.bz2)
+sha256sums=('dffcb6be71296fff4b7f8840eb1b510178f57aa2eb236b20da41182009242c02')
+
+prepare() {
+  # yeet vendored deps
+  rm -r wxWidgets-$pkgver/3rdparty/{catch,pcre}
+  rm -r wxWidgets-$pkgver/src/{expat,jpeg,png,tiff,zlib}
+}
+
+build() {
+  cd wxWidgets-$pkgver
+  ./configure --prefix=${pacman_root}/usr       \
+    --enable-clipboard                          \
+    --enable-controls                           \
+    --enable-dataviewctrl                       \
+    --enable-display                            \
+    --enable-dnd                                \
+    --enable-graphics_ctx                       \
+    --enable-std_string                         \
+    --enable-svg                                \
+    --enable-unicode                            \
+    --enable-webviewwebkit                      \
+    --with-expat                                \
+    --with-libjpeg                              \
+    --with-libpng                               \
+    --with-libtiff                              \
+    --with-opengl                               \
+    --with-zlib                                 \
+    --disable-tests                             \
+    --disable-precomp-headers                   \
+    --disable-monolithic                        \
+    --with-macosx-version-min=${MACOS_MAJOR}.0  \
+    --with-osx_cocoa                            \
+    --with-libiconv
+
+  make
+}
+
+package() {
+  cd wxWidgets-$pkgver
+  make DESTDIR="$pkgdir" install locale_install
+
+  install -Dm644 wxwin.m4 -t "$pkgdir"/${pacman_root}/usr/share/aclocal
+  install -Dm644 docs/licence.txt "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+}
