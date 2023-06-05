@@ -1,0 +1,103 @@
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Maintainer: Dan McGee <dan@archlinux.org>
+
+pkgname=git
+pkgver=2.40.1
+pkgrel=1
+pkgdesc='the fast distributed version control system'
+arch=('x86_64' 'arm64')
+url='https://git-scm.com/'
+license=('GPL2')
+depends=('curl' 'expat' 'perl' 'perl-error' 'perl-mailtools'
+         'openssl' 'pcre2' 'grep' 'zlib')
+makedepends=('python' 'xmlto' 'asciidoc')
+optdepends=('tk: gitk and git gui'
+            'perl-libwww: git svn'
+            'perl-term-readkey: git svn and interactive.singlekey setting'
+            'perl-io-socket-ssl: git send-email TLS support'
+            'perl-authen-sasl: git send-email TLS support'
+            'perl-mediawiki-api: git mediawiki support'
+            'perl-datetime-format-iso8601: git mediawiki support'
+            'perl-lwp-protocol-https: git mediawiki https support'
+            'perl-cgi: gitweb (web interface) support'
+            'python: git svn & git p4'
+            'subversion: git svn')
+validpgpkeys=('96E07AF25771955980DAD10020D04E5A713660A7') # Junio C Hamano
+source=("https://www.kernel.org/pub/software/scm/git/git-$pkgver.tar."{xz,sign})
+sha256sums=('4893b8b98eefc9fdc4b0e7ca249e340004faa7804a433d17429e311e1fef21d2'
+            'SKIP')
+
+_make_paths=(
+  prefix="${pacman_root}/usr"
+  gitexecdir="${pacman_root}/usr/lib/git-core"
+  perllibdir="$(${pacman_root}/usr/bin/perl -MConfig -wle 'print $Config{installvendorlib}')"
+)
+
+_make_options=(
+  CFLAGS="$CFLAGS"
+  LDFLAGS="$LDFLAGS"
+  INSTALL_SYMLINKS=1
+  MAN_BOLD_LITERAL=1
+  NO_PERL_CPAN_FALLBACKS=1
+  USE_LIBPCRE2=1
+)
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  make \
+    "${_make_paths[@]}" \
+    "${_make_options[@]}" \
+    all man
+
+  make -C contrib/subtree "${_make_paths[@]}" all man
+  make -C contrib/mw-to-git "${_make_paths[@]}" all
+  make -C contrib/diff-highlight "${_make_paths[@]}"
+}
+
+check() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  local jobs
+  jobs=$(expr "$MAKEFLAGS" : '.*\(-j[0-9]*\).*') || true
+
+  # explicitly specify SHELL to avoid a test failure in t/t9903-bash-prompt.sh
+  # which is caused by 'git rebase' trying to use builduser's SHELL inside the
+  # build chroot (i.e.: /usr/bin/nologin)
+  mkdir -p /tmp/git-test
+
+  # note: some of the tests fail, so...
+  SHELL=${pacman_root}/usr/bin/bash \
+  make \
+    "${_make_paths[@]}" \
+    "${_make_options[@]}" \
+    NO_SVN_TESTS=y \
+    DEFAULT_TEST_TARGET=prove \
+    GIT_TEST_OPTS="--root=/tmp/git-test" \
+    test || :
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+
+  make \
+    "${_make_paths[@]}" \
+    "${_make_options[@]}" \
+    DESTDIR="$pkgdir" \
+    install install-man
+
+  # bash completion
+  mkdir -p "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions/
+  install -m 0644 ./contrib/completion/git-completion.bash "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions/git
+  # fancy git prompt
+  mkdir -p "$pkgdir"/${pacman_root}/usr/share/git/
+  install -m 0644 ./contrib/completion/git-prompt.sh "$pkgdir"/${pacman_root}/usr/share/git/git-prompt.sh
+
+  # subtree installation
+  make -C contrib/subtree "${_make_paths[@]}" DESTDIR="$pkgdir" install install-man
+  # mediawiki installation
+  make -C contrib/mw-to-git "${_make_paths[@]}" DESTDIR="$pkgdir" install
+  # the rest of the contrib stuff
+  find contrib/ -name '.gitignore' -delete
+  cp -a ./contrib/* "$pkgdir"/${pacman_root}/usr/share/git/
+}
