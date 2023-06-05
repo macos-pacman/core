@@ -1,0 +1,43 @@
+# Maintainer: Andrzej Giniewicz <gginiu@gmail.com>
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+
+pkgname=blosc
+pkgver=1.21.3
+pkgrel=1
+pkgdesc='A blocking, shuffling and loss-less compression library'
+arch=('x86_64' 'arm64')
+url='https://www.blosc.org'
+license=('BSD')
+depends=('snappy' 'zstd')
+makedepends=('cmake')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/Blosc/c-blosc/archive/v${pkgver}.tar.gz")
+sha512sums=('e9542aa2d1ebae9f6dcc12916d7ac3b920d771281ab96e2b2d59c2951e5f51d02d2684859b8823643d43d320613fb9dd8a3ea411ade34e66e323fcefa8165a91')
+b2sums=('ff8ad36e4e34b245062025c5820655bb52fea40276e88a748253d5079c3b5f8662079f177835ab38aa6e58d87e7849a93d7e1289346fcc53c077ef85b7382462')
+
+build() {
+  cmake \
+    -B build \
+    -S "c-blosc-$pkgver" \
+    -D CMAKE_INSTALL_PREFIX="${pacman_root}/usr" \
+    -D BUILD_STATIC="OFF" \
+    -D DEACTIVATE_SNAPPY="OFF" \
+    -D PREFER_EXTERNAL_LZ4="ON" \
+    -D PREFER_EXTERNAL_ZLIB="ON" \
+    -D PREFER_EXTERNAL_ZSTD="ON"
+
+  cmake --build build
+}
+
+check() {
+  cd build
+
+  ctest --output-on-failure
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+
+  install -vDm644 \
+    "c-blosc-$pkgver/LICENSES/BLOSC.txt" \
+    "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}
