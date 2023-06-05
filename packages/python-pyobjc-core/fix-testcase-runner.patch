@@ -1,0 +1,20 @@
+--- a/Lib/PyObjCTools/TestSupport.py	2023-05-17 21:15:07.467208571 +0800
++++ b/Lib/PyObjCTools/TestSupport.py	2023-05-17 21:15:16.653886363 +0800
+@@ -1337,7 +1337,7 @@
+         else:
+             self._skip_usepool = False
+ 
+-    def run(self, *args):
++    def run(self, *args, **kwargs):
+         """
+         Run the test, same as unittest.TestCase.run, but every test is
+         run with a fresh autorelease pool.
+@@ -1348,7 +1348,7 @@
+             p = 1
+ 
+         try:
+-            _unittest.TestCase.run(self, *args)
++            _unittest.TestCase.run(self, *args, **kwargs)
+         finally:
+             _gc.collect()
+             del p
