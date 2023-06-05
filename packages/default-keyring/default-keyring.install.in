@@ -1,0 +1,12 @@
+post_upgrade() {
+	if %%PACMAN_ROOT_REL%%/usr/bin/pacman-key -l >/dev/null 2>&1; then
+		%%PACMAN_ROOT_REL%%/usr/bin/pacman-key --populate default
+		%%PACMAN_ROOT_REL%%/usr/bin/pacman-key --updatedb
+	fi
+}
+
+post_install() {
+	if [ -x %%PACMAN_ROOT_REL%%/usr/bin/pacman-key ]; then
+		post_upgrade
+	fi
+}

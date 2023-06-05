@@ -1,0 +1,26 @@
+pkgname=default-keyring
+pkgver=20230503
+pkgrel=1
+_tag=b4d0b1d6e1cb816dbc380b13df9da46b8bef21cf
+pkgdesc='Default PGP keyring for Pacman-on-macOS'
+arch=('any')
+url='https://github.com/zhiayng'
+license=('MIT')
+depends=('pacman')
+source=("default-keyring::git+https://github.com/zhiayang/pacman-macos.git#tag=${_tag}?signed"
+        "default-keyring.install.in")
+sha256sums=('SKIP'
+            '5c9c0b4ebd4f1caa2b5be9dc50cbb7309c3d19fd8972b47b1462781c7c83e00e')
+
+build() {
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
+      -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
+      ../default-keyring.install.in > ../default-keyring.install
+}
+
+package() {
+  install=default-keyring.install
+
+  cd $pkgname
+  install -Dvm644 keys/default{.gpg,-trusted,-revoked} "${pkgdir}/${pacman_root}/usr/share/pacman/keyrings/"
+}
