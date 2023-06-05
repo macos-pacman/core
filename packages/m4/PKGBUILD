@@ -1,0 +1,44 @@
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: Andreas Radke <andyrtr@archlinux.org>
+
+pkgname=m4
+pkgver=1.4.19
+pkgrel=2
+pkgdesc="The GNU macro processor"
+arch=('x86_64' 'arm64')
+url="https://www.gnu.org/software/m4"
+license=('GPL3')
+groups=('base-devel')
+depends=('glibc' 'sh')
+source=("https://ftp.gnu.org/gnu/m4/$pkgname-$pkgver.tar.xz"
+        "test-198-sysval.patch"
+        "test-execute.patch")
+sha256sums=('63aede5c6d33b6d9b13511cd0be2cac046f2e70fd0a07aa9573a04a82783af96'
+            '1172743ed30a074fa126f4bf53cea834bb4f28a7830972e624552cf27e39c84e'
+            '1f1086e3d945ec447e7247199adf7fe7b3bb84fa62a9fd0fd2915431b63af7d7')
+
+pacman_root=$(pacman-root-dir)
+
+prepare() {
+	cd "$pkgname-$pkgver"
+	patch -Np1 < ../test-198-sysval.patch
+	patch -Np1 < ../test-execute.patch
+}
+
+build() {
+	cd "$pkgname-$pkgver"
+	./configure --prefix=${pacman_root}/usr
+	make
+}
+
+check() {
+	cd "$pkgname-$pkgver"
+	make check
+}
+
+package() {
+	cd "$pkgname-$pkgver"
+	make prefix="${pkgdir}/${pacman_root}"/usr install
+	rm -f ${pkgdir}/${pacman_root}/usr/share/info/dir
+}
