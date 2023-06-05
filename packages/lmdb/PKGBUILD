@@ -23,7 +23,7 @@ prepare() {
 
 build() {
   cd openldap/libraries/liblmdb
-  make CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" prefix=${pacman_root}/usr
+  make CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" SOEXT=".dylib" prefix=${pacman_root}/usr
 }
 
 check() {
@@ -34,10 +34,12 @@ check() {
 package() {
   cd openldap/libraries/liblmdb
   install -dm755 "$pkgdir"/${pacman_root}/usr/{bin,lib,include,man/man1,share}
-  make DESTDIR="$pkgdir" prefix=${pacman_root}/usr install
+  make DESTDIR="$pkgdir" SOEXT=".dylib" prefix=${pacman_root}/usr install
 
   mv "$pkgdir"/${pacman_root}/usr/man "$pkgdir"/${pacman_root}/usr/share/man
 
   install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
   install -Dm644 "$srcdir"/lmdb.pc -t "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/
+
+  fix_rpath ${pkgdir}/${pacman_root}/usr/lib/liblmdb.dylib
 }
