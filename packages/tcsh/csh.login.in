@@ -1,0 +1,48 @@
+#############################################################################
+##
+## Gentoo's csh.login
+##
+## 2003-01-13  -- Alain Penders (alain@gentoo.org)
+##
+##     Initial version.  Inspired by the Suse version.
+##
+
+##
+## Default UMASK
+##
+umask 022
+
+##
+## Set our SHELL variable.
+##
+setenv SHELL %%PACMAN_ROOT%%/usr/bin/tcsh
+
+##
+## If we're root, report who's logging in and out.
+##
+if ( "$uid" == "0" ) then
+    set who=( "%n has %a %l from %M." )
+    set watch=( any any )
+endif
+
+##
+## Show the MOTD once the first time, and once after it has been changed.
+##
+## Note: if this is a SSH login, SSH will always show the MOTD, so we
+## skip it.  Create ~/.hushlogin is you don't want SSH to show it.
+##
+if (-f %%PACMAN_ROOT%%/etc/motd ) then
+    if ( ! $?SSH_CLIENT ) then
+        cmp -s %%PACMAN_ROOT%%/etc/motd ~/.hushmotd
+        if ($status) then
+            tee ~/.hushmotd < %%PACMAN_ROOT%%/etc/motd
+            echo "((( MOTD shown only once, unless it is changed )))"
+        endif
+    endif
+endif
+
+##
+## Send us home.
+##
+cd
+

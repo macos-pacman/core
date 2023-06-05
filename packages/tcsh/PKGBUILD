@@ -1,0 +1,60 @@
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+# Contributor: Eric Belanger <eric@archlinux.org>
+# Contributor: Judd Vinet <jvinet@zeroflux.org>
+
+pkgname=tcsh
+pkgver=6.24.10
+pkgrel=1
+pkgdesc='Enhanced version of the Berkeley C shell'
+arch=('x86_64' 'arm64')
+url='https://www.tcsh.org/'
+license=('BSD')
+depends=('glibc' 'ncurses' 'libxcrypt')
+backup=(${pacman_root#/}/'etc/csh.cshrc'
+        ${pacman_root#/}/'etc/csh.login')
+source=(https://astron.com/pub/tcsh/tcsh-${pkgver}.tar.gz{,.asc}
+        csh.cshrc.in
+        csh.login.in)
+validpgpkeys=('AD87109763D8D8C2C94CBA8065C26E471F45B123') # Kimmo Suominen
+sha512sums=('74bd17f4d8bb1fb60a2a6904d87e26b7490f0ec571866e62d6e1d35e9da435c888ab14bfa842d7282e8993d366580439b4cc884b08a22e45dc98a36f813094be'
+            'SKIP'
+            '525420dbec28119ecf725d3ff2ca3fcd5b6419f69af10703c63de7a25a49435f1ee8f159efb6408d04be3838e36b860cc8419885a72cf0cd5ee6be72651230db'
+            'ffc601dea05292d88645a1253d7530813d66b4216aa5ca26be6ab4c544b7466acc725db11d5647f4e262862b5cfdbaaeb7bf03e71e1d99392c3c639f064b067b')
+b2sums=('bf6e5815390ecffa9dbdc31ac08630ebc3e95394092285cc2f5c5cf0bb48c16ccdd195888feb9e3f5cc689c228eed7a99a2edb566be696bf95851c8176ce3c7b'
+        'SKIP'
+        '4b30c7883cf93afaeb71d282159b979c1ed2360accbcf428e558949e5677691887eaf453dee582c43e16538bbf6ed773813dbe5dfcdbd1d3b720511bcbcdcadf'
+        '95e9aedd970d2c640ea11f4bc5ff7dcb9f1b211ae4c6d69c6cf9d036b20de97df67d989bc0b53588adbd40cac1f80d5980d9f5d67970a2497ee084552d6cc4c1')
+
+prepare() {
+  cd $pkgname-$pkgver
+  sed  -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../csh.cshrc.in > csh.cshrc
+  sed  -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../csh.login.in > csh.login
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --sysconfdir=${pacman_root}/etc \
+    --bindir=${pacman_root}/usr/bin
+
+  make
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+
+  make DESTDIR="$pkgdir" mandir=${pacman_root}/usr/share/man install install.man
+
+  # shell configuration
+  install -vDm644 -t "$pkgdir/${pacman_root}/etc" csh.{cshrc,login}
+
+  # symlinks for tcsh -> csh
+  ln -s tcsh "$pkgdir/${pacman_root}/usr/bin/csh"
+  ln -s tcsh.1 "$pkgdir/${pacman_root}/usr/share/man/man1/csh.1"
+
+  # license
+  install -vDm644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" Copyright
+}
