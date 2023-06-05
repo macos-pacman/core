@@ -1,0 +1,29 @@
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+# Controbutor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=libxrender
+pkgver=0.9.11
+pkgrel=1
+pkgdesc="X Rendering Extension client library"
+arch=('x86_64' 'arm64')
+url="https://xorg.freedesktop.org/"
+license=('custom')
+depends=('libx11')
+makedepends=('xorgproto')
+source=(${url}/archive/individual/lib/libXrender-${pkgver}.tar.xz{,.sig})
+sha512sums=('2327cc1b530382d81df29b8d579f801f1f990202107cc84506986bcf5d15010d414e9418987b200e3f222d188afce46f0d7754febcdca62a5fc1e541b3bb82de'
+            'SKIP')
+validpgpkeys=('4A193C06D35E7C670FA4EF0BA2FB9E081F2D130E') #Alan Coopersmith <alan.coopersmith@oracle.com>
+#validpgpkeys+=('C41C985FDCF1E5364576638B687393EE37D128F8') # Matthieu Herrb <matthieu.herrb@laas.fr>
+
+build() {
+  cd libXrender-${pkgver}
+  ./configure --prefix=${pacman_root}/usr --disable-static
+  make
+}
+
+package() {
+  cd libXrender-${pkgver}
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/COPYING"
+}
