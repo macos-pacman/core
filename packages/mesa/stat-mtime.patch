@@ -1,0 +1,11 @@
+--- a/mesa-23.1.1/src/compiler/spirv/nir_load_libclc.c	2023-06-04 00:20:05.045401500 +0800
++++ b/mesa-23.1.1/src/compiler/spirv/nir_load_libclc.c	2023-06-04 00:20:13.026802361 +0800
+@@ -123,7 +123,7 @@
+       struct mesa_sha1 ctx;
+       _mesa_sha1_init(&ctx);
+       _mesa_sha1_update(&ctx, clc->file->sys_path, strlen(clc->file->sys_path));
+-      _mesa_sha1_update(&ctx, &stat.st_mtim, sizeof(stat.st_mtim));
++      _mesa_sha1_update(&ctx, &stat.st_mtime, sizeof(stat.st_mtime));
+       _mesa_sha1_final(&ctx, clc->cache_key);
+ 
+       clc->fd = fd;

@@ -1,0 +1,112 @@
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Andreas Radke <andyrtr@archlinux.org>
+
+pkgname=mesa
+pkgver=23.1.1
+pkgrel=1
+pkgdesc="An open-source implementation of the OpenGL specification"
+url="https://www.mesa3d.org/"
+arch=('x86_64' 'arm64')
+license=('custom')
+makedepends=(
+  'clang'
+  'bison>2.3'
+  'expat'
+  'libx11'
+  'libxdamage'
+  'libxml2'
+  'libxrandr'
+  'python-mako'
+  'xorgproto'
+  'llvm'
+)
+source=(
+  https://mesa.freedesktop.org/archive/mesa-${pkgver}.tar.xz{,.sig}
+  LICENSE
+  stat-mtime.patch
+)
+sha256sums=('a2679031ed5b73b29c4f042ac64d96f83b0cfe4858617de32e2efc196c653a40'
+            'SKIP'
+            '7052ba73bb07ea78873a2431ee4e828f4e72bda7d176d07f770fa48373dec537'
+            '297cf0d9e9d33c1ffae2df60ab068333f6cf0c5e434784686ba7a8c975a5a990')
+b2sums=('b17a71205248f2e97c60aa944d8b5b19d51592ba9288d2f04a8498eabaa19308f7ec7a813b948d3fad1001ae14da8771e403c68f7a4159c7f3b8830b919d64dc'
+        'SKIP'
+        '1ecf007b82260710a7bf5048f47dd5d600c168824c02c595af654632326536a6527fbe0738670ee7b921dd85a70425108e0f471ba85a8e1ca47d294ad74b4adb'
+        '4202aaf875f4964284fb6b9f193d1dc0e31c8ba56145b3acdae8e3f3df7788c399e33783b4d05a245070d8598dfe94d82ad814f4e2865ee596d8669884497777')
+validpgpkeys=('8703B6700E7EE06D7A39B8D6EDAE37B02CEB490D'  # Emil Velikov <emil.l.velikov@gmail.com>
+              '946D09B5E4C9845E63075FF1D961C596A7203456'  # Andres Gomez <tanty@igalia.com>
+              'E3E8F480C52ADD73B278EE78E1ECBE07D7D70895'  # Juan Antonio Suárez Romero (Igalia, S.L.) <jasuarez@igalia.com>
+              'A5CC9FEC93F2F837CB044912336909B6B25FADFA'  # Juan A. Suarez Romero <jasuarez@igalia.com>
+              '71C4B75620BC75708B4BDB254C95FAAB3EB073EC'  # Dylan Baker <dylan@pnwbakers.com>
+              '57551DE15B968F6341C248F68D8E31AFC32428A6') # Eric Engestrom <eric@engestrom.ch>
+
+prepare() {
+  cd mesa-$pkgver
+
+  patch -Np2 -i ../stat-mtime.patch
+}
+
+_libdir=${pacman_root#/}/usr/lib
+
+build() {
+  local meson_options=(
+    --libdir=/$_libdir
+    -D android-libbacktrace=disabled
+    -D b_ndebug=true
+    -D dri3=enabled
+    -D gbm=disabled
+    -D egl=disabled
+    -D xlib-lease=disabled
+    -D gles1=disabled
+    -D gles2=enabled
+    -D glx=disabled
+    -D llvm=enabled
+    -D osmesa=true
+    -D valgrind=disabled
+    -D lmsensors=disabled
+    -D shared-glapi=enabled
+    -D gallium-vdpau=disabled
+    -D gallium-va=disabled
+    -D gallium-xa=disabled
+    -D microsoft-clc=disabled
+    -D spirv-to-dxil=false
+    -D video-codecs=vc1dec,h264dec,h264enc,h265dec,h265enc
+    -D cpp_rtti=false # our llvm disables rtti
+  )
+
+  # Build only minimal debug info to reduce size
+  CFLAGS+=' -g1'
+  CXXFLAGS+=' -g1'
+
+  arch-meson mesa-$pkgver build "${meson_options[@]}"
+  meson configure build # Print config
+  meson compile -C build
+}
+
+_install() {
+  local src f dir
+  for src; do
+    f="${src#fakeinstall/}"
+    dir="${pkgdir}/${f%/*}"
+    install -m755 -d "${dir}"
+    mv -v "${src}" "${dir}/"
+  done
+}
+
+package() {
+  provides=(
+    'mesa-libgl'
+    'opengl-driver'
+  )
+  conflicts=('mesa-libgl')
+  replaces=('mesa-libgl')
+
+
+  # fake installation to be seperated into packages
+  # outside of fakeroot but mesa doesn't need to chown/mod
+  DESTDIR="$pkgdir" meson install -C build
+
+  install -m644 -Dt "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}" LICENSE
+}
