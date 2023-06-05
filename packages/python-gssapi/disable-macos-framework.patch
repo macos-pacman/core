@@ -1,0 +1,21 @@
+--- a/setup.py	2023-05-29 02:01:26.432812142 +0800
++++ b/setup.py	2023-05-29 02:02:57.921748670 +0800
+@@ -45,9 +45,6 @@
+ ]
+ 
+ osx_has_gss_framework = False
+-if sys.platform == 'darwin':
+-    mac_ver = [int(v) for v in platform.mac_ver()[0].split('.')]
+-    osx_has_gss_framework = (mac_ver >= [10, 7, 0])
+ 
+ winkrb_path = None
+ if os.name == 'nt':
+@@ -187,7 +184,7 @@
+                     if winkrb_path:
+                         main_path = os.path.join(winkrb_path, 'bin')
+                 else:
+-                    main_lib = 'lib%s.so' % opt
++                    main_lib = 'lib%s.dylib' % opt
+         for opt in link_args:
+             # To support Heimdal on Debian, read the linker path.
+             if opt.startswith('-Wl,/'):
