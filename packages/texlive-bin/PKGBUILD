@@ -3,17 +3,20 @@
 # Contributor: francois <francois.archlinux.org>
 
 pkgname=(texlive-bin libsynctex)
-pkgver=2023.66984
-pkgrel=1
+_rev=66984
+pkgver=2023.$_rev
+pkgrel=4
 license=(GPL)
 arch=('x86_64' 'arm64')
 makedepends=(git cairo pixman graphite t1lib gd libsigsegv zziplib libpng libjpeg freetype2
-             icu harfbuzz-icu mpfr potrace libpaper perl clisp ffcall libxcrypt)
+             icu harfbuzz-icu mpfr potrace libpaper perl clisp ffcall libxcrypt subversion)
 url='https://tug.org/texlive/'
 _commit=871c7a2856d70e1a9703d1f72f0587b9995dba5f # tags/texlive-2023.0
-source=(git+https://github.com/Tex-Live/texlive-source.git#commit=${_commit}
+source=(git+https://github.com/Tex-Live/texlive-source.git#commit=$_commit
+        svn://tug.org/texlive/tags/texlive-2023.0/Master/tlpkg#revision=$_rev
         ptex-debug-print.patch)
 sha256sums=('SKIP'
+            'SKIP'
             'aa838f09003c62c2efb5770a8de66f99b409df049fbd65098d80fd1957d06c50')
 
 prepare() {
@@ -45,6 +48,7 @@ build() {
     --disable-psutils \
     --disable-t1utils \
     --disable-bibtexu \
+    --disable-dvisvgm \
     --disable-xz \
     --enable-shared \
     --disable-static \
@@ -97,14 +101,17 @@ package_texlive-bin() {
               'dialog: for texconfig'
               'biber: for bibliography processing'
               'ghostscript: for epstopdf, epspdf and other ConTeXt tools'
-              'java-runtime: for utilities like arara, texplate'
+              'java-runtime: for utilities like arara, texplate, pdfannotextractor'
               'perl-tk: for texdoctk'
               'psutils: to manipulate the output of dvips'
               'python: for de-macro, dviasm, pythontex'
+              'python-pygments: for pygmentex'
               'ruby: for old ConTeXT MkII and epspdf'
               't1utils: can be useful when installing Type1 fonts'
               'wdiff: for texdiff'
-              'fontforge: for scripts from the lilyglyphs package')
+              'fontforge: for scripts from the lilyglyphs package'
+              'perl-yaml-tiny: for latexindent'
+              'perl-file-homedir: for latexindent')
 
   cd texlive-source
 
@@ -125,11 +132,17 @@ package_texlive-bin() {
     install -m755 texk/texlive/linked_scripts/context/stubs/unix/$_stub "$pkgdir"/${pacman_root}/usr/bin/$_stub
   done
 
-# needed by updmap
-  install -Dm644 texk/tests/TeXLive/*.pm -t "$pkgdir"/${pacman_root}/usr/share/perl5/vendor_perl/TeXLive/
+# install tlpkg files needed by texconfig
+  install -Dm644 "$srcdir"/tlpkg/TeXLive/* -t "$pkgdir"/${pacman_root}/usr/share/perl5/vendor_perl/TeXLive/
+  install -Dm644 "$srcdir"/tlpkg/texlive.tlpdb -t "$pkgdir"/${pacman_root}/usr/share/tlpkg
+  install -Dm644 "$srcdir"/tlpkg/installer/config.guess -t "$pkgdir"/${pacman_root}/usr/share/tlpkg/installer
 
 # remove stuff included in texlive-core
   rm -rf "$pkgdir"/${pacman_root}/usr/share/texmf-dist/{bibtex,chktex,dvipdfmx,dvips,fonts,hbf2gf,texconfig,ttf2pk,web2c,xdvi,xindy}
+  rm -rf "$pkgdir"/${pacman_root}/usr/share/texmf-dist/scripts/{make4ht,pythontex}
+
+# docs are provided in texlive-doc
+  rm -r "$pkgdir"/${pacman_root}/usr/share/texmf-dist/doc
 
 # remove libsynctex
   rm "$pkgdir"/${pacman_root}/usr/include/synctex/*
