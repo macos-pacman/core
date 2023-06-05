@@ -1,0 +1,38 @@
+--- a/protoc-c/c_helpers.h	2023-06-04 22:23:46.093840586 +0800
++++ b/protoc-c/c_helpers.h	2023-06-04 22:24:20.502411997 +0800
+@@ -67,6 +67,7 @@
+ #include <vector>
+ #include <sstream>
+ #include <google/protobuf/descriptor.h>
++#include <google/protobuf/descriptor_legacy.h>
+ #include <protobuf-c/protobuf-c.pb.h>
+ #include <google/protobuf/io/printer.h>
+ 
+@@ -172,7 +173,7 @@
+ // This wrapper is needed to be able to compile against protobuf2.
+ inline int FieldSyntax(const FieldDescriptor* field) {
+ #ifdef HAVE_PROTO3
+-  return field->file()->syntax() == FileDescriptor::SYNTAX_PROTO3 ? 3 : 2;
++  return FileDescriptorLegacy(field->file()).syntax() == FileDescriptorLegacy::SYNTAX_PROTO3 ? 3 : 2;
+ #else
+   return 2;
+ #endif
+--- a/protoc-c/c_file.cc	2023-06-04 22:29:14.388225017 +0800
++++ b/protoc-c/c_file.cc	2023-06-04 22:32:42.016663698 +0800
+@@ -68,6 +68,7 @@
+ #include <protoc-c/c_helpers.h>
+ #include <protoc-c/c_message.h>
+ #include <google/protobuf/io/printer.h>
++#include <google/protobuf/descriptor_legacy.h>
+ #include <protobuf-c/protobuf-c.pb.h>
+ 
+ #include "protobuf-c.h"
+@@ -119,7 +120,7 @@
+ 
+   int min_header_version = 1000000;
+ #if defined(HAVE_PROTO3)
+-  if (file_->syntax() == FileDescriptor::SYNTAX_PROTO3) {
++  if (FileDescriptorLegacy(file_).syntax() == FileDescriptorLegacy::SYNTAX_PROTO3) {
+     min_header_version = 1003000;
+   }
+ #endif

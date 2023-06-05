@@ -1,0 +1,44 @@
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Aurélien Wailly <aurelien.wailly@gmail.com>
+
+pkgname=protobuf-c
+pkgver=1.4.1
+pkgrel=1
+pkgdesc='Protocol Buffers implementation in C'
+arch=('x86_64' 'arm64')
+url='https://github.com/protobuf-c/protobuf-c'
+license=('BSD')
+depends=('protobuf')
+provides=('libprotobuf-c.so')
+options=('!lto') # https://github.com/protobuf-c/protobuf-c/issues/488
+source=("$url/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz"
+        'protobuf23-01.patch::https://github.com/chenxy1988/protobuf-c/commit/66a0b0d205224f63f19dd8f96abf9dcdc2112331.patch'
+        'protobuf23-02.patch')
+sha256sums=('4cc4facd508172f3e0a4d3a8736225d472418aee35b4ad053384b137b220339f'
+            '7734645253f9ecc27bc5549a1e640bb7f3923808dda0a4f257f20bd988b03619'
+            '192270297a3d76d8beaa3c5de6f64f1f97211646ea102afdf5ab721b5ac3562d')
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../protobuf23-01.patch
+  patch -Np1 -i ../protobuf23-02.patch
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+
+  export CXXFLAGS+=" -std=c++17 "
+  ./configure --prefix=${pacman_root}/usr --disable-static
+  make
+}
+
+check() {
+  make -C "$pkgname-$pkgver" check
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make DESTDIR="$pkgdir" install
+  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}
