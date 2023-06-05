@@ -1,0 +1,46 @@
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: mark.blakeney at bullet-systems dot net
+
+_pipname=debugpy
+pkgname=python-$_pipname
+pkgver=1.6.7
+pkgrel=3
+pkgdesc='An implementation of the Debug Adapter Protocol for Python'
+arch=('x86_64' 'arm64')
+url='https://aka.ms/debugpy'
+license=(EPL MIT)
+depends=(python)
+makedepends=(python-setuptools)
+source=(https://github.com/microsoft/debugpy/archive/v$pkgver/$pkgname-$pkgver.tar.gz)
+sha256sums=('8734997dc43dd40fe1725baf1dd816c0ab7611d98d1f01e3f3b42631135e1354')
+
+prepare() {
+  cd $_pipname-$pkgver
+
+  # remove precompiled libs
+  rm src/debugpy/_vendored/pydevd/pydevd_attach_to_process/*.{so,dll,dylib,exe,pdb}
+}
+
+build() {
+  cd $_pipname-$pkgver
+  python setup.py build
+
+  # Compile attach libraries
+  cd build/lib*/debugpy/_vendored/pydevd/pydevd_attach_to_process
+  ${CXX-clang++} ${CXXFLAGS} -m64 -shared -o attach_$(uname -m).dylib -fPIC -nostartfiles linux_and_mac/attach.cpp ${LDFLAGS} -lc
+}
+
+package() {
+  cd $_pipname-$pkgver
+  python setup.py install --skip-build --root="$pkgdir" --optimize=1
+
+  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+
+  local _pyver
+  _pyver=$(python -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
+
+  local _f
+  for _f in "${pkgdir}/${pacman_root}/usr/lib"/python${_pyver}/site-packages/debugpy/_vendored/pydevd/pydevd_attach_to_process/attach_*.dylib; do
+    fix_rpath "${_f}"
+  done
+}
