@@ -1,0 +1,44 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+
+pkgname=speexdsp
+pkgver=1.2.1
+pkgrel=1
+pkgdesc="DSP library derived from Speex"
+url="https://www.speex.org/"
+arch=('x86_64' 'arm64')
+license=(BSD)
+depends=(gcc-libs)
+makedepends=(git)
+provides=(libspeexdsp.dylib)
+_commit=1b28a0f61bc31162979e1f26f3981fc3637095c8  # tags/SpeexDSP-1.2.1^0
+source=("git+https://gitlab.xiph.org/xiph/speexdsp.git#commit=$_commit")
+b2sums=('SKIP')
+
+pkgver() {
+  cd speexdsp
+  git describe --tags | sed 's/^SpeexDSP-//;s/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd speexdsp
+  ./autogen.sh
+}
+
+build() {
+  cd speexdsp
+  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc --localstatedir=${pacman_root}/var \
+    --disable-static
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+}
+
+check() {
+  cd speexdsp
+  make -k check
+}
+
+package() {
+  cd speexdsp
+  make DESTDIR="$pkgdir" install
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 COPYING
+}
