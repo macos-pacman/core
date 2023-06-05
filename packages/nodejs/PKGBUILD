@@ -1,0 +1,100 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor  Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Thomas Dziedzic < gostrc at gmail >
+# Contributor: James Campos <james.r.campos@gmail.com>
+# Contributor: BlackEagle < ike DOT devolder AT gmail DOT com >
+# Contributor: Dongsheng Cai <dongsheng at moodle dot com>
+# Contributor: Masutu Subric <masutu.arch at googlemail dot com>
+# Contributor: TIanyi Cui <tianyicui@gmail.com>
+
+pkgname=nodejs
+pkgver=20.1.0
+_commit=68ef4a687d5a1802b9f585d7f464c44ce6caa766
+pkgrel=1
+pkgdesc='Evented I/O for V8 javascript'
+arch=('x86_64' 'arm64')
+url='https://nodejs.org/'
+license=('MIT')
+options=(!lto)
+depends=('brotli' 'openssl' 'zlib' 'icu' 'libuv' 'libnghttp2' 'c-ares') # 'http-parser' 'v8')
+makedepends=('git' 'python')
+optdepends=('npm: nodejs package manager')
+source=("git+https://github.com/nodejs/node.git#commit=$_commit")
+sha512sums=('SKIP')
+
+export MACOSX_DEPLOYMENT_TARGET="${MACOS_MAJOR}.0"
+
+export CFLAGS="${CFLAGS} -mmacosx-version-min=${MACOS_MAJOR}.0 -O3"
+export CXXFLAGS="${CXXFLAGS} -mmacosx-version-min=${MACOS_MAJOR}.0 -O3"
+export LDFLAGS="${LDFLAGS} -mmacosx-version-min=${MACOS_MAJOR}.0"
+
+build() {
+  cd node
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --with-intl=system-icu \
+    --openssl-use-def-ca-store \
+    --shared-openssl \
+    --shared-zlib \
+    --shared-libuv \
+    --experimental-http-parser \
+    --shared-nghttp2 \
+    --shared-cares \
+    --shared-brotli \
+    --enable-static \
+    --without-npm
+    # --shared
+    # --shared-v8
+    # --shared-http-parser
+
+  make
+}
+
+join_by() {
+  local IFS="$1"
+  shift
+  echo "$*"
+}
+
+check() {
+  cd node
+
+  # need to fix the rpaths to run the test
+  # install_name_tool -id ${srcdir}/node/out/Release/libnode.115.dylib ${srcdir}/node/out/Release/libnode.115.dylib
+  # install_name_tool -change '@rpath/libnode.115.dylib' ${srcdir}/node/out/Release/libnode.115.dylib ${srcdir}/node/out/Release/node
+
+  local _skip_tests
+  _skip_tests=(
+    'test-tls-cli-min-version-1.3'
+    'test-tls-cli-min-version-1.2'
+    'test-tls-cli-min-version-1.1'
+    'test-tls-cli-max-version-1.3'
+    'test-tls-cli-max-version-1.2'
+    'test-tls-alert'
+    'test-tls-getprotocol'
+    'test-tls-min-max-version'
+    'test-tls-no-sslv3'
+    'test-tls-session-cache'
+    'test-dgram-udp6-link-local-address'
+    'test-https-agent-session-eviction'
+    'test-inspector-ip-detection'
+  )
+
+  make test-only CI_SKIP_TESTS="$(join_by ',' "${_skip_tests[@]}")"
+}
+
+package() {
+  cd node
+  make DESTDIR="$pkgdir" install
+  install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/nodejs/
+
+  # fix the dylib paths
+  # fix_rpath "${pacman_root}" "${pkgdir}" "$pkgdir/${pacman_root}/usr/bin/node"
+  # fix_rpath "${pacman_root}" "${pkgdir}" "$pkgdir/${pacman_root}/usr/lib/libnode.115.dylib"
+
+  cd "$pkgdir"/${pacman_root}/usr/lib
+  ln -s libnode.*.dylib libnode.dylib
+}
+
+# vim:set ts=2 sw=2 et:
