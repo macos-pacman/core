@@ -1,0 +1,47 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Eric Bélanger <eric@archlinux.org>
+
+pkgname=mpg123
+pkgver=1.31.3
+pkgrel=1
+pkgdesc='Console based real time MPEG Audio Player for Layer 1, 2 and 3'
+url="https://sourceforge.net/projects/mpg123"
+arch=('x86_64' 'arm64')
+license=('LGPL2.1')
+makedepends=('sdl2')
+optdepends=('sdl2: for sdl audio support'
+            'perl: for conplay')
+provides=(libmpg123.dylib libout123.dylib)
+source=(https://downloads.sourceforge.net/sourceforge/${pkgname}/${pkgname}-${pkgver}.tar.bz2{,.sig})
+sha512sums=('5dd550e06f5d0d432cac1b7e546215e56378b44588c1a98031498473211e08bc4228de45be41f7ba764f7f6c0eb752a6501235bcc3712c9a8d8852ae3c607d98'
+            'SKIP')
+validpgpkeys=('D021FF8ECF4BE09719D61A27231C4CBC60D5CAFE')
+
+build() {
+  cd ${pkgname}-${pkgver}
+  local _arch
+  if [ "$CARCH" = "arm64" ]; then
+    _arch="aarch64"
+  else
+    _arch="x86-64"
+  fi
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --enable-int-quality \
+    --with-module-suffix=.so \
+    --with-default-audio=coreaudio \
+    --with-cpu="${_arch}"
+
+  # https://bugzilla.gnome.org/show_bug.cgi?id=655517
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+  install -Dm 755 scripts/conplay "${pkgdir}/${pacman_root}/usr/bin/conplay"
+}
+
+# vim: ts=2 sw=2 et:
