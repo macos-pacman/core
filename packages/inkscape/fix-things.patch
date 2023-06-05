@@ -1,0 +1,13 @@
+--- a/src/ui/widget/selected-style.cpp	2023-06-03 16:54:55.972496608 +0800
++++ b/src/ui/widget/selected-style.cpp	2023-06-03 16:56:17.196001873 +0800
+@@ -107,8 +107,9 @@
+ // pointers/types used need to be read-only. So until we correct the using
+ // code, those warnings are actually desired. They say "Hey! Fix this". We
+ // definitely don't want to hide/ignore them. --JonCruz
++static char _asdf[] = "application/x-oswb-color";
+ static const GtkTargetEntry ui_drop_target_entries [] = {
+-    {g_strdup("application/x-oswb-color"), 0, APP_OSWB_COLOR}
++    {_asdf, 0, APP_OSWB_COLOR}
+ };
+ 
+ static guint nui_drop_target_entries = G_N_ELEMENTS(ui_drop_target_entries);

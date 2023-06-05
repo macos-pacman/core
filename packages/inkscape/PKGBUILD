@@ -1,0 +1,114 @@
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Tobias Kieslich <tobias@justdreams.de>
+# Contributor: tobias <tobias@archlinux.org>
+
+pkgname=inkscape
+pkgver=1.2.2
+_tag='b0a8486541ac36327488da641d58a86bee2f07ad' # git rev-parse INKSCAPE_${pkgver/./_}
+pkgrel=7
+pkgdesc='Professional vector graphics editor'
+url='https://inkscape.org/'
+license=('GPL' 'LGPL')
+arch=('x86_64' 'arm64')
+makedepends=('cmake' 'boost' 'git')
+
+depends=(
+	'boost-libs'
+	'double-conversion'
+	'gc'
+	'imagemagick'
+	'gsl'
+	'gspell'
+	'gtkmm3'
+	'gtk-mac-integration'
+	'lcms2'
+	'lib2geom'
+	'libcdr'
+	'libjpeg-turbo'
+	'libsoup'
+	'libvisio'
+	'libxslt'
+	'poppler-glib'
+	'poppler'
+	'potrace'
+	'python'
+	'python-cssselect'
+	'python-lxml'
+	'python-numpy'
+)
+
+optdepends=(
+	'fig2dev: xfig input'
+	'gvfs: import clip art'
+	'pstoedit: latex formulas'
+	'scour: optimized SVG output, some extensions'
+	'texlive-core: latex formulas'
+)
+
+#source=("https://media.inkscape.org/dl/resources/file/${pkgname}-${pkgver}.tar.bz2")
+source=("git+https://gitlab.com/inkscape/inkscape.git#tag=${_tag}"
+        'inkscape-extensions::git+https://gitlab.com/inkscape/extensions.git'
+        'inkscape-lib2geom::git+https://gitlab.com/inkscape/lib2geom.git'
+        'inkscape-themes::git+https://gitlab.com/inkscape/themes.git'
+        'inkscape-extras-extensions-gcodetools::git+https://gitlab.com/inkscape/extras/extensions-gcodetools.git'
+        'inkscape-extras-extension-manager::git+https://gitlab.com/inkscape/extras/extension-manager.git'
+        'inkscape-extras-inkscape-import-clipart::git+https://gitlab.com/inkscape/extras/inkscape-import-clipart.git'
+        'inkscape-extras-extension-xaml::git+https://gitlab.com/inkscape/extras/extension-xaml.git'
+        'fix-things.patch')
+sha256sums=('SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            '2937f55f177ab7e5311016566d73ee05383698e1e0769e76565590bc6ca48691')
+
+_backports=(
+)
+
+prepare() {
+	cd "${pkgname}"
+	git submodule set-url share/extensions ../inkscape-extensions/
+	git submodule set-url src/3rdparty/2geom ../inkscape-lib2geom/
+	git submodule set-url share/themes ../inkscape-themes/
+	git -c protocol.file.allow=always submodule update --init
+
+	( cd share/extensions/
+	  git submodule set-url other/gcodetools ../inkscape-extras-extensions-gcodetools/
+	  git submodule set-url other/inkman ../inkscape-extras-extension-manager/
+	  git submodule set-url other/clipart ../inkscape-extras-inkscape-import-clipart/
+	  git submodule set-url other/extension-xaml ../inkscape-extras-extension-xaml/
+	  git -c protocol.file.allow=always submodule update --init )
+
+	local _c
+	for _c in "${_backports[@]}"; do
+		git log --oneline -1 "${_c}"
+		git cherry-pick -n "${_c}"
+	done
+
+	patch -Np1 -i ../fix-things.patch
+}
+
+build() {
+	mkdir -p build
+	export PKG_CONFIG_PATH='${pacman_root}/usr/lib/imagemagick6/pkgconfig'
+	cmake -H${pkgname} -Bbuild \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+		-DWITH_DBUS=OFF
+
+	cmake --build build
+}
+
+package() {
+	DESTDIR="${pkgdir}" cmake --build build --target install
+
+	# need to manually fix this shit
+	fix_rpath "${pkgdir}/${pacman_root}/usr/lib/inkscape/libinkscape_base.dylib"
+	local _f; for _f in ${pkgdir}/${pacman_root}/usr/bin/*; do
+	  msg2 "Fixing %s" ${_f}
+  	install_name_tool -change ${pacman_root}/usr/lib/libinkscape_base.dylib ${pacman_root}/usr/lib/inkscape/libinkscape_base.dylib ${_f}
+	done
+}
