@@ -1,0 +1,45 @@
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Chocobo1 <chocobo1@archlinux.net>
+
+pkgname=libdeflate
+pkgver=1.18
+pkgrel=1
+pkgdesc='Heavily optimized library for DEFLATE/zlib/gzip compression and decompression'
+arch=('x86_64' 'arm64')
+url=https://github.com/ebiggers/libdeflate
+license=(MIT)
+depends=(glibc)
+makedepends=(
+  cmake
+  git
+  ninja
+)
+provides=(libdeflate.dylib)
+_tag=495fee110ebb48a5eb63b75fd67e42b2955871e2
+source=(git+https://github.com/ebiggers/libdeflate.git#tag=${_tag})
+b2sums=(SKIP)
+
+pkgver() {
+  cd libdeflate
+  git describe --tags | sed 's/^v//'
+}
+
+build() {
+  cmake -S libdeflate -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DLIBDEFLATE_BUILD_STATIC_LIB=OFF \
+    -DLIBDEFLATE_BUILD_TESTS=ON
+  cmake --build build
+}
+
+check() {
+  ctest --test-dir build
+}
+
+package() {
+  DESTDIR="${pkgdir}" cmake --install build
+  install -Dm 644 libdeflate/COPYING -t "${pkgdir}"/${pacman_root}/usr/share/licenses/libdeflate/
+}
+
+# vim ts=2 sw=2 et:
