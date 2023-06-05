@@ -1,0 +1,38 @@
+# asdf
+
+pkgname=libelf
+pkgver=0.8.13
+pkgrel=1
+arch=('x86_64' 'arm64')
+license=(LGPL2)
+makedepends=(autoconf automake libtool)
+url="https://web.archive.org/web/20181111033959/www.mr511.de/software/english.html"
+source=("https://fossies.org/linux/misc/old/libelf-0.8.13.tar.gz")
+sha256sums=('591a9b4ec81c1f2042a97aa60564e0cb79d041c52faa7416acb38bc95bd2c76d')
+
+conflicts=(elfutils)
+
+prepare() {
+	cd $pkgname-$pkgver
+	cp -v ${pacman_root}/usr/share/automake-*/config.guess ./
+	cp -v ${pacman_root}/usr/share/automake-*/config.sub ./
+
+	autoreconf -fvi
+}
+
+build() {
+	cd $pkgname-$pkgver
+	./configure \
+		--prefix=${pacman_root}/usr \
+		--disable-compat \
+		--disable-debug \
+		--enable-elf64 \
+		--enable-shared
+
+	make
+}
+
+package() {
+	cd $pkgname-$pkgver
+	make install DESTDIR="$pkgdir" instroot="$pkgdir"
+}
