@@ -3,7 +3,7 @@
 
 pkgname=nss
 pkgver=3.89.1
-pkgrel=1
+pkgrel=2
 pkgdesc="Network Security Services"
 url="https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS"
 arch=('x86_64' 'arm64')
@@ -50,7 +50,7 @@ package() {
   local libdir=${pacman_root}/usr/lib includedir=${pacman_root}/usr/include/nss
 
   sed nss/pkg/pkg-config/nss.pc.in \
-    -e "s,%prefix%,/usr,g" \
+    -e "s,%prefix%,${pacman_root}/usr,g" \
     -e "s,%exec_prefix%,\${prefix},g" \
     -e "s,%libdir%,$libdir,g" \
     -e "s,%includedir%,$includedir,g" \
@@ -68,8 +68,8 @@ package() {
     < <(awk '/#define.*NSS_V(MAJOR|MINOR|PATCH)/ {print $3}' nss/lib/nss/nss.h)
 
   sed nss/pkg/pkg-config/nss-config.in \
-    -e "s,@prefix@,/usr,g" \
-    -e "s,@exec_prefix@,/usr,g" \
+    -e "s,@prefix@,${pacman_root}/usr,g" \
+    -e "s,@exec_prefix@,${pacman_root}/usr,g" \
     -e "s,@libdir@,$libdir,g" \
     -e "s,@includedir@,$includedir,g" \
     -e "s,@MOD_MAJOR_VERSION@,$vmajor,g" \
@@ -90,9 +90,8 @@ package() {
   ln -sf p11-kit-trust.so "$pkgdir$libdir/libnssckbi.so"
 
   # fix rpaths
-  local _f
-  for _f in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/*; do
-    fix_rpath "${pacman_root}" "${pkgdir}" "${_f}"
+  local _f; for _f in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/*; do
+    fix_rpath "${_f}"
   done
 }
 
