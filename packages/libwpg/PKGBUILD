@@ -1,0 +1,31 @@
+# Maintainer: AndyRTR <andyrtr@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=libwpg
+pkgver=0.3.4
+pkgrel=1
+pkgdesc="Library for importing and converting Corel WordPerfect(tm) Graphics images."
+arch=('x86_64' 'arm64')
+url="https://libwpg.sourceforge.net/"
+license=('LGPL')
+depends=('libwpd' 'perl' 'librevenge')
+makedepends=('doxygen' 'boost')
+source=("https://downloads.sourceforge.net/libwpg/${pkgname}-${pkgver}.tar.xz")
+sha1sums=('335788f3fcef4c6d01b24b325cc07765d58c1da9')
+sha256sums=('b55fda9440d1e070630eb2487d8b8697cf412c214a27caee9df69cec7c004de3')
+
+build() {
+  cd ${pkgname}-${pkgver}
+  ./configure --prefix=${pacman_root}/usr
+  make
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  make check
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+}
