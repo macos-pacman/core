@@ -1,6 +1,6 @@
 pkgname=(macos-system macos-accelerate-blas-lapack)
 pkgver=13.3
-pkgrel=13
+pkgrel=14
 pkgdesc='builtin macos packages'
 arch=('x86_64' 'arm64')
 license=(MIT)
@@ -79,6 +79,7 @@ package_macos-system() {
   	'coreutils'
   	'openssh'
   	'gperf=3.0.3'
+  	'unzip=6.0'
   )
 
 	mkdir -p $pkgdir/$pacman_root/usr/bin/
