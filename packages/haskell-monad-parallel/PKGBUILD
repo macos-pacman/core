@@ -1,0 +1,82 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_hkgname=monad-parallel
+pkgname=haskell-${_hkgname}
+pkgver=0.8
+pkgrel=1
+pkgdesc="Parallel execution of monadic computations"
+url="https://hackage.haskell.org/package/${_hkgname}"
+license=('BSD')
+arch=('x86_64' 'arm64')
+depends=('ghc-libs'
+  'haskell-parallel'
+  'haskell-transformers'
+  'haskell-transformers-compat'
+)
+checkdepends=()
+makedepends=('ghc')
+source=("https://hackage.haskell.org/packages/archive/$_hkgname/$pkgver/$_hkgname-$pkgver.tar.gz")
+sha512sums=('28231723034ac7a224034d1a8ba6618d38a2abfa139b3185bb8c0d08bc42d265ca8e0564a8f01e9ba2b50b72f789e084bd1aadae730e48b7ed105557c96c6959')
+
+license_name="BSD3-LICENSE.txt"
+
+# template start; name=haskell-default; version=1.0;
+
+# default haskell build steps
+
+build() {
+# template start; name=haskell-build; version=1.0;
+  cd $_hkgname-$pkgver
+
+  local _opts
+  if (( CHECKFUNC )) && [ -z ${_notests+x} ]; then
+    _opts=('--enable-tests')
+  else
+    _opts=('--disable-tests')
+  fi
+
+  runhaskell Setup configure -O --disable-static --enable-shared \
+    --prefix=${pacman_root}/usr \
+    --docdir=${pacman_root}/usr/share/doc/$pkgname \
+    --datasubdir=$pkgname \
+    --dynlibdir='$libdir' \
+    -ftemplateHaskell --ghc-option=-fllvm --ghc-option=-fhide-source-paths \
+    "${_opts[@]}"
+
+  runhaskell Setup build $MAKEFLAGS
+  runhaskell Setup register --gen-script
+  runhaskell Setup unregister --gen-script
+
+  sed -i -r -e "s|ghc-pkg.*update[^ ]* |&'--force' |" register.sh
+  sed -i -r -e "s|ghc-pkg.*unregister[^ ]* |&'--force' |" unregister.sh
+# template end;
+}
+
+check() {
+# template start; name=haskell-check; version=1.0;
+  cd $_hkgname-$pkgver
+  runhaskell Setup test --show-details=direct
+# template end;
+}
+
+package() {
+# template start; name=haskell-package; version=1.0;
+  cd $_hkgname-$pkgver
+
+  install -D -m744 register.sh "$pkgdir/${pacman_root}/usr/share/haskell/register/$pkgname.sh"
+  install -D -m744 unregister.sh "$pkgdir/${pacman_root}/usr/share/haskell/unregister/${pkgname}.sh"
+
+  local _license_name=${license_name-LICENSE}
+
+  runhaskell Setup copy --destdir="$pkgdir"
+  install -D -m644 "${_license_name}" "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+  rm "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/${_license_name}
+
+  local dl; for dl in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/* ; do
+    [ ! -e "${dl}" ] || fix_rpath "${dl}"
+  done
+# template end;
+}
+# template end;
+
+# vim: ts=2 sw=2 et:

@@ -1,0 +1,94 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_hkgname=zlib
+pkgname=haskell-${_hkgname}
+pkgver=0.6.3.0
+pkgrel=1
+pkgdesc="Compression and decompression in the gzip and zlib formats"
+url="https://hackage.haskell.org/package/${_hkgname}"
+license=('BSD')
+arch=('x86_64' 'arm64')
+depends=('ghc-libs' 'zlib'
+  'haskell-bytestring'
+)
+checkdepends=(
+  'haskell-quickcheck'
+  'haskell-tasty'
+  'haskell-tasty-quickcheck'
+)
+makedepends=('ghc' 'uusi')
+source=("https://hackage.haskell.org/packages/archive/$_hkgname/$pkgver/$_hkgname-$pkgver.tar.gz")
+sha512sums=('95daae13c5d5458fd7c610ce4cc686dc7af477364c4dcf3d31abede84f6e4b4e70ea255f7ded586d46d9bb6298d19c93b8856eec16c6002265ed076e52bf9a21')
+
+prepare() {
+  cd $_hkgname-$pkgver
+  gen-setup
+  uusi -u 'base' ${_hkgname}.cabal
+}
+
+_build_flags="+pkg-config"
+
+# template start; name=haskell-default; version=1.0;
+
+# default haskell build steps
+
+build() {
+# template start; name=haskell-build; version=1.0;
+  cd $_hkgname-$pkgver
+
+  local _opts
+  if (( CHECKFUNC )) && [ -z ${_notests+x} ]; then
+    _opts=('--enable-tests')
+  else
+    _opts=('--disable-tests')
+  fi
+
+  runhaskell Setup configure -O --disable-static --enable-shared \
+    --prefix=${pacman_root}/usr \
+    --docdir=${pacman_root}/usr/share/doc/$pkgname \
+    --datasubdir=$pkgname \
+    --dynlibdir='$libdir' \
+    -ftemplateHaskell --ghc-option=-fllvm --ghc-option=-fhide-source-paths \
+    --flags="${_build_flags:-}" \
+    "${_opts[@]}"
+
+  runhaskell Setup build $MAKEFLAGS
+
+  if [ -z ${_no_register+x} ]; then
+    runhaskell Setup register --gen-script
+    runhaskell Setup unregister --gen-script
+
+    sed -i -r -e "s|ghc-pkg.*update[^ ]* |&'--force' |" register.sh
+    sed -i -r -e "s|ghc-pkg.*unregister[^ ]* |&'--force' |" unregister.sh
+  fi
+# template end;
+}
+
+check() {
+# template start; name=haskell-check; version=1.0;
+  cd $_hkgname-$pkgver
+  runhaskell Setup test --show-details=direct
+# template end;
+}
+
+package() {
+# template start; name=haskell-package; version=1.0;
+  cd $_hkgname-$pkgver
+
+  install -D -m744 register.sh "$pkgdir/${pacman_root}/usr/share/haskell/register/$pkgname.sh"
+  install -D -m744 unregister.sh "$pkgdir/${pacman_root}/usr/share/haskell/unregister/${pkgname}.sh"
+
+  local _license_name=${license_name-LICENSE}
+
+  runhaskell Setup copy --destdir="$pkgdir"
+  install -D -m644 "${_license_name}" "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+  rm "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/${_license_name}
+
+  local dl; for dl in ${pkgdir}/${pacman_root}/usr/lib/*.dylib ${pkgdir}/${pacman_root}/usr/bin/* ; do
+    [ ! -e "${dl}" ] || fix_rpath "${dl}"
+  done
+# template end;
+}
+# template end;
+
+# vim: ts=2 sw=2 et:
