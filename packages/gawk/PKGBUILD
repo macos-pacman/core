@@ -1,0 +1,48 @@
+# Maintainer:
+# Contributor: Tom Newsom <Jeepster@gmx.co.uk>
+
+pkgname=gawk
+pkgver=5.2.1
+pkgrel=1
+pkgdesc="GNU version of awk"
+arch=('x86_64' 'arm64')
+url="https://www.gnu.org/software/gawk/"
+license=('GPL')
+groups=('base-devel')
+depends=('sh' 'glibc' 'mpfr')
+provides=('awk')
+source=(https://ftp.gnu.org/pub/gnu/${pkgname}/${pkgname}-${pkgver}.tar.gz{,.sig})
+validpgpkeys=('D1967C63788713177D861ED7DF597815937EC0D2') # Arnold Robbins
+sha256sums=('529e7c8c6acf21ff3a6183f4d763c632810908989c24675c77995d51ac37b79c'
+            'SKIP')
+
+build() {
+  cd ${pkgname}-${pkgver}
+
+  local _hmm=''
+  if [ $(uname -m) = 'arm64' ]; then
+    _hmm='--disable-pma'
+  fi
+
+  ./configure --prefix=${pacman_root}/usr \
+    --libexecdir=${pacman_root}/usr/lib \
+    --sysconfdir=${pacman_root}/etc \
+    --without-libsigsegv \
+    $_hmm
+
+  # note on disable-pma: the gawk people decided that because of this one weird feature
+  # (the persistent memory allocator), they would always build build an x88 binary even on M1
+  # but that's fucking dumb and breaks. so we disable the stupid pma.
+
+  make
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  make check
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+}
