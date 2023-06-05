@@ -1,0 +1,78 @@
+pkgname=qemu
+pkgver=7.2.3
+pkgrel=1
+pkgdesc='A generic and open source machine emulator and virtualiser'
+arch=('x86_64' 'arm64')
+url="https://www.qemu.org/"
+license=(GPL2 LGPL2.1)
+
+depends=(
+	capstone
+	gnutls
+	libpng
+	libssh
+	libusb
+	libslirp
+	libjpeg-turbo
+	pixman
+	zlib
+	zstd
+	pcre2
+	nettle
+	snappy
+	ncurses
+)
+
+makedepends=(
+	meson
+	ninja
+	pkgconf
+)
+
+source=(
+	"https://download.qemu.org/qemu-${pkgver}.tar.xz"
+	"qemu-patches.patch"
+)
+
+sha256sums=(
+	'59a939a8d6138826a9f28232b2d6b5fe884946e2dd7625bb8c0745286c6b75d9'
+	'120f22b731c90235f2c7ac54844a035a1e68161fb5d8293f9f1debfaa859a726'
+)
+
+prepare() {
+	cd ${pkgname}-${pkgver}
+	patch -Np1 -i ../qemu-patches.patch
+}
+
+build() {
+	cd ${pkgname}-${pkgver}
+	mkdir build
+	cd build
+
+	../configure \
+		--prefix=${pacman_root}/usr \
+		--enable-cocoa \
+		--disable-sdl \
+		--enable-hvf \
+		--enable-vmnet \
+		--enable-virtfs \
+		--enable-vdi \
+		--enable-tools \
+		--enable-slirp \
+		--enable-nettle \
+		--enable-libusb \
+		--enable-gnutls \
+		--enable-capstone \
+		--disable-docs \
+		--cc=${CC} \
+		--cxx=${CXX} \
+		--extra-cflags="${CFLAGS} -ffile-prefix-map=${srcdir}=." \
+		--extra-cxxflags="${CXXFLAGS} -ffile-prefix-map=${srcdir}=."
+
+	make
+}
+
+package() {
+	cd ${pkgname}-${pkgver}
+	make -C build V=1 DESTDIR=${pkgdir} install
+}

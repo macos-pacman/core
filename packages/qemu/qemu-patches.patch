@@ -1,0 +1,127 @@
+diff --git a/qapi/ui.json b/qapi/ui.json
+--- a/qapi/ui.json
++++ b/qapi/ui.json
+@@ -1291,13 +1291,17 @@
+ #                their position on non-Mac keyboards and you can use Meta/Super
+ #                and Alt where you expect them. (default: off)
+ #
++# @full-res: Enable sending the full resolution to the guest; in reality this
++#            means that the host display window becomes roughly half the size
++#
+ # Since: 7.0
+ ##
+ { 'struct': 'DisplayCocoa',
+   'data': {
+       '*left-command-key': 'bool',
+       '*full-grab': 'bool',
+-      '*swap-opt-cmd': 'bool'
++      '*swap-opt-cmd': 'bool',
++      '*full-res': 'bool'
+   } }
+ 
+ ##
+diff --git a/qemu-options.hx b/qemu-options.hx
+--- a/qemu-options.hx
++++ b/qemu-options.hx
+@@ -1953,7 +1953,7 @@ DEF("display", HAS_ARG, QEMU_OPTION_display,
+     "-display curses[,charset=<encoding>]\n"
+ #endif
+ #if defined(CONFIG_COCOA)
+-    "-display cocoa[,full-grab=on|off][,swap-opt-cmd=on|off]\n"
++    "-display cocoa[,full-grab=on|off][,swap-opt-cmd=on|off][,full-res=on|off]\n"
+ #endif
+ #if defined(CONFIG_OPENGL)
+     "-display egl-headless[,rendernode=<file>]\n"
+@@ -1963,7 +1963,7 @@ DEF("display", HAS_ARG, QEMU_OPTION_display,
+     "             [,gl=on|core|es|off][,rendernode=<file>]\n"
+ #endif
+ #if defined(CONFIG_COCOA)
+-    "-display cocoa[,show-cursor=on|off][,left-command-key=on|off]\n"
++    "-display cocoa[,show-cursor=on|off][,left-command-key=on|off][,full-res=on|off]\n"
+ #endif
+     "-display none\n"
+     "                select display backend type\n"
+@@ -2057,6 +2057,8 @@ SRST
+ 
+         ``left-command-key=on|off`` : Disable forwarding left command key to host
+ 
++        ``full-res=on|off`` : Enable providing the full display resolution to the guest
++
+     ``egl-headless[,rendernode=<file>]``
+         Offload all OpenGL operations to a local DRI device. For any
+         graphical display, this display needs to be paired with either
+diff --git a/ui/cocoa.m b/ui/cocoa.m
+--- a/ui/cocoa.m
++++ b/ui/cocoa.m
+@@ -98,6 +98,7 @@ static void cocoa_switch(DisplayChangeListener *dcl,
+ static int last_buttons;
+ static int cursor_hide = 1;
+ static int left_command_key_enabled = 1;
++static bool enable_full_resolution;
+ static bool swap_opt_cmd;
+ 
+ static int gArgc;
+@@ -394,7 +395,7 @@ - (BOOL) isOpaque
+ 
+ - (BOOL) screenContainsPoint:(NSPoint) p
+ {
+-    return (p.x > -1 && p.x < screen.width && p.y > -1 && p.y < screen.height);
++    return (p.x > -1 && p.x < (screen.width * cdx) && p.y > -1 && p.y < (screen.height * cdy));
+ }
+ 
+ /* Get location of event and convert to virtual screen coordinate */
+@@ -541,8 +542,14 @@ - (void) setContentDimensions
+         cy = 0;
+         cw = screen.width;
+         ch = screen.height;
+-        cdx = 1.0;
+-        cdy = 1.0;
++        if (enable_full_resolution) {
++            double scale_factor = [[NSScreen mainScreen] backingScaleFactor];
++            cdx = 1.0 / scale_factor;
++            cdy = 1.0 / scale_factor;
++        } else {
++            cdx = 1.0;
++            cdy = 1.0;
++        }
+     }
+ }
+ 
+@@ -651,7 +658,14 @@ - (void) switchSurface:(pixman_image_t *)image
+     } else {
+         if (qemu_name)
+             [normalWindow setTitle:[NSString stringWithFormat:@"QEMU %s", qemu_name]];
+-        [normalWindow setFrame:NSMakeRect([normalWindow frame].origin.x, [normalWindow frame].origin.y - h + oldh, w, h + [normalWindow frame].size.height - oldh) display:YES animate:NO];
++
++        NSRect window_frame = [normalWindow frame];
++        double titlebar_height = window_frame.size.height - [normalWindow contentRectForFrameRect: window_frame].size.height;
++
++        double width = w * cdx;
++        double height = h * cdy + titlebar_height;
++
++        [normalWindow setFrame:NSMakeRect(window_frame.origin.x, window_frame.origin.y - (h + oldh)*cdy, width, height) display:YES animate:NO];
+     }
+ 
+     if (isResize) {
+@@ -1317,7 +1331,7 @@ - (NSApplicationTerminateReply)applicationShouldTerminate:
+                                                          (NSApplication *)sender
+ {
+     COCOA_DEBUG("QemuCocoaAppController: applicationShouldTerminate\n");
+-    return [self verifyQuit];
++    return YES;
+ }
+ 
+ - (void)windowDidChangeScreen:(NSNotification *)notification
+@@ -2115,6 +2129,12 @@ static void cocoa_display_init(DisplayState *ds, DisplayOptions *opts)
+         left_command_key_enabled = 0;
+     }
+ 
++    if(opts->u.cocoa.has_full_res) {
++        enable_full_resolution = opts->u.cocoa.full_res;
++    } else {
++        enable_full_resolution = false;
++    }
++
+     // register vga output callbacks
+     register_displaychangelistener(&dcl);
+ 
