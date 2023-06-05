@@ -1,0 +1,27 @@
+--- a/dateutil/test/test_internals.py	2023-05-06 00:58:40.548100037 +0800
++++ b/dateutil/test/test_internals.py	2023-05-06 01:01:42.132784788 +0800
+@@ -65,16 +65,21 @@
+     from dateutil.parser._parser import _timelex, _tzparser
+     from dateutil.parser._parser import _parsetz
+ 
+-    with pytest.warns(None) as recorder:
++    import warnings
++
++    with warnings.catch_warnings(record=True) as recorder:
++        warnings.simplefilter("error")
+         _tzparser()
+         assert len(recorder) == 0
+ 
+-    with pytest.warns(None) as recorder:
++    with warnings.catch_warnings(record=True) as recorder:
++        warnings.simplefilter("error")
+         _timelex('2014-03-03')
+ 
+         assert len(recorder) == 0
+ 
+-    with pytest.warns(None) as recorder:
++    with warnings.catch_warnings(record=True) as recorder:
++        warnings.simplefilter("error")
+         _parsetz('+05:00')
+         assert len(recorder) == 0
+ 
