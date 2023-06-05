@@ -1,0 +1,77 @@
+# Maintainer: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: kevin <kevin@archlinux.org>
+# Contributor: John Proctor <jproctor@prium.net>
+
+pkgname=graphviz
+pkgver=8.0.5
+pkgrel=3
+pkgdesc='Graph visualization software'
+url='https://www.graphviz.org/'
+license=('EPL')
+arch=('x86_64' 'arm64')
+depends=('libltdl' 'gd' 'librsvg' 'ghostscript' 'pango' 'gts' 'gsfonts')
+makedepends=('swig' 'lua' 'perl' 'python' 'tk')
+optdepends=('mono: sharp bindings'
+            'guile: guile bindings'
+            'lua: lua bindings'
+            'perl: perl bindings'
+            'python: python bindings'
+            'r: r bindings'
+            'tcl: tcl bindings'
+            'qt6-base: gvedit'
+            'gtk2: gtk output plugin'
+            'xterm: vimdot')
+source=("https://gitlab.com/graphviz/graphviz/-/archive/$pkgver/$pkgname-$pkgver.tar.gz"
+        'ghostscript918.patch'
+        'install.in')
+sha256sums=('dd06f45f5bbcb1c7cbc67adab5359da2cd4b40533dc7c7424b3fc0e998bbd6c9'
+            '0083d126e27f2223ec4226fc1d71c9c84106968a0fdf65de838aee1e4882bfdb'
+            'bf07a88d25ecfad89a9b420f5c20354f8259501b302811850c7dd57506a83de3')
+install=install
+
+prepare() {
+  sed -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" ../install.in > ../install
+
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
+  patch -p1 -i ../ghostscript918.patch
+  ./autogen.sh NOCONFIG
+}
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  export LIBPOSTFIX=/
+  export CXXFLAGS+=' -fPIC -fpermissive'
+
+  export OBJC="clang"
+  export OBJCXX="clang++"
+
+  ./configure --prefix=${pacman_root}/usr \
+           --enable-python3=yes \
+           --disable-python \
+           --disable-tcl \
+           --enable-lefty \
+           --enable-lua \
+           --with-freetype2 \
+           --with-quartz
+
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool # Fix overlinking
+  make
+}
+
+package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+
+  # fix symlink to symlink that doesn't get picked up by makepkg's zipman
+  ln -s gv2gxl.1.gz "${pkgdir}"/${pacman_root}/usr/share/man/man1/dot2gxl.1.gz
+  rm "${pkgdir}"/${pacman_root}/usr/share/man/man1/dot2gxl.1
+
+  mkdir -p ${pkgdir}/${pacman_root}/usr/lib/lua/5.4
+  mv ${pkgdir}/{,${pacman_root}}/usr/lib/lua/5.4/gv.so
+
+  # Deduplicates TCL libraries
+#  cd "${pkgdir}/${pacman_root}/usr/lib/tcl8.6"
+#  rm -fr graphviz
+#  ln -s ../graphviz/tcl graphviz
+}

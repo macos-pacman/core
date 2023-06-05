@@ -1,0 +1,12 @@
+post_install() {
+	rm -f %%PACMAN_ROOT_REL%%/usr/lib/graphviz/config{,6} || :
+	%%PACMAN_ROOT_REL%%/usr/bin/dot -c
+}
+
+post_upgrade() {
+	post_install
+}
+
+pre_remove() {
+	rm -f %%PACMAN_ROOT_REL%%/usr/lib/graphviz/config{,6} || :
+}
