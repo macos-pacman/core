@@ -4,7 +4,7 @@
 pkgname=lmdb
 pkgver=0.9.30
 _commit=8f44dca45d87bc1f8da65428172668c5e6154179
-pkgrel=3
+pkgrel=4
 pkgdesc="Symas Lightning Memory-Mapped Database"
 arch=('x86_64' 'arm64')
 url="https://symas.com/lmdb"
@@ -13,9 +13,9 @@ depends=('glibc')
 makedepends=('git')
 options=('!emptydirs')
 source=("git+https://git.openldap.org/openldap/openldap.git#commit=$_commit"
-        lmdb.pc)
+        lmdb.pc.in)
 sha512sums=('SKIP'
-            '0349d4b08a1f93fe338d8f8e3e5a83e24211a46f999fe529bc1ac49c8c4975559d95a548c203d9427e3f82d62e934ba3cd1be6f734f9b9405b2a26477be4ed33')
+            '4d9ef95ca075eeed0f8d134710ac8448afcafbd5bbc48af42e2e466635a34e62aaab0c7b7eeaefaa843097e15f6cc3b753b417407d3e3f1cf0f10d78215446f2')
 
 prepare() {
   sed -e "s|@PKGVER@|$pkgver|" -i lmdb.pc
@@ -24,6 +24,8 @@ prepare() {
 build() {
   cd openldap/libraries/liblmdb
   make CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" SOEXT=".dylib" prefix=${pacman_root}/usr
+
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ${srcdir}/lmdb.pc.in > ${srcdir}/lmdb.pc
 }
 
 check() {

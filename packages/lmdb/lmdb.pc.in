@@ -1,4 +1,4 @@
-prefix=/usr
+prefix=%%PACMAN_ROOT%%/usr
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
