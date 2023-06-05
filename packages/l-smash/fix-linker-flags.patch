@@ -1,0 +1,11 @@
+--- a/configure	2023-06-03 17:58:39.703449896 +0800
++++ b/configure	2023-06-03 18:00:00.640737357 +0800
+@@ -242,7 +242,7 @@
+         ;;
+     *darwin*)
+         SHARED_EXT=".dylib"
+-        SO_LDFLAGS="-dynamiclib -Wl,-undefined,suppress -Wl,-read_only_relocs,suppress -Wl,-flat_namespace -Wl,--version-script,liblsmash.ver"
++        SO_LDFLAGS="-dynamiclib"
+         ;;
+     *solaris*)
+         #patches welcome
