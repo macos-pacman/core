@@ -7,7 +7,7 @@ BUILDENV+=(!check)
 _pyname=fakeredis
 pkgname=python-fakeredis
 pkgver=2.13.0
-pkgrel=1
+pkgrel=2
 pkgdesc='Fake implementation of redis API (redis-py) for testing purposes'
 arch=(any)
 url="https://github.com/dsoftwareinc/${_pyname}-py"
@@ -34,7 +34,7 @@ sha256sums=('53f00f44f771d2b794f1ea036fa07a33476ab7368f1b0e908daab3eff80336f6')
 
 build(){
 	cd "$_archive"
-	python -m build -wn
+	GIT_DIR=. python -m build -wn
 }
 
 check() {
