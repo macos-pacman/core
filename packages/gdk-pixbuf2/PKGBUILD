@@ -4,7 +4,7 @@
 pkgbase=gdk-pixbuf2
 pkgname=(gdk-pixbuf2 gdk-pixbuf2-docs)
 pkgver=2.42.10
-pkgrel=3
+pkgrel=4
 pkgdesc="An image loading library"
 url="https://wiki.gnome.org/Projects/GdkPixbuf"
 arch=('x86_64' 'arm64')
@@ -26,7 +26,7 @@ source=(
   gdk-pixbuf-query-loaders.hook.in
 )
 sha256sums=('SKIP'
-            '7d6ea324736a7c86d9f84d7bfb39b7beadbf77490f82e73a97f2a74623564581')
+            'aec7338fc0d9a0fb9cb6d4d7909410c8b2fc076cf2d9ab6e2e9c20b0d77ee2fa')
 
 pkgver() {
   cd gdk-pixbuf

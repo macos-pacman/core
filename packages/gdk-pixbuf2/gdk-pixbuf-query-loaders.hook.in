@@ -3,7 +3,7 @@ Type = Path
 Operation = Install
 Operation = Upgrade
 Operation = Remove
-Target = %%PACMAN_ROOT_REL%%/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/*.dylib
+Target = %%PACMAN_ROOT_REL%%/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/*.so
 
 [Action]
 Description = Probing GDK-Pixbuf loader modules...
