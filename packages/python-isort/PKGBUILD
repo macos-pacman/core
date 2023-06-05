@@ -37,15 +37,11 @@ _pycheckdeps=(black
 #               pylama
 #               "${_pycheckdeps[@]/#/python-}")
 _archive="$_pyname-$pkgver"
-source=("$url/archive/$pkgver/$_archive.tar.gz")
-sha256sums=('00eef77c312dc08606d72b6c38a5330632caca4f9bf8e86b7b373ed760ae29b8')
+source=(https://files.pythonhosted.org/packages/source/i/${_pyname}/${_pyname}-${pkgver}.tar.gz)
+sha256sums=('8bef7dde241278824a6d83f44a544709b065191b95b6e50894bdc722fcba0504')
 
 prepare() {
 	cd "$_archive"
-
-	# Devendor toml
-	rm -r isort/_vendored
-	sed -i 's/from ._vendored //' isort/settings.py
 
 	## Skipping example integration tests
 	# for _plugin in example_*; do
@@ -57,7 +53,7 @@ prepare() {
 
 build() {
 	cd "$_archive"
-	python -m build -wn
+	python setup.py build
 }
 
 # check() {
@@ -89,7 +85,7 @@ build() {
 
 package() {
 	cd "$_archive"
-	python -m installer -d "$pkgdir" dist/*.whl
+  python setup.py install --root="$pkgdir" --optimize=1
 	rm -f "$pkgdir"/${pacman_root}/usr/lib/python*/site-packages/{LICENSE,CHANGELOG.md}
 	install -Dm0644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/" LICENSE
 }
