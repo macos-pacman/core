@@ -1,0 +1,47 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=gtk-doc
+pkgver=1.33.2
+pkgrel=1
+pkgdesc="Documentation tool for public library API"
+url="https://www.gtk.org/gtk-doc/"
+arch=(any)
+license=(GPL FDL)
+depends=(docbook-xsl docbook-xml python-lxml python-pygments
+         python-anytree)
+makedepends=(git yelp-tools meson)
+checkdepends=(gtk3 python-six python-parameterized)
+optdepends=('dblatex: PDF support')
+_commit=14391142ee9d43da116f0f530746ae34cc46930a  # tags/1.33.2^0
+source=("git+https://gitlab.gnome.org/GNOME/gtk-doc.git#commit=$_commit"
+        0001-Partially-revert-a-gtk-doc-1.31-change-that-broke-e-.patch)
+sha256sums=('SKIP'
+            '95208f0e0dd6e888892b04e3396b131218d1d98e433edfbd4af70b158921319c')
+
+pkgver() {
+  cd $pkgname
+  git describe --tags | sed 's/GTK_DOC_//;s/_/\./g;s/-/+/g'
+}
+
+prepare() {
+  cd $pkgname
+
+  # https://gitlab.gnome.org/GNOME/gtk-doc/-/merge_requests/58
+  git apply -3 ../0001-Partially-revert-a-gtk-doc-1.31-change-that-broke-e-.patch
+}
+
+build() {
+  arch-meson $pkgname build
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package() {
+  DESTDIR="$pkgdir" meson install -C build
+  python -m compileall -d ${pacman_root}/usr/lib "$pkgdir/${pacman_root}/usr/lib"
+  python -O -m compileall -d ${pacman_root}/usr/lib "$pkgdir/${pacman_root}/usr/lib"
+}
