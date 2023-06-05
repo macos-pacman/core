@@ -1,0 +1,174 @@
+--- db-5.3.28/src/dbinc/atomic.h.old	2018-05-23 09:20:04.216914922 +0200
++++ db-5.3.28/src/dbinc/atomic.h	2018-05-23 09:20:49.510057897 +0200
+@@ -69,9 +69,9 @@
+  * aligned 32-bit reads to be atomic even outside of explicit 'atomic' calls.
+  * These have no memory barriers; the caller must include them when necessary.
+  */
+ #define	atomic_read(p)		((p)->value)
+-#define	atomic_init(p, val)	((p)->value = (val))
++#define	db_atomic_init(p, val)	((p)->value = (val))
+
+ #ifdef HAVE_ATOMIC_SUPPORT
+
+ #if defined(DB_WIN32)
+@@ -144,7 +144,7 @@
+ #define	atomic_inc(env, p)	__atomic_inc(p)
+ #define	atomic_dec(env, p)	__atomic_dec(p)
+ #define	atomic_compare_exchange(env, p, o, n)	\
+-	__atomic_compare_exchange((p), (o), (n))
++	__db_atomic_compare_exchange((p), (o), (n))
+ static inline int __atomic_inc(db_atomic_t *p)
+ {
+ 	int	temp;
+@@ -176,7 +176,7 @@
+  * http://gcc.gnu.org/onlinedocs/gcc-4.1.0/gcc/Atomic-Builtins.html
+  * which configure could be changed to use.
+  */
+-static inline int __atomic_compare_exchange(
++static inline int __db_atomic_compare_exchange(
+ 	db_atomic_t *p, atomic_value_t oldval, atomic_value_t newval)
+ {
+ 	atomic_value_t was;
+@@ -201,14 +201,14 @@
+ /*
+  * These minimal versions are correct to use only for single-threaded,
+  * single-process environments.
+  */
+ #define	atomic_inc(env, p)	(++(p)->value)
+ #define	atomic_dec(env, p)	(--(p)->value)
+ #define	atomic_compare_exchange(env, p, oldval, newval)		\
+ 	(DB_ASSERT(env, atomic_read(p) == (oldval)),		\
+-	atomic_init(p, (newval)), 1)
++	db_atomic_init(p, (newval)), 1)
+ #else
+ #define atomic_inc(env, p)	__atomic_inc(env, p)
+ #define atomic_dec(env, p)	__atomic_dec(env, p)
+ #endif
+ #endif
+--- a/src/mutex/mut_tas.c
++++ b/src/mutex/mut_tas.c
+@@ -45,11 +45,11 @@
+ 		return (EINVAL);
+ 	}
+ 
+ #ifdef HAVE_SHARED_LATCHES
+ 	if (F_ISSET(mutexp, DB_MUTEX_SHARED))
+-		atomic_init(&mutexp->sharecount, 0);
++		db_atomic_init(&mutexp->sharecount, 0);
+ 	else
+ #endif
+ 	if (MUTEX_INIT(&mutexp->tas)) {
+ 		ret = __os_get_syserr();
+ 		__db_syserr(env, ret, DB_STR("2029",
+@@ -534,11 +534,11 @@
+ 		/*MUTEX_MEMBAR(mutexp->sharecount);*/		/* XXX why? */
+ 		if (sharecount == MUTEX_SHARE_ISEXCLUSIVE) {
+ 			F_CLR(mutexp, DB_MUTEX_LOCKED);
+ 			/* Flush flag update before zeroing count */
+ 			MEMBAR_EXIT();
+-			atomic_init(&mutexp->sharecount, 0);
++			db_atomic_init(&mutexp->sharecount, 0);
+ 		} else {
+ 			DB_ASSERT(env, sharecount > 0);
+ 			MEMBAR_EXIT();
+ 			sharecount = atomic_dec(env, &mutexp->sharecount);
+ 			DB_ASSERT(env, sharecount >= 0);
+--- a/src/mutex/mut_method.c
++++ b/src/mutex/mut_method.c
+@@ -472,11 +472,11 @@
+
+ 	mtx = atomic_get_mutex(env, v);
+ 	MUTEX_LOCK(env, mtx);
+ 	ret = atomic_read(v) == oldval;
+ 	if (ret)
+-		atomic_init(v, newval);
++		db_atomic_init(v, newval);
+ 	MUTEX_UNLOCK(env, mtx);
+
+ 	return (ret);
+ }
+ #endif
+--- a/src/mp/mp_region.c
++++ b/src/mp/mp_region.c
+@@ -243,11 +243,11 @@
+ 		for (i = 0; i < MPOOL_FILE_BUCKETS; i++) {
+ 			if ((ret = __mutex_alloc(env,
+ 			     MTX_MPOOL_FILE_BUCKET, 0, &htab[i].mtx_hash)) != 0)
+ 				return (ret);
+ 			SH_TAILQ_INIT(&htab[i].hash_bucket);
+-			atomic_init(&htab[i].hash_page_dirty, 0);
++			db_atomic_init(&htab[i].hash_page_dirty, 0);
+ 		}
+
+ 		/*
+ 		 * Allocate all of the hash bucket mutexes up front.  We do
+ 		 * this so that we don't need to free and reallocate mutexes as
+@@ -300,11 +300,11 @@
+ 			    DB_MUTEX_SHARED, &hp->mtx_hash)) != 0)
+ 				return (ret);
+ 		} else
+ 			hp->mtx_hash = mtx_base + (i % dbenv->mp_mtxcount);
+ 		SH_TAILQ_INIT(&hp->hash_bucket);
+-		atomic_init(&hp->hash_page_dirty, 0);
++		db_atomic_init(&hp->hash_page_dirty, 0);
+ #ifdef HAVE_STATISTICS
+ 		hp->hash_io_wait = 0;
+ 		hp->hash_frozen = hp->hash_thawed = hp->hash_frozen_freed = 0;
+ #endif
+ 		hp->flags = 0;
+--- a/src/mp/mp_mvcc.c
++++ b/src/mp/mp_mvcc.c
+@@ -274,11 +274,11 @@
+ #ifdef DIAG_MVCC
+ 	memcpy(frozen_bhp, bhp, SSZ(BH, align_off));
+ #else
+ 	memcpy(frozen_bhp, bhp, SSZA(BH, buf));
+ #endif
+-	atomic_init(&frozen_bhp->ref, 0);
++	db_atomic_init(&frozen_bhp->ref, 0);
+ 	if (mutex != MUTEX_INVALID)
+ 		frozen_bhp->mtx_buf = mutex;
+ 	else if ((ret = __mutex_alloc(env, MTX_MPOOL_BH,
+ 	    DB_MUTEX_SHARED, &frozen_bhp->mtx_buf)) != 0)
+ 		goto err;
+@@ -426,11 +426,11 @@
+ #else
+ 		memcpy(alloc_bhp, frozen_bhp, SSZA(BH, buf));
+ #endif
+ 		alloc_bhp->mtx_buf = mutex;
+ 		MUTEX_LOCK(env, alloc_bhp->mtx_buf);
+-		atomic_init(&alloc_bhp->ref, 1);
++		db_atomic_init(&alloc_bhp->ref, 1);
+ 		F_CLR(alloc_bhp, BH_FROZEN);
+ 	}
+
+ 	/*
+ 	 * For now, keep things simple and have one file per page size per
+--- a/src/mp/mp_fget.c
++++ b/src/mp/mp_fget.c
+@@ -642,11 +642,11 @@
+ 		    __memp_alloc(dbmp, infop, mfp, 0, NULL, &alloc_bhp)) != 0)
+ 			goto err;
+
+ 		/* Initialize enough so we can call __memp_bhfree. */
+ 		alloc_bhp->flags = 0;
+-		atomic_init(&alloc_bhp->ref, 1);
++		db_atomic_init(&alloc_bhp->ref, 1);
+ #ifdef DIAGNOSTIC
+ 		if ((uintptr_t)alloc_bhp->buf & (sizeof(size_t) - 1)) {
+ 			__db_errx(env, DB_STR("3025",
+ 		    "DB_MPOOLFILE->get: buffer data is NOT size_t aligned"));
+ 			ret = __env_panic(env, EINVAL);
+@@ -948,11 +948,11 @@
+
+ 		if (BH_REFCOUNT(bhp) == 1)
+ 			MVCC_MPROTECT(bhp->buf, mfp->pagesize,
+ 			    PROT_READ);
+
+-		atomic_init(&alloc_bhp->ref, 1);
++		db_atomic_init(&alloc_bhp->ref, 1);
+ 		MUTEX_LOCK(env, alloc_bhp->mtx_buf);
+ 		alloc_bhp->priority = bhp->priority;
+ 		alloc_bhp->pgno = bhp->pgno;
+ 		alloc_bhp->bucket = bhp->bucket;
+ 		alloc_bhp->region = bhp->region;
