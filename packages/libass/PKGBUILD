@@ -1,0 +1,60 @@
+# Maintainer: Giovanni Scafora <giovanni@archlinux.org>
+# Maintainer: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: G_Syme <demichan@mail.upb.de>
+
+pkgname=libass
+pkgver=0.17.1
+pkgrel=1
+pkgdesc='A portable library for SSA/ASS subtitles rendering'
+arch=('x86_64' 'arm64')
+url=https://github.com/libass/libass/
+license=(BSD)
+depends=(
+  fontconfig
+  fribidi
+  glib2
+  glibc
+  harfbuzz
+  libfreetype.dylib
+)
+makedepends=(
+  git
+)
+provides=(libass.dylib)
+_tag=915599d88e951e34079383cf926d2731bb45cea1
+source=(git+https://github.com/libass/libass.git?signed#tag=${_tag})
+validpgpkeys=(
+  5458C3100671F252B0F4C7708079D18C21AAAAFF # Oleg Oshmyan (Chortos-2) <chortos@inbox.lv>
+  5EE63F2A71BF132CFE3567E1DFFE615F2824C720 # Oneric <oneric@oneric.de>
+)
+b2sums=(SKIP)
+
+if [ $CARCH = "x86_64" ]; then
+  makedepends+=(nasm)
+fi
+
+prepare() {
+  cd libass
+  ./autogen.sh
+}
+
+pkgver() {
+  cd libass
+  git describe --tags
+}
+
+build() {
+  cd libass
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --enable-fontconfig
+  make
+}
+
+package() {
+  cd libass
+  make DESTDIR="${pkgdir}" install
+  install -Dm 644 COPYING -t "${pkgdir}"/${pacman_root}/usr/share/licenses/libass/
+}
+
+# vim: ts=2 sw=2 et:
