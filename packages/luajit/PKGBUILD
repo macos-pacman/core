@@ -1,0 +1,38 @@
+# Maintainer: Daurnimator <daurnimator@archlinux.org>
+# Maintainer: Lukas Fleischer <lfleischer@archlinux.org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Chris Brannon <chris@the-brannons.com>
+# Contributor: Paulo Matias <matiasΘarchlinux-br·org>
+# Contributor: Anders Bergh <anders1@gmail.com>
+
+pkgname=luajit
+# LuaJIT has abandoned versioned releases and now advises using git HEAD
+# https://github.com/LuaJIT/LuaJIT/issues/665#issuecomment-784452583
+_commit=224129a8e64bfa219d35cd03055bf03952f167f6
+pkgver="2.1.0.beta3.r471.g${_commit::8}"
+pkgrel=1
+pkgdesc='Just-in-time compiler and drop-in replacement for Lua 5.1'
+arch=('x86_64' 'arm64')
+url='https://luajit.org/'
+license=('MIT')
+depends=('gcc-libs')
+source=("LuaJIT-${_commit}.tar.gz::https://repo.or.cz/luajit-2.0.git/snapshot/${_commit}.tar.gz")
+md5sums=('2c3344f297ae85db52f3cfbee643c98c')
+sha256sums=('c85f735134fb7f75a45a27027805e96174ddd79fc7907bbb5f54e08b4af0ba78')
+b2sums=('7aa3ddf076d15737543fe01670608d0f06a216d4367e4b3b6d88212a0fdfb4b7c5e23a1e2af1199779486d8e261549cbf14e1f1b29f1b974032317c46a6b7a56')
+
+build() {
+  cd "luajit-2.0-${_commit::7}"
+
+  export MACOSX_DEPLOYMENT_TARGET="${MACOS_MAJOR}.0"
+  make amalg PREFIX=${pacman_root}/usr BUILDMODE=dynamic TARGET_STRIP=" @:" CC="${CC}" CXX="${CXX}"
+}
+
+package() {
+  cd "luajit-2.0-${_commit::7}"
+
+  make install DESTDIR="$pkgdir" PREFIX=${pacman_root}/usr
+  install -Dm644 COPYRIGHT "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/COPYRIGHT"
+
+  ln -sf luajit-2.1.0-beta3 "$pkgdir/${pacman_root}/usr/bin/luajit"
+}
