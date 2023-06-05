@@ -1,0 +1,84 @@
+# Maintainer: Bruno Pagani <archange@archlinux.org>
+
+_pkg=distributed
+pkgname=python-${_pkg}
+pkgver=2023.5.1
+pkgrel=1
+pkgdesc="Distributed task scheduler for Dask"
+arch=('x86_64' 'arm64')
+url="https://distributed.dask.org/"
+license=(BSD)
+depends=(
+    python
+    python-click
+    python-cloudpickle
+    python-dask
+    python-jinja
+    python-msgpack
+    python-packaging
+    python-psutil
+    python-sortedcontainers
+    python-tblib
+    python-toolz
+    python-tornado
+    python-urllib3
+    python-yaml
+    python-zict
+)
+makedepends=(python-setuptools)
+checkdepends=(ipython
+    python-pytest
+    python-pytest-repeat
+    python-pytest-timeout
+    python-flaky
+    python-blosc
+    python-cryptography
+    python-distributed
+    python-fsspec
+    python-h5py
+    python-ipykernel
+    python-ipywidgets
+    python-jsonschema
+    python-locket
+    python-lz4
+    python-netcdf4
+    python-numpy
+    python-pandas
+    python-paramiko
+    python-prometheus_client
+    python-pyarrow
+    python-pytorch
+    python-requests
+    python-scipy
+    python-snappy
+    python-zstandard
+)
+# No tests in PyPi tarballs
+#source=(https://files.pythonhosted.org/packages/source/${_pkg::1}/${_pkg}/${_pkg}-${pkgver}.tar.gz)
+source=(https://github.com/dask/distributed/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz)
+sha256sums=('2f4430bea589dc7c660ee116c3c07030ecb930176f77fad815b4d63ae3f8106f')
+
+prepare() {
+  # versioneer is absolute garbage
+  cd ${_pkg}-${pkgver}
+  sed -i.bak \
+    -e 's/version=versioneer.get_version()/version="'${pkgver}'"/g' \
+    -e '/cmdclass=versioneer.get_cmdclass(),/d' \
+    setup.py
+}
+
+build() {
+  cd ${_pkg}-${pkgver}
+  python setup.py build
+}
+
+#check() {
+#  cd ${_pkg}-${pkgver}
+#  pytest -vvrsfE --color=yes distributed -m "not avoid_ci"
+#}
+
+package() {
+  cd ${_pkg}-${pkgver}
+  python setup.py install --root="${pkgdir}" --optimize=1 --skip-build
+  install -Dm644 LICENSE.txt -t "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/
+}
