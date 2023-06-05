@@ -1,0 +1,57 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Maintainer: Laurent Carlier <lordheavym@gmail.com>
+
+pkgbase=libepoxy
+pkgname=(libepoxy libepoxy-docs)
+pkgver=1.5.10
+pkgrel=2
+pkgdesc="Library handling OpenGL function pointer management"
+url="https://github.com/anholt/libepoxy"
+arch=('x86_64' 'arm64')
+license=(MIT)
+depends=(glibc)
+makedepends=(git meson doxygen graphviz)
+_commit=c84bc9459357a40e46e2fec0408d04fbdde2c973  # tags/1.5.10^0
+source=("git+https://github.com/anholt/libepoxy#commit=$_commit")
+sha256sums=('SKIP')
+validpgpkeys=('53EF3DC3B63E2899271BD26322E8091EEA11BBB7') # Emmanuele Bassi <ebassi@gnome.org>
+
+pkgver() {
+  cd libepoxy
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd libepoxy
+}
+
+build() {
+  arch-meson libepoxy build -D docs=true -D x11=false
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package_libepoxy() {
+  provides=(libepoxy.dylib)
+
+  meson install -C build --destdir "$pkgdir"
+
+  mkdir -p doc/${pacman_root}/usr/share
+  mv {"$pkgdir",doc}/${pacman_root}/usr/share/doc
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 libepoxy/COPYING
+}
+
+package_libepoxy-docs() {
+  pkgdesc+=" (documentation)"
+  depends=()
+
+  mv doc/* "$pkgdir"
+
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 libepoxy/COPYING
+}
+
+# vim:set sw=2 et:
