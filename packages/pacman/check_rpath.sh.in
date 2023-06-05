@@ -1,0 +1,111 @@
+#!/bin/bash
+
+[[ -n "$LIBMAKEPKG_LINT_PACKAGE_LIBRARY_RPATH_SH" ]] && return
+LIBMAKEPKG_LINT_PACKAGE_LIBRARY_RPATH_SH=1
+
+LIBRARY=${LIBRARY:-'@libmakepkgdir@'}
+
+source "$LIBRARY/util/message.sh"
+
+lint_package_functions+=('warn_library_rpath')
+
+strip_libname() {
+	local args="$@"
+	local _tmp
+	read -r -d '' -a _tmp <<< "${args}"
+	_tmp="${_tmp[0]}"
+
+	echo "${_tmp}"
+}
+
+_RPATH_FILES=()
+_PROBLEM_FILES=()
+
+check_file() {
+	local libs arg="$1"
+	IFS=$'\n' read -r -d '' -a libs <<< "${arg}"
+
+	local file=${libs[0]%:*}
+	local libs=("${libs[@]:1}")
+
+	local lib broken_libs rpath_libs
+	broken_libs=()
+	rpath_libs=()
+
+	for lib in "${libs[@]}"; do
+		local _tmp
+		_tmp=$(strip_libname "${lib}")
+		case "${_tmp}" in
+
+			# note: we do this "does it exist" check only for things under our root dir, because
+			# of the whole dyld cache thing that means dylibs don't actually exist on-disk.
+			"/usr/lib/"* | "/System/Library/"* | "/Library/"*)
+				;;
+
+			"$(pacman-root-dir)/usr/lib/"*)
+				# if it doesn't exist, complain. note that we should check under ${pkgdir} since
+				# we (likely) will be looking at dylibs referencing stuff from the currently-being-packaged
+				# $pkgdir tree (and not under '/')
+				if [ ! -e "${_tmp}" ] && [ ! -e "${pkgdir}/${_tmp}" ]; then
+					echo "could not find ${_tmp} anywhere"
+					broken_libs+=("${lib}")
+				fi ;;
+
+			"@rpath"*)
+				rpath_libs+=("${lib}")
+				;;
+
+			*)
+				broken_libs+=("${lib}")
+				;;
+		esac
+	done
+
+	local warn_rpath
+	warn_rpath=""
+
+	if [ "${#rpath_libs[@]}" -gt 0 ]; then
+		if otool -l "${file}" | grep -q 'LC_RPATH'; then
+			warn_rpath="yes"
+		else
+			broken_libs+=("${rpath_libs[@]}")
+		fi
+	fi
+
+
+	if [ "${#broken_libs[@]}" -gt 0 ]; then
+		_PROBLEM_FILES+=(${file})
+	elif [ "${warn_rpath}" = "yes" ]; then
+		_RPATH_FILES+=(${file})
+	fi
+}
+
+warn_library_rpath() {
+	local tmp
+	local file
+	local problems
+
+	find "$pkgdir" -type f -print0 | {
+		while IFS= read -r -d '' file; do
+			tmp=$(file "${file}")
+			case "$tmp" in
+				*"executable"* | *"shared library"* | *"bundle"*) ;;
+				*) continue ;;
+			esac
+			tmp=$(otool -L "${file}")
+			case "$tmp" in
+				"Archive : "* | *"is not an object file"*) ;;
+				*) check_file "$tmp" ;;
+			esac
+		done
+		if [ ${#_PROBLEM_FILES[@]} -gt 0 ]; then
+			error 'Package contains broken dylib paths:'
+			printf '%s\n' "${_PROBLEM_FILES[@]#"$pkgdir/"}" >&2
+		fi
+
+		if [ ${#_RPATH_FILES[@]} -gt 0 ]; then
+			error 'Package contains dylibs with @rpath:'
+			printf '%s\n' "${_RPATH_FILES[@]#"$pkgdir/"}" >&2
+		fi
+	}
+}

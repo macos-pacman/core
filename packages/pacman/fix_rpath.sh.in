@@ -1,0 +1,404 @@
+#!/bin/bash
+#
+#   fix_rpath.sh - functions for fixing the rpath in dylibs and executables
+#
+
+[[ -n "$LIBMAKEPKG_UTIL_FIX_RPATH_SH" ]] && return
+LIBMAKEPKG_UTIL_FIX_RPATH_SH=1
+
+LIBRARY=${LIBRARY:-'@libmakepkgdir@'}
+
+source "$LIBRARY/util/util.sh"
+source "$LIBRARY/util/message.sh"
+
+# yes... we use python here. *BUT* macOS always comes with python (at least 3.6, for sure)
+# and this is a pain in the butt to do in pure bash; macOS `readlink` doesn't come with the `-m` option.
+
+# note that the `canonicalize_path` function that is in the pacman utils doesn't handle non-existent paths
+_canonicalise_path() {
+	python -c "import pathlib; print(pathlib.Path('$1').resolve())"
+}
+
+
+_get_all_rpath_cmds() {
+	if [ $# -lt 1 ]; then
+		error 'usage: _get_all_rpath_cmds <file>'
+		exit 1
+	fi
+
+	local _file _rpath_cmd _rpaths
+	_file=$(readlink -f "$1")
+	if ! otool -l "${_file}" | grep -q 'cmd LC_RPATH'; then
+		return 1
+	fi
+
+	local _exec_path
+	_exec_path=$(dirname "${_file}")
+
+	# if the exec path starts with $pkgdir (because the file is currently in the pkgdir...)
+	# then we should actually substitute the non-pkgdir path.
+	case "${_exec_path}" in "${pkgdir}"*)
+		_exec_path="${_exec_path#${pkgdir}}"
+		;;
+	esac
+
+	IFS=$'\n' read -r -d '' -a _rpaths < <(otool -l "${_file}" | awk 'c&&!--c;/cmd LC_RPATH/{c=2}' | awk '{print $2}') || true
+
+	# return a "list" via newlines
+	local _rpath
+	for _rpath in "${_rpaths[@]}"; do
+		_rpath=$(echo "${_rpath}" | sed -e "s|@loader_path|${_exec_path}|g" -e "s|@executable_path|${_exec_path}|g")
+		_rpath=$(_canonicalise_path "${_rpath}")
+		echo "${_rpath}"
+	done
+}
+
+_get_rpath_cmd() {
+	if [ $# -lt 1 ]; then
+		error 'usage: _get_rpath_cmd <file>'
+		exit 1
+	fi
+
+	local _file _rpath_cmds
+	_file=$(readlink -f "$1")
+
+	IFS=$'\n' read -r -d '' -a _rpath_cmds < <(_get_all_rpath_cmds "${_file}") || true
+	if [ "${#_rpath_cmds[@]}" -eq 0 ]; then
+		return 1
+	fi
+
+	# printf "rpath cmds = '%s'\n" "${_rpath_cmds[@]}" >&2
+
+	local _rpath
+	for _rpath in "${_rpath_cmds[@]}"; do
+		# printf "checking '%s'\n" "${_rpath}" >&2
+		if [ -e "${_rpath}" ] || [ -e "${pkgdir}/${_rpath}" ]; then
+			# printf "exists, yay\n" >&2
+			echo "${_rpath}"
+			return 0
+		fi
+
+		# printf "does not exist, sadge\n" >&2
+	done
+
+	return 1
+}
+
+_add_rpath_to_thing() {
+	if [ $# -lt 2 ]; then
+		error 'usage: _add_rpath_to_thing <rpath> <file>'
+		exit 1
+	fi
+
+	local _new_rpath _file
+	_new_rpath=$(readlink -f $(echo "$1" | tr -s '/'))
+	_file=$(readlink -f "$2")
+
+	# check if the thing is already in the rpaths
+
+	IFS=$'\n' read -r -d '' -a _rpath_cmds < <(_get_all_rpath_cmds "${_file}") || true
+
+	local _rpath
+	for _rpath in "${_rpath_cmds[@]}"; do
+		# printf "'%s' vs '%s'\n" "${_rpath}" "${_new_rpath}"
+		if [ "${_rpath%/}" = "${_new_rpath%/}" ]; then
+			return
+		fi
+	done
+
+	# doesn't exist, have to add.
+	msg2 'adding %s to rpath for %s' "${_new_rpath}" "${_file}"
+	install_name_tool -add_rpath "${_new_rpath}" "${_file}"
+}
+
+
+
+replace_lib_paths_with_rpath() {
+	if [ $# -lt 2 ]; then
+		error 'usage: replace_lib_paths_with_rpath <pacman_root> <filename> [rpath_root]'
+	fi
+
+	if [ ! -e "$2" ]; then
+		return
+	fi
+
+	local _pm_root _file _rpath_root
+	_file="$2"
+	_pm_root=$(_canonicalise_path "${1%/}")
+
+	if [ $# -gt 2 ]; then
+		_rpath_root=$(echo "$3" | tr -s '/')
+	else
+		_rpath_root="${_pm_root}/usr/lib"
+	fi
+
+	local _file_type
+	_file_type=$(file "${_file}")
+	case "${_file_type}" in
+        *"executable"* | *"shared library"* | *"bundle"*) ;;
+        *) return ;;
+	esac
+
+	# check whether we need to change the id of the shared library
+	if [ "${_file##*.}" = "dylib" ] || [[ "${_file_type}" = *"shared library"* ]] || [[ "${_file_type}" = *"Mach-O"*"bundle" ]]; then
+		local _dylib_id
+		_dylib_id=$(otool -D "${_file}" | awk 'NR==2')
+
+		# here, the id of the dylib should be just its own name
+		local _fixed_id
+		_fixed_id=$(basename "${_file}")
+
+		if [ "${_dylib_id}" != "${_fixed_id}" ]; then
+			msg2 "changing install_id of dylib '%s'" ${_file}
+			install_name_tool -id "${_fixed_id}" "${_file}"
+		fi
+	fi
+
+	local _used_libs
+	IFS=$'\n' read -r -d '' -a _used_libs < <(otool -L "${_file}") || true
+
+	# yeet the first line (since it's the library itself)
+	_used_libs=("${_used_libs[@]:1}")
+
+	local _lib
+	for _lib in "${_used_libs[@]}"; do
+		_lib=$(echo "${_lib}" | awk '{print $1}')
+
+		case "${_lib}" in
+			# path containing the pacman_root -- change it to use rpath
+			"${_pm_root}/usr/lib"* | "${_rpath_root}"*)
+				local _rpath _lib_relpath
+
+				# check whether we even need to change it -- if it already exists and
+				# is installed in ${_pm_root}/usr/lib, then don't do anything.
+
+				# ya, this is kinda dumb but whatever
+				case "${_lib}" in
+					"${_pm_root}/usr/lib"*)
+						if [ -e "${_lib}" ]; then
+							continue
+						fi
+						_lib_relpath="${_lib#${_pm_root}/usr/lib}"
+						;;
+
+					"${_rpath_root}"*)
+						_lib_relpath="${_lib#${_rpath_root}}"
+						;;
+				esac
+				_rpath="@rpath/${_lib_relpath}"
+				_rpath=$(echo "${_rpath}" | tr -s '/')
+
+				msg2 'changing rpath for %s (%s -> %s)' $(echo "${_file}" | tr -s '/') "${_lib}" "${_rpath}"
+				install_name_tool -change "${_lib}" "${_rpath}" "${_file}"
+
+				# add the rpath (if we need to)
+				_add_rpath_to_thing "${_rpath_root}" "${_file}"
+				;;
+
+			# rpath -- add it to rpath
+			"@rpath/"*)
+				msg2 'adding rpath %s to %s' "${_rpath_root}" "${_file}"
+				_add_rpath_to_thing "${_rpath_root}" "${_file}"
+				;;
+
+			# anything else -- ignore
+			*)  ;;
+		esac
+	done
+}
+
+
+
+
+
+
+
+fix_rpath() {
+	if [ $# -ne 3 ] && [ $# -ne 1 ]; then
+		# either provide just the filename, or all 3
+		error 'usage: fix_rpath [<pacman_root> <pkgdir>] <filename>'
+		exit 1
+	fi
+
+	local _pm_root _file _pkgdir _file_path
+
+	# check whether we have the right variables.
+	if [ $# -eq 1 ]; then
+		if [ -z "${pacman_root}" ] || [ -z "${pkgdir}" ] || [ -z "${srcdir}" ]; then
+			error "missing \$pacman_root, \$pkgdir, or \$srcdir variables"
+			return 1
+		fi
+
+		_file="$1"
+		if [ ! -e "${_file}" ]; then
+			error 'file %s does not exist' "${_file}"
+			return 1
+		fi
+
+		_file_path=$(readlink -f "${_file}")
+		_file_path="${_file_path#${_pkgdir}}"
+
+		_pm_root=$(_canonicalise_path "${pacman_root%/}")
+		_pkgdir=$(_canonicalise_path "${pkgdir%/}")
+		_srcdir=$(_canonicalise_path "${srcdir%/}")
+	else
+		_file="$3"
+		_pm_root=$(_canonicalise_path "${1%/}")
+		_pkgdir=$(_canonicalise_path "${2%/}")
+
+		# we don't have srcdir, so just assume it's set...
+		if [ -z "${srcdir}" ]; then
+			error "missing \$srcdir variable"
+			return 1
+		fi
+		_srcdir=$(_canonicalise_path "${srcdir%/}")
+	fi
+
+	# skip broken symlinks (cos sometimes those exist in $pkgdir for final installation)
+	if [ -h "${_file}" ] && [ ! -e $(readlink -f "${_file}") ]; then
+		return
+	fi
+
+	if [ ! -e "${_file}" ]; then
+		error "file '%s' does not exist" "${_file}"
+		return 1
+	fi
+
+	_file_path=$(readlink -f "${_file}")
+	_file_path="${_file_path#${_pkgdir}}"
+
+	local _file_type
+	_file_type=$(file "${_file}")
+	case "${_file_type}" in
+        *"executable"* | *"shared library"* | *"bundle"*) ;;
+        *) 	return ;;
+	esac
+
+	# printf "file      = '%s'\n" ${_file}
+	# printf "file_path = '%s'\n" ${_file_path}
+
+	# check whether we need to change the id of the shared library
+	if [ "${_file##*.}" = "dylib" ] || [[ "${_file_type}" = *"shared library"* ]] || [[ "${_file_type}" = *"Mach-O"*"bundle"* ]]; then
+		local _dylib_id
+		_dylib_id=$(otool -D "${_file}" | awk 'NR==2')
+
+		# the id of the dylib should be '/opt/pacman/${_file_path}'
+		if [ "${_dylib_id}" != "${_file_path}" ]; then
+			msg2 "fixing install_id of dylib '%s'" ${_file_path}
+			install_name_tool -id "${_file_path}" "${_file}"
+		fi
+	fi
+
+	local _used_libs
+	IFS=$'\n' read -r -d '' -a _used_libs < <(otool -L "${_file}") || true
+
+	# yeet the first line (since it's the library itself)
+	_used_libs=("${_used_libs[@]:1}")
+
+	local _lib
+	for _lib in "${_used_libs[@]}"; do
+		_lib=$(echo "${_lib}" | awk '{$1=$1};1')
+
+		local _lib_name _fixed _t1
+		_lib_name=$(basename $(echo "${_lib}" | awk '{print $1}'))
+
+		_change_target=$(echo "${_lib}" | awk '{print $1}')
+
+		# canonicalise it as well, so we get sane comparisons
+		case "${_lib}" in
+			"@rpath"*) ;;
+			"/"*) _lib=$(_canonicalise_path $(dirname $(echo "${_lib}" | awk '{print $1}')))/"${_lib_name}" ;;
+		esac
+
+		case "${_lib}" in
+			# rpath -- fix this.
+			"@rpath"*"${_lib_name}"*)
+				local _rpath _tmpmsg _rpath_list
+				IFS=$'\n' read -r -d '' -a _rpath_list < <(_get_all_rpath_cmds "${_file}") || true
+
+				_fixed="${_change_target#'@rpath/'}"
+
+				_rpath=""
+				_tmpmsg=""
+				local _rp; for _rp in "${_rpath_list[@]}"; do
+					# if it's in the srcdir, then ignore it
+					case "${_rp}" in
+						"${_srcdir}"*) continue ;;
+						*) ;;
+					esac
+
+					# if it exists in the real root, or exists in the pkgdir that will be installed
+					if [ -e "${_rp}/${_fixed}" ] || [ -e "${_pkgdir}/${_rp}/${_fixed}" ]; then
+						# this one exists; use it.
+						_rpath="${_rp}"
+						break
+					fi
+				done
+
+				if [ -z "${_rpath}" ]; then
+					# a multi-step affair. first, check whether the library exists under /usr/lib/.
+					# if so, then we can just use that as the rpath.
+
+					# otherwise, check if it exists *next to* the current file we're looking at.
+					# for example, if we are fixing /usr/lib/foo/bar/libasdf.dylib, check whether /usr/lib/foo/bar/libkekw.dylib
+					# exists; if so, use that.
+
+					# as a last resort, just fallback to /usr/lib anyway.
+					# TODO LMAO
+
+					_tmpmsg=" (could not resolve; using defaults)"
+					_rpath="${_pm_root}/usr/lib/"
+				fi
+				msg2 "fixing '%s' in %s%s" "${_change_target}" "${_file_path#${_pkgdir}/}" "${_tmpmsg}"
+
+				_rpath=${_rpath#"${_pkgdir}/"}
+
+				local _dir _base
+				_dir=$(_canonicalise_path $(dirname "/${_rpath}/${_fixed}"))
+				_base=$(basename "/${_rpath}/${_fixed}")
+
+				_fixed="${_dir}/${_base}"
+				install_name_tool -change "${_change_target}" $(echo "${_fixed}" | tr -s '/') "${_file}"
+				;;
+
+			# absolute path that contains pkgdir -- definitely fix
+			"${_pkgdir}"*)
+				msg2 "fixing reference to \$pkgdir '%s' in %s" "${_change_target}" "${_file_path#${_pkgdir}/}"
+
+				_fixed="${_change_target#${_pkgdir}}"
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
+				;;
+
+			# same, but contains srcdir
+			"${_srcdir}"*)
+				msg2 "fixing reference to \$srcdir '%s' in %s" "${_change_target}" "${_file_path#${_pkgdir}/}"
+
+				# idk where this is supposed to go -- just assume it lives in ${_pm_root}/usr/lib
+				warning "using default prefix of ${_pm_root}/usr/lib/"
+
+				_fixed="${_pm_root}/usr/lib/${_lib_name}"
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
+				;;
+
+
+			# absolute path that starts at root and is sane -- do nothing
+			"${_pm_root}/usr/lib"* | "/System/Library/"* | "/Library/"* | "/usr/lib/"*)
+				;;
+
+			# other absolute path -- warn, but don't do anything
+			"/"*)
+				warning "object '%s' contains reference to strange absolute path '%s'" \
+					"${_file}" "${_lib}"
+				;;
+
+			# relative path -- fix.
+			*)
+				# just prepend $pacman_root/usr/lib to it.
+				msg2 "fixing relative path '%s' in %s" "${_change_target}" "${_file_path#${_pkgdir}/}"
+
+				_fixed="${_pm_root}/usr/lib/${_change_target}"
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
+				;;
+		esac
+	done
+}

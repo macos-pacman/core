@@ -1,0 +1,10 @@
+--- a/scripts/libmakepkg/util/meson.build
++++ b/scripts/libmakepkg/util/meson.build
+@@ -12,6 +12,7 @@
+   'pkgbuild.sh.in',
+   'schema.sh.in',
+   'source.sh.in',
++  'fix_rpath.sh.in',
+   'util.sh.in',
+ ]
+ 

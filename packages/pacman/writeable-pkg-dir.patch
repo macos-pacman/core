@@ -1,0 +1,12 @@
+diff --git a/scripts/makepkg.sh.in b/scripts/makepkg.sh.in
+index fe1a0ed8..dd51aec6 100644
+--- a/scripts/makepkg.sh.in
++++ b/scripts/makepkg.sh.in
+@@ -1459,6 +1459,6 @@
+ 	fi
+ 	mkdir -p "$pkgdirbase"
+-	chmod a-srw "$pkgdirbase"
++	chmod a-s "$pkgdirbase"
+ 	cd_safe "$startdir"
+
+ 	prepare_buildenv

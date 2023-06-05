@@ -1,0 +1,36 @@
+diff --git a/scripts/libmakepkg/tidy/purge.sh.in b/scripts/libmakepkg/tidy/purge.sh.in
+--- a/scripts/libmakepkg/tidy/purge.sh.in
++++ b/scripts/libmakepkg/tidy/purge.sh.in
+@@ -35,11 +35,27 @@
+ 		msg2 "$(gettext "Purging unwanted files...")"
+ 		local pt
+ 		for pt in "${PURGE_TARGETS[@]}"; do
+-			if [[ ${pt} = "${pt//\/}" ]]; then
+-				find . ! -type d -name "${pt}" -exec rm -f -- '{}' +
+-			else
+-				rm -f ${pt}
+-			fi
++			case ${pt} in
++				/* | ~/* | ~*)
++					echo "refusing to purge absolute path ${pt}"
++					;;
++				*)
++					if [[ -d ${pt} ]]; then
++						local ff
++						for ff in $(find ${pt} -type f); do
++							plain "${YELLOW}-${ALL_OFF}${BOLD} "$(echo "${ff}" | tr -s '/')
++							rm ${ff}
++						done
++						plain "${YELLOW}-${ALL_OFF}${BOLD} directory ${pt}"
++						rm -r ${pt}
++					else
++						if [[ ${pt} = "${pt//\/}" ]]; then
++							find . ! -type d -name "${pt}" -exec rm -f -- '{}' +
++						else
++							rm -f ${pt}
++						fi
++					fi ;;
++			esac
+ 		done
+ 	fi
+ }

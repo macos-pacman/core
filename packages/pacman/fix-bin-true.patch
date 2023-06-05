@@ -1,0 +1,11 @@
+--- a/doc/meson.build	2023-05-14 00:13:45.337016481 +0800
++++ b/doc/meson.build	2023-05-14 00:13:52.369577847 +0800
+@@ -100,7 +100,7 @@
+ endforeach
+ 
+ run_target('html',
+-           command : ['/bin/true'],
++           command : ['/usr/bin/true'],
+            depends : html_targets)
+ 
+ custom_target(

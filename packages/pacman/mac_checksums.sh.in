@@ -1,0 +1,18 @@
+#!/bin/bash
+
+[[ -n "$LIBMAKEPKG_UTIL_MAC_CHECKSUM_SH" ]] && return
+LIBMAKEPKG_UTIL_MAC_CHECKSUM_SH=1
+
+LIBRARY=${LIBRARY:-'@libmakepkgdir@'}
+function md5sum() {
+  md5 -r $1
+}
+function sha1sum() {
+  shasum -a 1 $1
+}
+function sha256sum() {
+  shasum -a 256 $1
+}
+function sha512sum() {
+  shasum -a 512 $1
+}

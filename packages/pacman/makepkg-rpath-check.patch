@@ -1,0 +1,10 @@
+--- a/scripts/libmakepkg/lint_package/meson.build2	2023-05-01 21:30:05.590787363 +0800
++++ b/scripts/libmakepkg/lint_package/meson.build	2023-05-01 21:41:08.226706994 +0800
+@@ -5,6 +5,7 @@
+   'dotfiles.sh.in',
+   'file_names.sh.in',
+   'missing_backup.sh.in',
++  'check_rpath.sh.in',
+ ]
+ 
+ foreach src : sources

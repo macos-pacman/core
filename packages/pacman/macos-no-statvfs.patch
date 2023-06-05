@@ -1,0 +1,21 @@
+diff --git a/meson.build b/meson.build
+index 76b9d2aa..e85908ea 100644
+--- a/meson.build
++++ b/meson.build
+@@ -125,7 +125,6 @@ foreach header : [
+     'sys/mnttab.h',
+     'sys/mount.h',
+     'sys/param.h',
+-    'sys/statvfs.h',
+     'sys/types.h',
+     'sys/ucred.h',
+     'termios.h',
+@@ -152,7 +151,6 @@ endforeach
+ 
+ foreach member : [
+     ['struct stat', 'st_blksize', '''#include <sys/stat.h>'''],
+-    ['struct statvfs', 'f_flag', '''#include <sys/statvfs.h>'''],
+     ['struct statfs', 'f_flags', '''#include <sys/param.h>
+                                     #include <sys/mount.h>'''],
+   ]
+

@@ -1,0 +1,13 @@
+diff --git a/lib/libalpm/util.c b/lib/libalpm/util.c
+index abdc17a..299d287 100644
+--- a/lib/libalpm/util.c
++++ b/lib/libalpm/util.c
+@@ -663,7 +663,7 @@ int _alpm_run_chroot(alpm_handle_t *handle, const char *cmd, char *const argv[],
+ 		_alpm_reset_signals();
+ 		execv(cmd, argv);
+ 		/* execv only returns if there was an error */
+-		fprintf(stderr, _("call to execv failed (%s)\n"), strerror(errno));
++		fprintf(stderr, _("call to execv '%s' failed (%s)\n"), cmd, strerror(errno));
+ 		exit(1);
+ 	} else {
+ 		/* this code runs for the parent only (wait on the child) */

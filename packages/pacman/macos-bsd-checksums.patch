@@ -1,0 +1,32 @@
+--- a/scripts/libmakepkg/util/meson.build
++++ b/scripts/libmakepkg/util/meson.build
+@@ -5,6 +5,7 @@ sources = [
+   'config.sh.in',
+   'dirsize.sh.in',
+   'error.sh.in',
++  'mac_checksums.sh.in',
+   'message.sh.in',
+   'option.sh.in',
+   'parseopts.sh.in',
+diff --git a/scripts/libmakepkg/integrity/verify_checksum.sh.in b/scripts/libmakepkg/integrity/verify_checksum.sh.in
+index 22b82d0b..92bee01e 100644
+--- a/scripts/libmakepkg/integrity/verify_checksum.sh.in
++++ b/scripts/libmakepkg/integrity/verify_checksum.sh.in
+@@ -26,6 +26,7 @@ LIBRARY=${LIBRARY:-'@libmakepkgdir@'}
+ source "$LIBRARY/util/message.sh"
+ source "$LIBRARY/util/pkgbuild.sh"
+ source "$LIBRARY/util/schema.sh"
++source "$LIBRARY/util/mac_checksums.sh"
+ 
+ check_checksums() {
+ 	local integ a
+--- a/scripts/libmakepkg/executable/checksum.sh.in
++++ b/scripts/libmakepkg/executable/checksum.sh.in
+@@ -24,6 +24,7 @@ LIBMAKEPKG_EXECUTABLE_CHECKSUM_SH=1
+ LIBRARY=${LIBRARY:-'@libmakepkgdir@'}
+ 
+ source "$LIBRARY/util/message.sh"
++source "$LIBRARY/util/mac_checksums.sh"
+ 
+ executable_functions+=('executable_checksum')
+ 
