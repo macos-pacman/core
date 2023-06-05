@@ -1,0 +1,31 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+pkgname=sdl2_mixer
+pkgver=2.6.3
+pkgrel=1
+pkgdesc="A simple multi-channel audio mixer (Version 2)"
+arch=('x86_64' 'arm64')
+url="https://github.com/libsdl-org/SDL_mixer"
+license=('MIT')
+depends=('sdl2' 'libvorbis' 'libmodplug' 'mpg123' 'flac' 'opusfile' 'fluidsynth')
+makedepends=('autoconf' 'automake')
+source=("https://github.com/libsdl-org/SDL_mixer/releases/download/release-${pkgver}/SDL2_mixer-${pkgver}.tar.gz"{,.sig})
+sha512sums=('2e9da045d2fdab97236c3901b3d441834a67a47c8851ddfb817c9db6f23ed9fb355a5ef8d2158d0c9959a83934e8cd1b95db8a69eaddf8f7fcca115f01818740'
+            'SKIP')
+validpgpkeys=('1528635D8053A57F77D1E08630A59377A7763BE6')
+
+build() {
+  cd "${srcdir}/SDL2_mixer-${pkgver}/"
+
+  # Fix https://bugs.archlinux.org/task/38428
+  sed -i "s|/etc/timidity.cfg|/etc/timidity/timidity.cfg|g" src/codecs/music_timidity.c
+
+  ./configure --disable-static --prefix=${pacman_root}/usr
+  make
+}
+
+package() {
+  cd "${srcdir}/SDL2_mixer-${pkgver}/"
+
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 LICENSE.txt "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+}
