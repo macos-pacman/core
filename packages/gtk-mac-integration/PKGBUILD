@@ -1,0 +1,41 @@
+# asdf
+
+pkgname=gtk-mac-integration
+pkgver=3.0.1
+pkgrel=1
+
+pkgdesc="Integrates GTK macOS applications with the Mac desktop"
+url="https://wiki.gnome.org/Projects/GTK+/OSX/Integration"
+arch=('x86_64' 'arm64')
+license=('LGPL2.1')
+
+makedepends=('autoconf' 'automake' 'gtk-doc' 'libtool' 'pkg-config' 'gobject-introspection')
+depends=('gettext' 'gtk3')
+
+source=("https://download.gnome.org/sources/gtk-mac-integration/3.0/gtk-mac-integration-${pkgver}.tar.xz"
+        'configure.patch')
+
+sha256sums=('f19e35bc4534963127bbe629b9b3ccb9677ef012fc7f8e97fd5e890873ceb22d'
+            '35acd6aebc19843f1a2b3a63e880baceb0f5278ab1ace661e57a502d9d78c93c')
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../configure.patch
+}
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure --prefix=${pacman_root}/usr \
+    --without-gtk2 \
+    --with-gtk3 \
+    --enable-introspection=yes \
+    --enable-python=no
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+
+  install -D -m664 COPYING "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+}
