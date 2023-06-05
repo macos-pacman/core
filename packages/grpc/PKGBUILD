@@ -4,7 +4,7 @@
 
 pkgbase='grpc'
 pkgname=('grpc' 'python-grpcio' 'python-grpcio-tools' 'grpc-cli')
-pkgver=1.53.0
+pkgver=1.55.1
 _gtestver=0e402173c97aea7a00749e825b194bfede4f2e45
 pkgrel=3
 pkgdesc="High performance, open source, general RPC framework that puts mobile and HTTP/2 first."
@@ -16,7 +16,7 @@ makedepends=('re2' 're2c' 'protobuf' 'c-ares' 'openssl' 'cython'
 checkdepends=('python-six')
 source=("https://github.com/grpc/grpc/archive/v$pkgver/$pkgbase-$pkgver.tar.gz"
         "https://github.com/google/googletest/archive/$_gtestver/googletest-$_gtestver.tar.gz")
-sha256sums=('9717ffc52120861136e478155c2ff3a9c21740e2244de52fa966f376d7471adf'
+sha256sums=('9c3c0a0ad986ee4fc0a9b58fd71255010068df7d1437c425b525d68c30c85ac7'
             'c8de6c60e12ad014a28225c5247ee735861d85cf906df617f6a29954ca05f547')
 
 prepare() {
@@ -35,7 +35,7 @@ prepare() {
 
   cmake -Bbuild-dir \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DNDEBUG" \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DNDEBUG -Wno-inconsistent-missing-override" \
     -DgRPC_INSTALL=ON \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_CXX_STANDARD=17 \
@@ -93,15 +93,22 @@ build() {
   )
 
   cd "$srcdir/$pkgbase-$pkgver"
-  GRPC_PYTHON_CFLAGS="-fvisibility=hidden -fno-wrapv -fno-exceptions $(pkg-config --cflags protobuf ${_absl_libs[*]}) -std=c++17" \
-  GRPC_PYTHON_LDFLAGS="$(pkg-config --libs protobuf) -lprotoc $(pkg-config --libs ${_absl_libs[*]})" \
+  GRPC_PYTHON_CFLAGS="-std=c++17 -fvisibility=hidden -fno-wrapv -fno-exceptions $(pkg-config --cflags protobuf ${_absl_libs[*]})" \
+  GRPC_PYTHON_LDFLAGS="-std=c++17 $(pkg-config --libs protobuf) -lprotoc $(pkg-config --libs ${_absl_libs[*]})" \
     python setup.py build
 
   # grpcio-tools
-  cd tools/distrib/python/grpcio_tools
-  GRPC_PYTHON_CFLAGS="-fno-wrapv -frtti $(pkg-config --cflags protobuf ${_absl_libs[*]})" \
-  GRPC_PYTHON_LDFLAGS="$(pkg-config --libs protobuf) -lprotoc $(pkg-config --libs ${_absl_libs[*]})" \
-    python setup.py build
+  cd tools/distrib/python
+  GRPC_PYTHON_CFLAGS="-std=c++17 -fno-wrapv -frtti $(pkg-config --cflags protobuf ${_absl_libs[*]})" \
+  GRPC_PYTHON_LDFLAGS="-std=c++17 $(pkg-config --libs protobuf) -lprotoc $(pkg-config --libs ${_absl_libs[*]})" \
+    python make_grpcio_tools.py
+
+  # use system protobuf
+  sed -r -i \
+      -e 's/^(CC_FILES=\[).*(\])/\1\2/' \
+      -e "s@^((CC|PROTO)_INCLUDE=')[^']+'@\1${pacman_root}/usr/include'@" \
+      -e '/^PROTOBUF_SUBMODULE_VERSION=/d' \
+      grpcio_tools/protoc_lib_deps.py
 }
 
 check() {
@@ -163,6 +170,6 @@ package_grpc-cli() {
   install -Dm0755 build-dir/grpc_cli "$pkgdir/${pacman_root}/usr/bin/grpc_cli"
   install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
 
-  fix_rpath ${pkgdir}/${pacman_root}/usr/lib/libgrpc++_test_config.1.53.0.dylib
+  fix_rpath ${pkgdir}/${pacman_root}/usr/lib/libgrpc++_test_config.1.55.1.dylib
   fix_rpath ${pkgdir}/${pacman_root}/usr/bin/grpc_cli
 }
