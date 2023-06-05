@@ -1,0 +1,49 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Contributor: Baptiste Daroussin <baptiste.daroussin@gmail.com>
+# Contributor: Grigorios Bouzakis <grbzks[at]gmail[dot]com>
+# Contributor: mightyjaym <jm.ambrosino@free.fr>
+
+pkgname=giflib
+pkgver=5.2.1
+pkgrel=2
+pkgdesc='Library for reading and writing gif images'
+url='http://giflib.sourceforge.net/'
+arch=('x86_64' 'arm64')
+license=('MIT')
+depends=('glibc')
+checkdepends=('python')
+provides=('libgif.dylib')
+source=(https://downloads.sourceforge.net/project/giflib/${pkgname}-${pkgver}.tar.gz
+        giflib-5.1.9-fix-missing-quantize-API-symbols.patch
+        macos-makefile.patch)
+sha512sums=('4550e53c21cb1191a4581e363fc9d0610da53f7898ca8320f0d3ef6711e76bdda2609c2df15dc94c45e28bff8de441f1227ec2da7ea827cb3c0405af4faa4736'
+            '5de1e8724f5221fa3637b4e6a482f650f7608673e2c9200233290018ec8a0bf1beea049b3979b5f57dbf2b2a5fda409324e636e9af10582fd01c71d92d4de3b3'
+            '2edf9c320f6c4cd982edb5399ded933d97b36e5db52527b7ea198aa7acc6589a76642fa36478686422a9a541eeb74eef867b7f11c897556bd462124dd103e46d')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  patch -Np1 < ../macos-makefile.patch
+  patch -Np1 < ../giflib-5.1.9-fix-missing-quantize-API-symbols.patch
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  make
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  make check -j1
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make PREFIX=${pacman_root}/usr DESTDIR="${pkgdir}" install
+  install -Dm 644 COPYING -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+
+  # fix install name
+  install_name_tool -id "${pacman_root}/usr/lib/libgif.dylib" "${pkgdir}/${pacman_root}/usr/lib/libgif.7.2.0.dylib"
+}
+
+# vim: ts=2 sw=2 et:
