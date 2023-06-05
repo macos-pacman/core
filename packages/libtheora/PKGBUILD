@@ -1,0 +1,44 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+# Contributor: Tom Killian <tom@archlinux.org>
+# Committer: dorphell <dorphell@archlinux.org>
+
+pkgname=libtheora
+pkgver=1.1.1
+pkgrel=6
+pkgdesc='Standard encoder and decoder library for the Theora video compression format'
+arch=('x86_64' 'arm64')
+url='https://www.theora.org/'
+license=('BSD')
+depends=('glibc' 'libogg')
+makedepends=('libpng' 'libvorbis')
+source=("https://downloads.xiph.org/releases/theora/$pkgname-$pkgver.tar.xz"
+        'libtheora-1.1.1-libpng16.patch'
+        'https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-pre-0.4.2.418-big_sur.diff')
+sha256sums=('f36da409947aa2b3dcc6af0a8c2e3144bc19db2ed547d64e9171c59c66561c61'
+            'e4c9a8dc798c596ed32a2a720020ae27a0e72f5add1a47cb8fadebe0e7180d7e'
+            '83af02f2aa2b746bb7225872cab29a253264be49db0ecebb12f841562d9a2923')
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np0 -i ../libtheora-1.1.1-libpng16.patch
+  patch -Np1 -i ../configure-pre-0.4.2.418-big_sur.diff
+}
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure --prefix=${pacman_root}/usr \
+    --disable-examples \
+    --disable-sdltest
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+  make check
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+  install -Dm644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/" LICENSE COPYING
+}
