@@ -1,0 +1,60 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Anatol Pomozov <anatol.pomozov@gmail.com>
+# Contributor: Allan McRae <allan@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=gdb
+pkgver=13.1
+pkgrel=3
+pkgdesc='The GNU Debugger'
+arch=('x86_64')   # no arm support
+url='https://www.gnu.org/software/gdb/'
+license=(GPL3)
+depends=(glibc ncurses libncursesw.dylib gcc-libs expat xz mpfr
+         readline libreadline.dylib guile python libelf python guile)
+makedepends=(glibc gcc-libs python ncurses expat xz mpfr readline libelf zlib texinfo guile)
+source=(https://ftp.gnu.org/gnu/gdb/${pkgname}-${pkgver}.tar.xz{,.sig}
+        'entitlements.plist')
+b2sums=('ab3a77ef35d21597dd1299787eebc422c3ca9764d0866223752c3036c0f9e198bf25ab4730bf6e7025bc2db148c66e98b191e15abc2d69c3088aed146728beef'
+        'SKIP'
+        '54194b732ef206a708fb20b2b26adbac939f75c2177cd87bb141c599132111f3bfe3cff37bdccb9930e29767971cfe762438e853ca8940d562c5932e7147e5c1')
+validpgpkeys=('F40ADB902B24264AA42E50BF92EDB04BFF325CF3') # Joel Brobecker
+
+build() {
+  cd gdb-$pkgver
+
+  mkdir -p build && cd build
+  ../configure \
+    --prefix=${pacman_root}/usr \
+    --disable-nls \
+    --disable-binutils \
+    --enable-tui \
+    --enable-lzma \
+    --with-system-readline \
+    --with-system-zlib \
+    --enable-targets=all \
+    --with-python=${pacman_root}/usr/bin/python \
+    --with-system-gdbinit=${pacman_root}/etc/gdb/gdbinit
+  make
+}
+
+package() {
+  backup=(${pacman_root#/}/etc/gdb/gdbinit)
+
+  cd gdb-$pkgver/build
+  make DESTDIR="$pkgdir" install-gdb
+
+  # no gdbserver on macos
+  # make -C gdbserver DESTDIR="$pkgdir" install
+
+  # install "custom" system gdbinit
+  install -dm 755 "$pkgdir/${pacman_root}/etc/gdb"
+  touch "$pkgdir/${pacman_root}/etc/gdb/gdbinit"
+
+  # codesign this guy so it can debug
+  codesign --force -s - --entitlements $srcdir/entitlements.plist \
+    ${pkgdir}/${pacman_root}/usr/bin/gdb
+}
+
+# vim: ts=2 sw=2 et:
+
