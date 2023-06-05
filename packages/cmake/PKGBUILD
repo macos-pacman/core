@@ -1,0 +1,54 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+# Contributor: Pierre Schmitz <pierre@archlinux.de>
+
+pkgname=cmake
+pkgver=3.26.4
+pkgrel=1
+pkgdesc='A cross-platform open-source make system'
+arch=('x86_64' 'arm64')
+url="https://www.cmake.org/"
+license=('custom')
+depends=('curl' 'libarchive' 'jsoncpp' 'libjsoncpp.dylib' 'libuv' 'rhash')
+makedepends=('python-sphinx')
+optdepends=('qt6-base: cmake-gui')
+source=("https://www.cmake.org/files/v${pkgver%.*}/${pkgname}-${pkgver}.tar.gz"
+        "toolchain.patch"
+        "default.cmake")
+sha512sums=('fe817c8d5e247db3f0a9a58ee37c466a47220100d9e90711cd5d06c223cef87e41d1a756e75d1537e5f8cd010dcb8971cbeab4684b1ac12bcecf84bf7b720167'
+            'd34e4c271c7ce55dddb87cfc6ca918d2b970253ace26584b1942933d3adc0ccb4092792aca6c8d59b33bb9111df169715bb91fe3ed1b802b7589c9ce95a66bb5'
+            '1fad2c8a897c7012dc6ca133b20809729a707d307753337b1e9fcc347d17e5245c48f1c9603e15fb8f81d2c6fbfa67a8102f274b64dffdd119f360933789581a')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  patch -Np1 -i ../toolchain.patch
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  ./bootstrap --prefix=${pacman_root}/usr \
+    --mandir=/share/man \
+    --docdir=/share/doc/cmake \
+    --datadir=/share/cmake \
+    --system-libs \
+    --sphinx-man \
+    --sphinx-html \
+    --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN) \
+    -- \
+    -DCMAKE_BUILD_TYPE:STRING=Release \
+    -DCMAKE_TOOLCHAIN_FILE="" \
+    -DCMAKE_RANLIB="/usr/bin/ranlib" \
+    -DCMAKE_AR="/usr/bin/ar"
+
+  make
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+
+  rm -r "$pkgdir"/${pacman_root}/usr/share/doc/cmake/html/_sources
+
+  install -Dm644 Copyright.txt "${pkgdir}/${pacman_root}"/usr/share/licenses/${pkgname}/LICENSE
+  install -Dm644 ../default.cmake "${pkgdir}/${pacman_root}/usr/share/cmake/"
+}

@@ -1,0 +1,16 @@
+diff --git a/Source/cmake.cxx b/Source/cmake.cxx
+index 013a87b..c0cb06b 100644
+--- a/Source/cmake.cxx
++++ b/Source/cmake.cxx
+@@ -2230,6 +2230,11 @@ int cmake::ActualConfigure()
+         this->AddCacheEntry("CMAKE_TOOLCHAIN_FILE", envToolchain,
+                             "The CMake toolchain file",
+                             cmStateEnums::FILEPATH);
++      } else {
++        this->AddCacheEntry("CMAKE_TOOLCHAIN_FILE",
++                            "/opt/pacman/usr/share/cmake/default.cmake",
++                            "The CMake toolchain file",
++                            cmStateEnums::FILEPATH);
+       }
+     }
+   }
