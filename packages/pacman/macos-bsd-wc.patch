@@ -18,3 +18,14 @@
 -	} | wc -c
 +	} | wc -c | xargs
  }
+--- a/scripts/repo-add.sh.in	2023-06-07 00:23:10.121369631 +0800
++++ b/scripts/repo-add.sh.in	2023-06-06 23:57:38.052796402 +0800
+@@ -271,7 +271,7 @@
+ 			return 1
+ 		fi
+ 		msg2 "$(gettext "Adding package signature...")"
+-		pgpsig=$(base64 "$pkgfile.sig" | tr -d '\n')
++		pgpsig=$(base64 -i "$pkgfile.sig" | tr -d '\n')
+ 	fi
+ 
+ 	csize=$(wc -c < "$pkgfile" | xargs)
