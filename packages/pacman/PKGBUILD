@@ -4,7 +4,7 @@
 
 pkgname=pacman
 pkgver=6.0.2
-pkgrel=9
+pkgrel=10
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64' 'arm64')
 url="https://www.archlinux.org/pacman/"
@@ -57,7 +57,7 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             '2f13fe60de9368008e8bed6df0a238e5fff3c8ecb3dadf91e1b168b5ddc755fb'  # writeable-pkg-dir.patch
             '7478cb6c7b22bf9f3cb3224c1ff9571c96a956660409b5e3e96be36d6afff467'  # show-exec-error.patch
             '626376190b48667128cc667e78f20d713c5a708a7dcb711a3ed272ec89aabbd4'  # no-fakeroot.patch
-            'd3672334b1ff710bad738f23f5b954268d0ede6354be8f8eacdf68d88706f423'  # macos-bsd-wc.patch
+            'a2bab3fe5991bc66ead1aad0362a320ab36bec58d1b26d794f39a3c71963dfc4'  # macos-bsd-wc.patch
             '595a61c76ec4fd3eaada632d9c35fcf9a6f8450f186eebedec351b958a4f56a4'  # macos-bsd-checksums.patch
             '4f48a60e2035fcdc07032ef7fed1833cf58783bd013d0f8d9d9d7da0bcd82564'  # makepkg-rpath-fixer.patch
             '6b66c29a0a15689952e7ebb79df7b2a39123d9de6d51f150dc4cc48e739814c9'  # makepkg-rpath-check.patch
