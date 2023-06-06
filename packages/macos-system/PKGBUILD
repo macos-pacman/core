@@ -1,6 +1,6 @@
 pkgname=(macos-system macos-accelerate-blas-lapack)
 pkgver=13.3
-pkgrel=15
+pkgrel=16
 pkgdesc='builtin macos packages'
 arch=('x86_64' 'arm64')
 license=(MIT)
@@ -99,10 +99,11 @@ package_macos-system() {
 	ln -sf iconv.pc libiconv.pc
 
 	cd ${pkgdir}/${pacman_root}/usr/bin
+	echo -e '#!/bin/sh\nmd5 -r "$@"' > md5sum
 	echo -e '#!/bin/sh\nshasum -a 256 "$@"' > sha256sum
 	echo -e '#!/bin/sh\nshasum -a 512 "$@"' > sha512sum
 
-	chmod 755 sha{256,512}sum
+	chmod 755 sha{256,512}sum md5sum
 }
 
 
