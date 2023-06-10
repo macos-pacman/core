@@ -1,0 +1,256 @@
+--- a/lib/libalpm/dload.c	2023-06-10 22:21:54.659480923 +0800
++++ b/lib/libalpm/dload.c	2023-06-11 03:18:44.174720887 +0800
+@@ -140,6 +140,71 @@ static const char *get_filename(const ch
+ 	return url;
+ }
+ 
++static int prepare_download_url(alpm_handle_t* handle, char** ret_fileurl,
++	const char* server, struct dload_payload* payload)
++{
++	/*
++		handle 'oci' protocol, which is a hacky way to say "please use https to
++		download the database, but OCI+digests to download packages"
++	*/
++	if(strncmp(server, "oci://", 6) == 0) {
++		if(payload->oci_database && payload->oci_pkg_name && payload->oci_sha256) {
++			/* ok, now convert this a bit. */
++			size_t prefix_len = strlen("oci://github.com/");
++
++			if(strncmp(server, "oci://github.com/", prefix_len) == 0) {
++				/* since it's github, we know the org is just after the github.com */
++				const char* org_start = &server[prefix_len];
++				const char* org_end = strchr(org_start + 1, '/');
++				ASSERT(org_end, RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1));
++
++				size_t remote_org_len = org_end - org_start;
++
++				size_t len = strlen("https://ghcr.io/v2/")
++							+ remote_org_len + 1
++							+ strlen(payload->oci_database) + 1
++							+ strlen(payload->oci_pkg_name) + 1
++							+ strlen("/blobs/sha256:") + 64;
++
++				char* download_url;
++				MALLOC(download_url, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
++
++				snprintf(download_url, len, "https://ghcr.io/v2/%.*s/%s/%s/blobs/sha256:%s",
++					(int) remote_org_len, org_start,
++					payload->oci_database,
++					payload->oci_pkg_name,
++					payload->oci_sha256
++				);
++
++				*ret_fileurl = download_url;
++			} else {
++				RET_ERR(handle, ALPM_ERR_SERVER_BAD_URL, -1);
++			}
++		} else {
++			goto convert_https;
++		}
++	} else {
++	convert_https:
++		;
++
++		char* fileurl;
++		size_t len = strlen(server) + strlen(payload->filepath) + 10;
++
++		MALLOC(fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
++
++		if(strncmp(server, "oci://", 6) == 0) {
++			/* skip the 'oci://' part (6 chars) */
++			snprintf(fileurl, len, "https://%s/%s", &server[6], payload->filepath);
++		} else {
++			snprintf(fileurl, len, "%s/%s", server, payload->filepath);
++		}
++
++		*ret_fileurl = fileurl;
++	}
++
++	return 0;
++}
++
+ static char *get_fullpath(const char *path, const char *filename,
+ 		const char *suffix)
+ {
+@@ -342,6 +407,9 @@ static void curl_set_handle_opts(CURL *c
+ 	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+ 	curl_easy_setopt(curl, CURLOPT_PRIVATE, (void *)payload);
+ 
++	/* note: hardcoded here -- this unfortunately means your repo must be public */
++	curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, "QQ==");
++
+ 	_alpm_log(handle, ALPM_LOG_DEBUG, "%s: url is %s\n",
+ 		payload->remote_name, payload->fileurl);
+ 
+@@ -410,7 +478,6 @@ static FILE *create_tempfile(struct dloa
+ static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload *payload)
+ {
+ 	const char *server;
+-	size_t len;
+ 	struct stat st;
+ 	alpm_handle_t *handle = payload->handle;
+ 
+@@ -427,10 +494,10 @@ static int curl_retry_next_server(CURLM
+ 
+ 	/* regenerate a new fileurl */
+ 	FREE(payload->fileurl);
+-	len = strlen(server) + strlen(payload->filepath) + 2;
+-	MALLOC(payload->fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+-	snprintf(payload->fileurl, len, "%s/%s", server, payload->filepath);
+ 
++	if(prepare_download_url(handle, &payload->fileurl, server, payload) != 0) {
++		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
++	}
+ 
+ 	fflush(payload->localf);
+ 
+@@ -614,7 +681,17 @@ static int curl_check_finished_download(
+ 	}
+ 
+ 	/* Let's check if client requested downloading accompanion *.sig file */
+-	if(!payload->signature && payload->download_signature && curlerr == CURLE_OK && payload->respcode < 400) {
++	/*
++		note: don't download sigs for OCI images, because
++		1. we don't know how to retrieve them
++		2. just embed the sig in the database, dammit
++	*/
++	if(!payload->signature &&
++		payload->download_signature &&
++		payload->oci_sha256 == NULL &&
++		curlerr == CURLE_OK &&
++		payload->respcode < 400)
++	{
+ 		struct dload_payload *sig = NULL;
+ 		char *url = payload->fileurl;
+ 		char *_effective_filename;
+@@ -753,7 +830,6 @@ cleanup:
+ static int curl_add_payload(alpm_handle_t *handle, CURLM *curlm,
+ 		struct dload_payload *payload, const char *localpath)
+ {
+-	size_t len;
+ 	CURL *curl = NULL;
+ 	char hostname[HOSTNAME_SIZE];
+ 	int ret = -1;
+@@ -776,9 +852,9 @@ static int curl_add_payload(alpm_handle_
+ 		server = payload->servers->data;
+ 		payload->servers = payload->servers->next;
+ 
+-		len = strlen(server) + strlen(payload->filepath) + 2;
+-		MALLOC(payload->fileurl, len, GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+-		snprintf(payload->fileurl, len, "%s/%s", server, payload->filepath);
++		if(prepare_download_url(handle, &payload->fileurl, server, payload) != 0) {
++			GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup);
++		}
+ 	}
+ 
+ 	payload->tempfile_openmode = "wb";
+@@ -967,11 +1043,11 @@ int _alpm_download(alpm_handle_t *handle
+ 			} else {
+ 				for(s = payload->servers; s && ret == -1; s = s->next) {
+ 					const char *server = s->data;
+-					char *fileurl;
++					char* fileurl;
+ 
+-					size_t len = strlen(server) + strlen(payload->filepath) + 2;
+-					MALLOC(fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+-					snprintf(fileurl, len, "%s/%s", server, payload->filepath);
++					if((ret = prepare_download_url(handle, &fileurl, server, payload)) != 0) {
++						return ret;
++					}
+ 
+ 					ret = handle->fetchcb(handle->fetchcb_ctx, fileurl, localpath, payload->force);
+ 					free(fileurl);
+--- a/lib/libalpm/dload.h	2023-06-10 22:21:54.663200016 +0800
++++ b/lib/libalpm/dload.h	2023-06-11 02:11:29.497973433 +0800
+@@ -56,6 +56,11 @@ struct dload_payload {
+ 	FILE *localf; /* temp download file */
+ 	int signature; /* specifies if this payload is for a signature file */
+ #endif
++
++	/* new fields for supporting container-registry downloads */
++	char* oci_database;
++	char* oci_pkg_name;
++	char* oci_sha256;
+ };
+ 
+ void _alpm_dload_payload_reset(struct dload_payload *payload);
+--- a/lib/libalpm/sync.c	2023-06-10 22:21:54.672113496 +0800
++++ b/lib/libalpm/sync.c	2023-06-11 02:11:25.365792628 +0800
+@@ -763,6 +763,52 @@ static int find_dl_candidates(alpm_handl
+ 	return 0;
+ }
+ 
++
++static int prepare_download_payload(alpm_handle_t* handle, alpm_pkg_t* pkg, struct dload_payload** out_payload)
++{
++	struct dload_payload *payload = NULL;
++	int siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(pkg));
++
++	CALLOC(payload, 1, sizeof(*payload), return -1);
++	STRDUP(payload->remote_name, pkg->filename, FREE(payload); return -1);
++
++	STRDUP(payload->filepath, pkg->filename,
++		FREE(payload->remote_name); FREE(payload);
++		return -1);
++
++	payload->max_size = pkg->size;
++	payload->servers = pkg->origin_data.db->servers;
++	payload->handle = handle;
++	payload->allow_resume = 1;
++	payload->download_signature = (siglevel & ALPM_SIG_PACKAGE);
++	payload->signature_optional = (siglevel & ALPM_SIG_PACKAGE_OPTIONAL);
++
++	/* extract the repote repository */
++	STRDUP(payload->oci_database, pkg->origin_data.db->treename,
++		FREE(payload->filepath);
++		FREE(payload);
++		return -1;
++	);
++
++	STRDUP(payload->oci_pkg_name, pkg->name,
++		FREE(payload->oci_database);
++		FREE(payload->filepath);
++		FREE(payload);
++		return -1;
++	);
++
++	STRDUP(payload->oci_sha256, pkg->sha256sum,
++		FREE(payload->oci_database);
++		FREE(payload->oci_pkg_name);
++		FREE(payload->filepath);
++		FREE(payload);
++		return -1;
++	);
++
++	*out_payload = payload;
++	return 0;
++}
++
+ static int download_files(alpm_handle_t *handle)
+ {
+ 	const char *cachedir;
+@@ -814,21 +860,10 @@ static int download_files(alpm_handle_t
+ 
+ 		EVENT(handle, &event);
+ 		for(i = files; i; i = i->next) {
+-			alpm_pkg_t *pkg = i->data;
+-			int siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(pkg));
+ 			struct dload_payload *payload = NULL;
+-
+-			CALLOC(payload, 1, sizeof(*payload), GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
+-			STRDUP(payload->remote_name, pkg->filename, FREE(payload); GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
+-			STRDUP(payload->filepath, pkg->filename,
+-				FREE(payload->remote_name); FREE(payload);
+-				GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
+-			payload->max_size = pkg->size;
+-			payload->servers = pkg->origin_data.db->servers;
+-			payload->handle = handle;
+-			payload->allow_resume = 1;
+-			payload->download_signature = (siglevel & ALPM_SIG_PACKAGE);
+-			payload->signature_optional = (siglevel & ALPM_SIG_PACKAGE_OPTIONAL);
++			if((ret = prepare_download_payload(handle, i->data, &payload)) != 0) {
++				goto finish;
++			}
+ 
+ 			payloads = alpm_list_add(payloads, payload);
+ 		}
