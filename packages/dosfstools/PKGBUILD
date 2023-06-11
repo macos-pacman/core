@@ -1,0 +1,43 @@
+# Maintainer:
+# Committer: Judd Vinet <jvinet@zeroflux.org>
+
+pkgname=dosfstools
+pkgver=4.2
+pkgrel=3
+pkgdesc="DOS filesystem utilities"
+arch=('x86_64' 'arm64')
+depends=('glibc')
+source=(
+	https://github.com/$pkgname/$pkgname/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz{,.sig}
+	https://github.com/$pkgname/$pkgname/commit/8a917ed2afb2dd2a165a93812b6f52b9060eec5f.patch
+)
+url="https://github.com/dosfstools/dosfstools"
+license=('GPL3')
+validpgpkeys=('25714AECDBFDACEE1CE95FE77F6022516E869F64') # Andreas Bombe
+sha256sums=('64926eebf90092dca21b14259a5301b7b98e7b1943e8a201c7d726084809b527'
+            'SKIP'
+            'd62bfbc7b98320352d127ad596db4f3b46e9896a471f8f6e587efb4f006e2921')
+
+prepare() {
+	cd $pkgname-$pkgver
+	patch -Np1 -i ../8a917ed2afb2dd2a165a93812b6f52b9060eec5f.patch
+}
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --libexecdir=${pacman_root}/usr/lib \
+    --sbindir=${pacman_root}/usr/bin \
+    --mandir=${pacman_root}/usr/share/man \
+    --docdir=${pacman_root}/usr/share/doc/dosfstools \
+    --enable-compat-symlinks \
+    --without-udev
+
+   make
+}
+
+package () {
+   cd $pkgname-$pkgver
+   make DESTDIR="$pkgdir" install
+}
