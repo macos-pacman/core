@@ -3,7 +3,7 @@
 
 pkgname=bzip2
 pkgver=1.0.8
-pkgrel=6
+pkgrel=7
 pkgdesc="A high-quality data compression program"
 arch=('x86_64' 'arm64')
 license=('BSD')
@@ -59,8 +59,8 @@ package() {
 
   # symlinks are broken
   cd ${pkgdir}/${pacman_root}/usr/bin
-  ln -sf bzcmp bzdiff
-  ln -sf bzless bzmore
-  ln -sf bzegrep bzgrep
-  ln -sf bzfgrep bzgrep
+  ln -sf bzdiff bzcmp
+  ln -sf bzmore bzless
+  ln -sf bzgrep bzegrep
+  ln -sf bzgrep bzfgrep
 }
