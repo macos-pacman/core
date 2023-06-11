@@ -3,7 +3,7 @@
 
 pkgname=bzip2
 pkgver=1.0.8
-pkgrel=5
+pkgrel=6
 pkgdesc="A high-quality data compression program"
 arch=('x86_64' 'arm64')
 license=('BSD')
@@ -56,4 +56,11 @@ package() {
 #
   install -Dm644 bzip2.pc -t "$pkgdir"/${pacman_root}/usr/lib/pkgconfig
   install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE
+
+  # symlinks are broken
+  cd ${pkgdir}/${pacman_root}/usr/bin
+  ln -sf bzcmp bzdiff
+  ln -sf bzless bzmore
+  ln -sf bzegrep bzgrep
+  ln -sf bzfgrep bzgrep
 }
