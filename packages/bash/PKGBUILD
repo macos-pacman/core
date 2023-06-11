@@ -6,9 +6,9 @@
 
 pkgname=bash
 pkgver=5.2.15
-pkgrel=2
+pkgrel=3
 pkgdesc='The GNU Bourne Again shell'
-arch=(x86_64 arm64)
+arch=('x86_64' 'arm64')
 license=(GPL)
 url='https://www.gnu.org/software/bash/bash.html'
 backup=(${pacman_root#/}/etc/bash.bash{rc,_logout}
@@ -31,15 +31,13 @@ pacman_root=$(pacman-root-dir)
 build() {
   cd $pkgname-$pkgver
 
-  bash_args=(
-    '-DDEFAULT_PATH_VALUE=\"${pacman_root}/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin\"' \
-    '-DSTANDARD_UTILS_PATH=\"/usr/bin\"' \
-    '-DSYS_BASHRC=\"${pacman_root}/etc/bash.bashrc\"' \
-    '-DSYS_BASH_LOGOUT=\"${pacman_root}/etc/bash.bash_logout\"' \
-    '-DNON_INTERACTIVE_LOGIN_SHELLS'
-  )
+  _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"${pacman_root}/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin\"\'
+               -DSTANDARD_UTILS_PATH=\'\"/usr/bin\"\'
+               -DSYS_BASHRC=\'\"${pacman_root}/etc/bash.bashrc\"\'
+               -DSYS_BASH_LOGOUT=\'\"${pacman_root}/etc/bash.bash_logout\"\'
+               -DNON_INTERACTIVE_LOGIN_SHELLS)
 
-  export CFLAGS="${CFLAGS} ${bash_args[@]}"
+  export CFLAGS="${CFLAGS} ${_bashconfig[@]}"
 
   ./configure \
     --prefix=${pacman_root}/usr \

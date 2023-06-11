@@ -2,6 +2,9 @@
 # /etc/bash.bashrc
 #
 
+# this always goes into path
+export PATH="%%PACMAN_ROOT%%/usr/bin:$PATH"
+
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
