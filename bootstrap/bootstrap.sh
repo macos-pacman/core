@@ -22,6 +22,12 @@ ${_b}6.${_n} Initialise Pacman
    ${_b}b)${_n} Synchronise packages (via ${_g}pacman -Syu${_n})
 EOF
 
+read -p "Continue (y/n)? " choice
+case "$choice" in
+  y|Y*) ;;
+  *) msg "Cancelling!"; exit ;;
+esac
+
 # cd /tmp
 rm -f bootstrap.tar.xz
 msg "Downloading bootstrap archive"
