@@ -29,6 +29,15 @@ to most of their conventions (eg. split packages for `-docs`) where possible.
 If a package is out of date, feel free to open an issue or submit a PR to update the PKGBUILD.
 
 
+## Bootstrapping
+
+A bootstrap script is provided at `bootstrap/bootstrap.sh`. If [you are lazy](https://0x46.net/thoughts/2019/04/27/piping-curl-to-shell/), you can run the following:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/macos-pacman/core/master/bootstrap/bootstrap.sh | /bin/sh -
+```
+
+
 
 ## License
 
