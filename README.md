@@ -8,7 +8,7 @@ A collection of PKGBUILDs to build packages on macOS.
 The easiest way to use this repository is to build pacman using the provided patchset, and add the following
 section to your `pacman.conf` (already done in the installed config):
 
-```toml
+```
 [core]
 Server = oci://github.com/macos-pacman/$repo/releases/download/pkg-db-$arch/
 ```
