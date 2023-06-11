@@ -51,6 +51,7 @@ done
 
 rm .BUILDINFO
 rm .PKGINFO
+rm .INSTALL
 rm .MTREE
 tar --strip-components 1 --gid 0 --uid 0 -cf ../bootstrap.tar.xz .
 

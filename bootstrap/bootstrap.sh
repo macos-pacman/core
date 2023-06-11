@@ -20,7 +20,7 @@ sudo tar xpvf bootstrap.tar.xz -C /
 
 msg "Setting up \$PATH"
 if [ -e $HOME/.bash_profile ]; then
-	printf '\x1b[34;1m  -> Found existing `.bash_profile`, backing up to `.bash_profile.old`'
+	printf '\x1b[34;1m  ->\x1b[0m \x1b[1mFound existing `.bash_profile`, backing up to `.bash_profile.old`\x1b[0m\n'
 	mv $HOME/.bash_profile $HOME/.bash_profile.old
 fi
 
@@ -42,6 +42,7 @@ msg() {
 }
 
 msg "Initialising pacman key"
+export PATH="/opt/pacman/usr/bin/:$PATH"
 sudo pacman-key --init
 sudo pacman-key --populate
 
