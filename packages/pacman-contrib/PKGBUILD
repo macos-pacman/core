@@ -1,0 +1,45 @@
+# Maintainer: Johannes Löthberg <johannes@kyriasis.com>
+# Maintainer: Daniel M. Capella <polyzen@archlinux.org>
+
+pkgname=pacman-contrib
+pkgver=1.9.0
+pkgrel=1
+pkgdesc='Contributed scripts and tools for pacman systems'
+arch=('x86_64' 'arm64')
+url=https://gitlab.archlinux.org/pacman/pacman-contrib
+license=('GPL')
+depends=('fakeroot' 'pacman' 'perl')
+makedepends=('asciidoc' 'git')
+optdepends=('diffutils: for pacdiff'
+            'findutils: for pacdiff --find'
+            'sudo: privilege elevation for several scripts')
+source=("git+$url.git#tag=v$pkgver")
+b2sums=('SKIP')
+validpgpkeys=('04DC3FB1445FECA813C27EFAEA4F7B321A906AD9') # Daniel M. Capella <polyzen@archlinux.org>
+#             '5134EF9EAF65F95B6BB1608E50FB9B273A9D0BB5')  # Johannes Löthberg <johannes@kyriasis.com>
+
+prepare() {
+  cd $pkgname
+  ./autogen.sh
+}
+
+build() {
+  cd $pkgname
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --sysconfdir=${pacman_root}/etc \
+    --localstatedir=${pacman_root}/var
+  make
+}
+
+check() {
+  cd $pkgname
+  make check
+}
+
+package() {
+  cd $pkgname
+  make DESTDIR="$pkgdir" install
+}
+
+# vim:set ts=2 sw=2 et:
