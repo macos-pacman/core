@@ -1,0 +1,13 @@
+--- a/Makefile	2023-06-12 21:34:26.316327341 +0800
++++ b/Makefile	2023-06-12 21:34:37.543184644 +0800
+@@ -125,8 +125,8 @@
+   LDFLAGS+=-L/usr/local/lib
+   LDLIBS+=-luuid #-licuio
+ else ifeq ($(TARGET),macos)
+-  FATBINFLAGS=-arch x86_64 -arch arm64 -mmacosx-version-min=10.9
+-  THINBINFLAGS=-arch x86_64 -mmacosx-version-min=10.9
++  FATBINFLAGS=-mmacosx-version-min=10.9
++  THINBINFLAGS=-mmacosx-version-min=10.9
+   CXXFLAGS=$(FATBINFLAGS) -O2 -Wall -D_FILE_OFFSET_BITS=64 -stdlib=libc++ -I/opt/local/include -I /usr/local/include -I/opt/local/include
+   LDLIBS= #-licucore
+   CGDISK_LDLIBS=-lncursesw

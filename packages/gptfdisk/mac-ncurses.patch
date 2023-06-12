@@ -1,0 +1,13 @@
+diff --git a/Makefile b/Makefile
+index af9701c..6284517 100644
+--- a/Makefile
++++ b/Makefile
+@@ -129,7 +129,7 @@ else ifeq ($(TARGET),macos)
+   THINBINFLAGS=-arch x86_64 -mmacosx-version-min=10.9
+   CXXFLAGS=$(FATBINFLAGS) -O2 -Wall -D_FILE_OFFSET_BITS=64 -stdlib=libc++ -I/opt/local/include -I /usr/local/include -I/opt/local/include
+   LDLIBS= #-licucore
+-  CGDISK_LDLIBS=/usr/local/Cellar/ncurses/6.2/lib/libncurses.dylib
++  CGDISK_LDLIBS=-lncursesw
+ else ifeq ($(TARGET),solaris)
+   CXXFLAGS+=-Wall -D_FILE_OFFSET_BITS=64 -I/usr/include/ncurses
+   LDFLAGS+=-L/lib -licuio -licuuc -luuid
