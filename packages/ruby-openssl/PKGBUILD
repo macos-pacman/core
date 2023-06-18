@@ -1,0 +1,43 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=openssl
+pkgname=ruby-$_gemname
+pkgver=3.1.0
+pkgrel=1
+pkgdesc='It wraps the OpenSSL library'
+arch=(any)
+url='https://github.com/ruby/'${_gemname}
+license=(BSD-2)
+depends=(ruby openssl)
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('3f099acd0b3bea791cbdde520f2d332a709bbd9144abcbe22189a20bac12c6de')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  rake test
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE.txt -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
