@@ -1,0 +1,21 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=net-protocol
+pkgname=ruby-$_gemname
+pkgver=0.2.1
+pkgrel=1
+pkgdesc='The abstract interface for net-* client'
+arch=(any)
+url='https://github.com/ruby/pp'
+license=(BSD-2)
+depends=(ruby ruby-timeout)
+options=(!emptydirs)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+noextract=($_gemname-$pkgver.gem)
+sha256sums=('21adb19c197768899c389bd257545de9d5af64adb1928787653460c2699eac37')
+
+package() {
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --no-document --ignore-dependencies --no-user-install -i "$pkgdir/$_gemdir" -n "$pkgdir/${pacman_root}/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
+}
