@@ -3,12 +3,12 @@
 _gemname=reline
 pkgname=ruby-$_gemname
 pkgver=0.3.5
-pkgrel=1
+pkgrel=2
 pkgdesc='Alternative GNU Readline or Editline implementation by pure Ruby'
 arch=(any)
 url='https://github.com/ruby/'${_gemname}
 license=(BSD-2)
-depends=(ruby)
+depends=(ruby ruby-io-console)
 checkdepends=(ruby-rake)
 options=(!emptydirs)
 source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
