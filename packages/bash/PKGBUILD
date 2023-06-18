@@ -22,7 +22,7 @@ source=(https://ftp.gnu.org/gnu/bash/bash-$pkgver.tar.gz{,.sig}
 validpgpkeys=('7C0135FB088AAF6C66C650B9BB5869F064EA74AB') # Chet Ramey
 sha256sums=('13720965b5f4fc3a0d4b61dd37e7565c741da9a5be24edc2ae00182fc1b3588c'
             'SKIP'
-            '15ac64c965cbb4626ec43035fa3c3b9c9b171e112ec507afcd3f3aa8375de421'
+            '99c1d87ba9d39e7d4d6863147f414e8361bb196cdcc6b16e3530b222826c5ecb'
             '025bccfb374a3edce0ff8154d990689f30976b78f7a932dc9a6fcef81821811e'
 )
 
