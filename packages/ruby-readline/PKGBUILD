@@ -3,12 +3,12 @@
 _gemname=readline
 pkgname=ruby-$_gemname
 pkgver=0.0.3
-pkgrel=1
+pkgrel=2
 pkgdesc='Loader for "readline"'
 arch=(any)
 url='https://github.com/ruby/'${_gemname}
 license=(BSD-2)
-depends=(ruby)
+depends=(ruby ruby-reline)
 checkdepends=(ruby-rake)
 options=(!emptydirs)
 source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
