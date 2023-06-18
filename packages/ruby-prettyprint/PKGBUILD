@@ -1,0 +1,21 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=prettyprint
+pkgname=ruby-$_gemname
+pkgver=0.1.1
+pkgrel=1
+pkgdesc='Implements a pretty printing algorithm for readable structure'
+arch=(any)
+url='https://github.com/ruby/prettyprint'
+license=(BSD-2)
+depends=(ruby)
+options=(!emptydirs)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+noextract=($_gemname-$pkgver.gem)
+sha256sums=('fd112623243127d8c95c32997e78aa91c7d4d99a4abe25bb0e8ae2d7f9baab13')
+
+package() {
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --no-document --ignore-dependencies --no-user-install -i "$pkgdir/$_gemdir" -n "$pkgdir/${pacman_root}/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
+}
