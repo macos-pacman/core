@@ -1,43 +1,27 @@
-# Maintainer: zhiayang <zhiayang@nowhere>
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Artem Vorotnikov <artem@vorotnikov.me>
 
 _gemname=rspec-mocks
-pkgname=ruby-$_gemname
+pkgname=ruby-${_gemname}
 pkgver=3.12.5
-pkgrel=1
-pkgdesc="RSpec's 'test double' framework, with support for stubbing and mocking"
-arch=(any)
-url='https://github.com/rspec/'${_gemname}
-license=(MIT)
-depends=(ruby ruby-diff-lcs ruby-rspec-support)
-checkdepends=(ruby-rake)
-options=(!emptydirs)
-source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
-sha256sums=('004f388dc4b2ac1cc05863596636ec7a193c15ae9a06dff9304b943bb73efc76')
-
-prepare() {
-  cd "${srcdir}/${_gemname}-${pkgver}"
-  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
-  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
-
-  # purge development dependencies
-  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
-}
-
-build() {
-  cd "${srcdir}/${_gemname}-${pkgver}"
-  gem build ${_gemname}.gemspec
-}
-
-check() {
-  cd "${srcdir}/${_gemname}-${pkgver}"
-  # rake test
-}
+pkgrel=2
+pkgdesc="RSpecs 'test double' framework, with support for stubbing and mocking"
+url='https://github.com/rspec/rspec-mocks'
+arch=('any')
+license=('MIT')
+depends=('ruby-rspec-support' 'ruby-diff-lcs')
+options=('!emptydirs')
+source=(https://rubygems.org/downloads/${_gemname}-${pkgver}.gem)
+noextract=(${_gemname}-${pkgver}.gem)
+sha256sums=('82030d2bfa1e4eef0a2ee36af5d3d224672598912a3f3384f27cbba9fa09d5c1')
 
 package() {
-  cd "${srcdir}/${_gemname}-${pkgver}"
-  local _gemdir="$(gem env gemdir)"
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
   gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
-  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
-  install -Dm 644 LICENSE.md -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  find "${pkgdir}"
+  install -Dm 644 "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/LICENSE.md" "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm 644 "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/README.md" "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}/README"
   rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
 }
+
+# vim: ts=2 sw=2 et:
