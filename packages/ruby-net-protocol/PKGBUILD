@@ -3,12 +3,12 @@
 _gemname=net-protocol
 pkgname=ruby-$_gemname
 pkgver=0.2.1
-pkgrel=2
+pkgrel=3
 pkgdesc='The abstract interface for net-* client'
 arch=(any)
 url='https://github.com/ruby/net-protocol'
 license=(BSD-2)
-depends=(ruby)
+depends=(ruby ruby-timeout)
 checkdepends=(ruby-rake)
 options=(!emptydirs)
 source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
