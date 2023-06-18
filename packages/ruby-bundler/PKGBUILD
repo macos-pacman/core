@@ -1,0 +1,80 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=bundler
+pkgname=ruby-$_gemname
+pkgver=2.4.14
+pkgrel=1
+pkgdesc="The best way to manage your application's dependencies"
+arch=(any)
+url='https://github.com/rubygems/rubygems'
+license=(MIT)
+depends=(ruby)
+makedepends=(ruby-rake ruby-rdoc)
+options=(!emptydirs)
+source=("${url}/archive/bundler-v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('72506513a2d0f7db1c04a49c67f855b602afec4c205d7f2285aebff467842e8c')
+
+prepare() {
+  cd "rubygems-${_gemname}-v${pkgver}/${_gemname}"
+
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+}
+
+build() {
+  cd "rubygems-${_gemname}-v${pkgver}/${_gemname}"
+  rake build
+}
+
+
+# So far tests are not working reliably and hang often
+#check() {
+#  cd "rubygems-${_gemname}-v${pkgver}/${_gemname}"
+#
+#  rake spec:all
+#}
+
+package() {
+  cd "rubygems-${_gemname}-v${pkgver}/${_gemname}"
+
+  local _gemdir="$(gem env gemdir)"
+  local _platform="$(gem env platform | cut -d':' -f2)"
+  local _extension_api_version="$(ruby -e 'puts Gem.extension_api_version')"
+
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "${pkgdir}/${_gemdir}" \
+    --bindir "${pkgdir}/${pacman_root}/usr/bin" \
+    "pkg/${_gemname}-${pkgver}.gem"
+
+  install --verbose --directory --mode=0755 \
+    "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_platform}" \
+    "${pkgdir}${_gemdir}/specifications/default" \
+    "${pkgdir}/${pacman_root}/usr/share/man/man1" \
+    "${pkgdir}/${pacman_root}/usr/share/man/man5"
+
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/bundler/man"/*.1 "${pkgdir}/${pacman_root}/usr/share/man/man1"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/bundler/man"/*.5 "${pkgdir}/${pacman_root}/usr/share/man/man5"
+  mv -v "${pkgdir}${_gemdir}/specifications/${_gemname}-${pkgver}.gemspec" "${pkgdir}${_gemdir}/specifications/default/${_gemname}-${pkgver}.gemspec"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/${_gemname}.rb" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_gemname}.rb"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/${_gemname}" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_gemname}"
+
+  # remove unrepreducible files
+  rm -frv \
+    "${pkgdir}${_gemdir}/cache/" \
+    "${pkgdir}${_gemdir}/build_info/" \
+    "${pkgdir}${_gemdir}/extensions/" \
+    "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/"{.gitignore,Rakefile,*.*} \
+    "${pkgdir}${_gemdir}/plugins/" \
+    "${pkgdir}${_gemdir}/doc/${_gemname}-${pkgver}/ri/ext/"
+
+  install --verbose -D --mode=0644 LICENSE.md --target-directory "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install --verbose -D --mode=0644 *.md --target-directory "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+
+}
