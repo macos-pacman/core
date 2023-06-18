@@ -1,0 +1,38 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=rspec
+pkgname=ruby-$_gemname
+pkgver=3.12.0
+pkgrel=1
+pkgdesc='BDD for Ruby'
+arch=(any)
+url='https://github.com/rspec/'${_gemname}
+license=(MIT)
+depends=(ruby ruby-rspec-mocks ruby-rspec-expectations ruby-rspec-core)
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('552054194fa51bf36417810fb803bf16b74d3ff428d413fd4ca6c421ffcaf1fd')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-metagem-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-metagem-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-metagem-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE.md -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
