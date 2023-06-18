@@ -1,0 +1,25 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Artem Vorotnikov <artem@vorotnikov.me>
+
+_gemname=childlabor
+pkgname=ruby-${_gemname}
+pkgver=0.0.3
+pkgrel=1
+pkgdesc='ChildLabor is a gem that helps manage child processes'
+url='https://rubygems.org/gems/childlabor'
+arch=('any')
+license=('MIT')
+options=('!emptydirs')
+source=(https://rubygems.org/downloads/${_gemname}-${pkgver}.gem)
+noextract=(${_gemname}-${pkgver}.gem)
+sha256sums=('eae56c14b1e580074c52249263d94afe821faf9661e70277942bc09028041efe')
+
+package() {
+  local _gemdir="$(gem environment gemdir)"
+  gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  # install -Dm 644 "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/LICENSE.md" "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm 644 "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/README.md" "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}/README"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
+
+# vim: ts=2 sw=2 et:
