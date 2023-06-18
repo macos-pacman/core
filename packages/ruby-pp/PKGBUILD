@@ -1,0 +1,21 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=pp
+pkgname=ruby-$_gemname
+pkgver=0.4.0
+pkgrel=1
+pkgdesc='Provides a PrettyPrinter for Ruby objects'
+arch=(any)
+url='https://github.com/ruby/pp'
+license=(BSD-2)
+depends=(ruby)
+options=(!emptydirs)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+noextract=($_gemname-$pkgver.gem)
+sha256sums=('1edc8f053b7e3e496adce86bf3ab39cd5c99aa1ee186fc6260781f01c816a6b6')
+
+package() {
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --no-document --ignore-dependencies --no-user-install -i "$pkgdir/$_gemdir" -n "$pkgdir/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
+}
