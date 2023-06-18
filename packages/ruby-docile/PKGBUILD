@@ -1,0 +1,44 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=docile
+pkgname=ruby-$_gemname
+pkgver=1.4.0
+pkgrel=1
+pkgdesc='Docile keeps your Ruby DSLs tame and well-behaved'
+arch=(any)
+url='https://github.com/ms-ati/'${_gemname}
+license=(MIT)
+depends=(ruby)
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('ca09c0b0436acaa18ea8740c99da1cce4072feee83a5918a7177e52d231b3fde')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+# way too many dependencies
+#check() {
+#  cd "${srcdir}/${_gemname}-${pkgver}"
+#  rake test
+#}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
