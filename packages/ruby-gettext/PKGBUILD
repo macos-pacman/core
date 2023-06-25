@@ -1,0 +1,52 @@
+# Maintainer: tim@bastelfreak.de
+# Contributor: Viktor Drobot (aka dviktor) linux776 [at] gmail [dot] com
+
+_gemname='gettext'
+pkgname="ruby-${_gemname}"
+pkgver=3.4.4
+pkgrel=1
+pkgdesc='Gettext gem is a pure Ruby Localization(L10n) library and tool which is modeled after the GNU gettext package.'
+arch=(any)
+url="https://github.com/${pkgname}/${_gemname}"
+license=('RUBY' 'LGPL3')
+makedepends=('ruby-rdoc' 'ruby-yard' 'ruby-bundler')
+depends=('ruby' 'ruby-locale' 'ruby-text' 'ruby-erubi')
+checkdepends=('ruby-test-unit' 'ruby-rake' 'ruby-test-unit-rr')
+source=("${url}/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz")
+options=("!emptydirs")
+sha512sums=('e72bf4adcec0e80fb6f885814fbced4e5a3115b82bc3d3d1f9f19db0b871c6d95ff8be2c50f0eb38ae0c420a394358a1e54315553d8e9453f0f3e610d6634268')
+
+# update the gemspec to allow newer versions of rake
+# remove deprecated options from the gemspec
+prepare() {
+  cd "${_gemname}-${pkgver}"
+
+  sed --in-place 's/s.license.*/s.licenses = ["Ruby", "LGPL-3.0+"]/' "${_gemname}.gemspec"
+  sed --in-place '/test\/unit\/notify/d' test/run-test.rb
+  sed --in-place '/s.add_development_dependency("test-unit-notify")/d' "${_gemname}.gemspec"
+}
+
+
+build() {
+  cd "${_gemname}-${pkgver}"
+
+  gem build "${_gemname}.gemspec"
+}
+
+# tests are currently broken upstream
+check() {
+  cd "${_gemname}-${pkgver}"
+  rake test
+}
+
+package() {
+  cd "${_gemname}-${pkgver}"
+
+  local _gemdir="$(gem env gemdir)"
+  gem install --verbose --ignore-dependencies --no-user-install --install-dir "${pkgdir}/${_gemdir}" --bindir "${pkgdir}/${pacman_root}/usr/bin" "${_gemname}-${pkgver}.gem"
+
+  rm -rf "${pkgdir}/${_gemdir}/cache"
+
+  install -Dm 644 README.md doc/text/news.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 doc/text/gpl-2.0.txt doc/text/lgpl-3.0.txt doc/text/ruby-license.txt -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/"
+}
