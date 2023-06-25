@@ -1,0 +1,24 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=asciidoctor
+provides=('asciidoctor')
+pkgname=ruby-$_gemname
+pkgver=2.0.20
+pkgrel=1
+pkgdesc='A fast, open source text processor and publishing toolchain for converting AsciiDoc content to HTML 5, DocBook 5, and other formats'
+arch=(any)
+url='https://rubygems.org/gems/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+makedepends=('ruby-bundler' 'rubygems')
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+noextract=(${_gemname}-${pkgver}.gem)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+sha256sums=('835eabd445e4ae88f56a5f4e07593c3612b2be72eb661c612c3a8e1e17c57479')
+
+package() {
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --ignore-dependencies --no-user-install --no-document -i "$pkgdir/$_gemdir" -n "$pkgdir/${pacman_root}/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
+}
