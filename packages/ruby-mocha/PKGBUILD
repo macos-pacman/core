@@ -1,0 +1,53 @@
+# Maintainer:: Tim Meusel <tim@bastelfreak.de>
+# Contributor: Christian Rebischke <chris.rebischke@archlinux.org>
+# Contributor: Andreas 'Segaja' Schleifer <archlinux at segaja dot de>
+
+_gemname=mocha
+pkgname="ruby-${_gemname}"
+pkgver=2.0.4
+pkgrel=1
+pkgdesc='Mocha is a mocking and stubbing library for Ruby'
+arch=('any')
+url='https://github.com/freerange/mocha'
+license=('Custom')
+depends=('ruby')
+checkdepends=('ruby-rake' 'ruby-bundler' 'ruby-introspection' 'ruby-metaclass')
+makedepends=('ruby-minitest')
+options=('!emptydirs')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/freerange/mocha/archive/v${pkgver}.tar.gz"
+        'disable-rubocop.patch')
+sha512sums=('4a72cd18e70608265bc20761848657b900a6d60c888ec4027e3b9f1884efa41d0d0591c4f3e26edd96a806ecdfc3b921d5871465a799a5ea5905627b7093f5b1'
+            '2ca7121f2e776856bc3d85a2a1a720ccba114136584c9c384c40968bd4c205122936d68a9908bf4236cd94994200f7fad0a32adb17bbaa1c15ba480203fef4b8')
+
+prepare() {
+  cd "${_gemname}-${pkgver}"
+
+  # `git` doesn't work within src dir, because we downloaded an archive
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+  patch --forward --strip=1 --input='../disable-rubocop.patch'
+}
+
+check() {
+  cd "${_gemname}-${pkgver}"
+  rake test:units
+}
+
+build() {
+  cd "${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+package() {
+  cd "${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --ignore-dependencies --no-user-install --install-dir "${pkgdir}${_gemdir}" --bindir "${pkgdir}/${pacman_root}/usr/bin" "${_gemname}-${pkgver}.gem"
+  install -Dm 644 README.md RELEASE.md --target-directory "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 COPYING.md MIT-LICENSE.md --target-directory "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  mv "${pkgdir}/${_gemdir}/gems/${_gemname}-${pkgver}/docs" "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}/"
+
+  # delete unneeded files
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+  rm -rf "${pkgdir}/${_gemdir}/gems/${_gemname}-${pkgver}/"{test,yard-templates,gemfiles,bin,.github,.gemtest,mocha.gemspec.orig}
+}
+
+# vim: ts=2 sw=2 et:
