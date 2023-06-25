@@ -1,0 +1,78 @@
+# Maintainer: Anatol Pomozov <anatol.pomozov@gmail.com>
+# Maintainer: Andreas 'Segaja' Schleifer <segaja at archlinux dot org>
+
+_gemname='rdoc'
+pkgname="ruby-${_gemname}"
+pkgver=6.5.0
+pkgrel=4
+pkgdesc='Command-line documentation generator for Ruby projects'
+arch=('any')
+url='https://ruby.github.io/rdoc/'
+license=('RUBY')
+depends=('ruby' 'ruby-psych')
+makedepends=('ruby-kpeg' 'ruby-racc')
+options=('!emptydirs')
+source=("https://github.com/ruby/rdoc/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('6839dbe1f9151c08a1455642a47ec84478bc9a08680c31cbb2c5cce5f0e4db4c')
+
+prepare() {
+  cd "${_gemname}-${pkgver}"
+
+  # update gemspec/Gemfile to allow newer version of the dependencies
+  # sed --in-place --regexp-extended 's|~>|>=|g' "${_gemname}.gemspec"
+}
+
+build() {
+  cd "${_gemname}-${pkgver}"
+
+  # rake build - can't be used as it requires rubocop: https://github.com/ruby/rdoc/blob/v6.4.0/Rakefile#L99-L107
+  rake generate
+  gem build "${_gemname}.gemspec"
+
+  rake rdoc
+}
+
+check() {
+  cd "${_gemname}-${pkgver}"
+
+  rake normal_test
+  rake rubygems_test
+}
+
+package() {
+  cd "${_gemname}-${pkgver}"
+
+  local _gemdir="$(gem env gemdir)"
+  local _platform="$(gem env platform | cut -d':' -f2)"
+  local _extension_api_version="$(ruby -e 'puts Gem.extension_api_version')"
+
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "${pkgdir}/${_gemdir}" \
+    --bindir "${pkgdir}/${pacman_root}/usr/bin" \
+    "${_gemname}-${pkgver}.gem"
+
+  install --verbose --directory --mode=0755 \
+    "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_platform}" \
+    "${pkgdir}${_gemdir}/specifications/default"
+
+  mv -v "${pkgdir}${_gemdir}/specifications/${_gemname}-${pkgver}.gemspec" "${pkgdir}${_gemdir}/specifications/default/${_gemname}-${pkgver}.gemspec"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/${_gemname}.rb" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_gemname}.rb"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/${_gemname}" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_gemname}"
+
+  # remove unrepreducible files
+  rm -rvf \
+    "${pkgdir}${_gemdir}/cache/" \
+    "${pkgdir}${_gemdir}/build_info/" \
+    "${pkgdir}${_gemdir}/extensions/" \
+    "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/"{.git*,bin,man,*.*,Gemfile,Rakefile} \
+    "${pkgdir}${_gemdir}/plugins/" \
+    "${pkgdir}${_gemdir}/doc/${_gemname}-${pkgver}/ri/ext/"
+
+  install --verbose -D --mode=0644 man/ri.1 --target-directory "${pkgdir}/${pacman_root}/usr/share/man/man1"
+  install --verbose -D --mode=0644 LEGAL.rdoc LICENSE.rdoc --target-directory "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install --verbose -D --mode=0644 *.md *.rdoc --target-directory "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+}
