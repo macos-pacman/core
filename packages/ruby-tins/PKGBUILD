@@ -1,0 +1,53 @@
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+# Contributor: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Julien Nicoulaud <julien.nicoulaud@gmail.com>
+# Contributor: Hyacinthe Cartiaux <hyacinthe.cartiaux@free.fr>
+
+pkgname=ruby-tins
+_pkgname="${pkgname#ruby-}"
+pkgver=1.32.1
+pkgrel=1
+pkgdesc='All the stuff that is not good/big enough for a real library'
+arch=('any')
+url='https://github.com/flori/tins'
+license=('MIT')
+depends=('ruby' 'ruby-sync')
+makedepends=('git' 'ruby-rake')
+options=('!emptydirs')
+_commit='6e1d4309ae4bd0e7b0e21280336732a2f51311e2'
+source=("$pkgname::git+$url#commit=$_commit")
+b2sums=('SKIP')
+
+pkgver() {
+  cd "$pkgname"
+
+  git describe --tags | sed 's/^v//'
+}
+
+build() {
+  cd "$pkgname"
+
+  gem build tins.gemspec
+}
+
+package() {
+  cd "$pkgname"
+
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "$pkgdir/$_gemdir" \
+    --bindir "$pkgdir/${pacman_root}/usr/bin" \
+    "$_pkgname-$pkgver.gem"
+
+  # delete cache
+  rm -rf "$pkgdir/$_gemdir/cache"
+
+  # license
+  install -vd "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+  ln -sf "$_gemdir/gems/$_pkgname-$pkgver/COPYING" "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+}
