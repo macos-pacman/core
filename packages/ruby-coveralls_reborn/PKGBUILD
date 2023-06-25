@@ -1,0 +1,23 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=coveralls_reborn
+pkgname=ruby-$_gemname
+pkgver=0.27.0
+pkgrel=1
+pkgdesc='A Ruby implementation of the Coveralls API'
+arch=(any)
+url='https://rubygems.org/gems/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+makedepends=('ruby-bundler' 'rubygems')
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+noextract=(${_gemname}-${pkgver}.gem)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+sha256sums=('2e08a98f47050572ff9767981af90fb5f84fb3d701c43a8ab6d21a8af4a58445')
+
+package() {
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --ignore-dependencies --no-user-install --no-document -i "$pkgdir/$_gemdir" -n "$pkgdir/${pacman_root}/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
+}
