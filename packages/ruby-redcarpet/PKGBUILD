@@ -1,0 +1,65 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=ruby-redcarpet
+pkgver=3.6.0
+_commit=3e3f0b522fbe9283ba450334b5cec7a439dc0955
+pkgrel=2
+pkgdesc='A fast, safe and extensible Markdown to (X)HTML parser'
+arch=('x86_64' 'arm64')
+url='https://github.com/vmg/redcarpet'
+license=(MIT)
+depends=(ruby)
+makedepends=(git ruby-rake ruby-rake-compiler ruby-test-unit)
+checkdepends=(tidy)
+options=(!emptydirs)
+source=(git+https://github.com/vmg/redcarpet.git#commit=$_commit)
+sha256sums=('SKIP')
+
+prepare() {
+  cd redcarpet
+  sed -i 's|~>|>=|' redcarpet.gemspec
+  sed -i -e "/task 'test:unit' => :compile/d" -e 's/=> :compile//' Rakefile
+  echo gemspec > Gemfile
+
+  sed -i -e 's/redcarpet.so/redcarpet.bundle/g' lib/redcarpet.rb
+}
+
+build() {
+  local _gemdir="$(gem env gemdir)"
+  cd redcarpet
+  gem build redcarpet.gemspec
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/$_gemdir" \
+    --bindir "tmp_install/${pacman_root}/usr/bin" \
+    redcarpet-$pkgver.gem
+  find "tmp_install/$_gemdir/gems/" \
+    -type f \
+    \( \
+        -iname "*.o" -o \
+        -iname "*.c" -o \
+        -iname "*.so" -o \
+        -iname "*.bundle" -o \
+        -iname "*.time" -o \
+        -iname "gem.build_complete" -o \
+        -iname "Makefile" \
+    \) \
+    -delete
+  rm -r tmp_install/$_gemdir/cache
+  ls -lR tmp_install
+}
+
+check() {
+  local _gemdir="$(gem env gemdir)"
+  cd redcarpet
+  GEM_HOME="$PWD/tmp_install/$_gemdir" rake test
+}
+
+package() {
+  cd redcarpet
+  cp -a tmp_install/* "$pkgdir"/
+  install -Dm644 COPYING -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
+}
