@@ -1,0 +1,73 @@
+# Maintainer: Andreas 'Segaja' Schleifer <segaja at archlinux dot org>
+
+_gemname='psych'
+pkgname="ruby-${_gemname}"
+pkgver=5.1.0
+pkgrel=1
+pkgdesc="A YAML parser and emitter"
+arch=('x86_64' 'arm64')
+url="https://github.com/ruby/${_gemname}"
+license=('MIT')
+depends=('ruby' 'ruby-stringio' 'libyaml')
+makedepends=('ruby-bundler' 'ruby-rake' 'ruby-rake-compiler')
+checkdepends=('ruby-test-unit')
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('03e814e91ccc427014c5f2631285812968054f600166fa1dfcf2f60808d9fa59')
+
+prepare() {
+  cd "${_gemname}-${pkgver}"
+
+  # update gemspec/Gemfile to allow newer version of the dependencies
+  # sed --in-place --regexp-extended 's|~>|>=|g' "${_gemname}.gemspec"
+}
+
+build() {
+  cd "${_gemname}-${pkgver}"
+
+  rake compile
+  rake build
+}
+
+check() {
+  cd "${_gemname}-${pkgver}"
+
+  rake test
+}
+
+package() {
+  cd "${_gemname}-${pkgver}"
+
+  local _gemdir="$(gem env gemdir)"
+  local _platform="$(gem env platform | cut -d':' -f2)"
+  local _extension_api_version="$(ruby -e 'puts Gem.extension_api_version')"
+
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "${pkgdir}/${_gemdir}" \
+    --bindir "${pkgdir}/${pacman_root}/usr/bin" \
+    "pkg/${_gemname}-${pkgver}.gem"
+
+  install --verbose --directory --mode=0755 \
+    "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_platform}" \
+    "${pkgdir}${_gemdir}/specifications/default"
+
+  mv -v "${pkgdir}${_gemdir}/specifications/${_gemname}-${pkgver}.gemspec" "${pkgdir}${_gemdir}/specifications/default/${_gemname}-${pkgver}.gemspec"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/${_gemname}.rb" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_gemname}.rb"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/${_gemname}" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_gemname}"
+  mv -v "${pkgdir}${_gemdir}/extensions/${_platform}/${_extension_api_version}/${_gemname}-${pkgver}/${_gemname}.bundle" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_platform}/${_gemname}.bundle"
+
+  # remove unrepreducible files
+  rm -frv \
+    "${pkgdir}${_gemdir}/cache/" \
+    "${pkgdir}${_gemdir}/build_info/" \
+    "${pkgdir}${_gemdir}/extensions/" \
+    "${pkgdir}${_gemdir}/gems/" \
+    "${pkgdir}${_gemdir}/plugins/" \
+    "${pkgdir}${_gemdir}/doc/${_gemname}-${pkgver}/ri/ext/"
+
+  install --verbose -D --mode=0644 LICENSE "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+  install --verbose -D --mode=0644 *.md --target-directory "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+}
