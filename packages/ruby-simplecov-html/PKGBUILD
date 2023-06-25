@@ -3,43 +3,21 @@
 _gemname=simplecov-html
 pkgname=ruby-$_gemname
 pkgver=0.12.3
-pkgrel=1
+pkgrel=3
 pkgdesc='Default HTML formatter for SimpleCov code coverage tool for ruby 2.4+'
 arch=(any)
-url='https://github.com/simplecov-ruby/'${_gemname}
-license=(MIT)
+url='https://rubygems.org/gems/'${_gemname}
+license=(BSD-2)
 depends=(ruby)
-checkdepends=('ruby-rake' 'ruby-simplecov')
+makedepends=('ruby-bundler' 'rubygems')
+checkdepends=(ruby-rake)
 options=(!emptydirs)
-source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
-sha256sums=('c39df80c6b83a374804efe76b225832a6acc0bceddd82f93f540f2c0dceb3f4c')
-
-prepare() {
-  cd "${srcdir}/${_gemname}-${pkgver}"
-  sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
-  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
-
-  # purge development dependencies
-  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
-
-  rm -v Gemfile*
-}
-
-build() {
-  cd "${srcdir}/${_gemname}-${pkgver}"
-  gem build ${_gemname}.gemspec
-}
-
-check() {
-  cd "${srcdir}/${_gemname}-${pkgver}"
-  rake test
-}
+noextract=(${_gemname}-${pkgver}.gem)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+sha256sums=('4b1aad33259ffba8b29c6876c12db70e5750cb9df829486e4c6e5da4fa0aa07b')
 
 package() {
-  cd "${srcdir}/${_gemname}-${pkgver}"
-  local _gemdir="$(gem env gemdir)"
-  gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
-  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
-  install -Dm 644 LICENSE -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
-  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --ignore-dependencies --no-user-install --no-document -i "$pkgdir/$_gemdir" -n "$pkgdir/${pacman_root}/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
 }
