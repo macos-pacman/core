@@ -1,0 +1,86 @@
+# Maintainer: Andreas 'Segaja' Schleifer <segaja at archlinux dot org>
+
+_gemname='kpeg'
+pkgname="ruby-${_gemname}"
+pkgver=1.3.3
+pkgrel=1
+_gitcommit=07e3dc151919403978e496bf0b88e9bd57120717
+pkgdesc='A simple PEG library for ruby'
+arch=('any')
+url="https://github.com/evanphx/${_gemname}"
+license=('MIT')
+depends=('ruby')
+makedepends=('ruby-hoe' 'ruby-rake')
+options=('!emptydirs')
+source=("${pkgname}-${pkgver}.zip::${url}/archive/${_gitcommit}.zip")
+sha256sums=('4cafdef4c29df8750be8e92fa8ff7c2a491b570781154de5124ba5e8d1ebc6dd')
+
+prepare() {
+  cd "${_gemname}-${_gitcommit}"
+  # update gemspec/Gemfile to allow newer version of the dependencies
+  # sed --in-place --regexp-extended 's|~>|>=|g' "${_gemname}.gemspec"
+}
+
+build() {
+  cd "${_gemname}-${_gitcommit}"
+
+  local _gemdir="$(gem env gemdir)"
+
+  gem build "${_gemname}.gemspec"
+
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/${_gemdir}" \
+    --bindir "tmp_install/${pacman_root}/usr/bin" \
+    "${_gemname}-${pkgver}.gem"
+
+  # remove unrepreducible files
+  rm -rfv \
+    "tmp_install/${_gemdir}/cache/" \
+    "tmp_install/${_gemdir}/gems/${_gemname}-${pkgver}/vendor/" \
+    "tmp_install/${_gemdir}/doc/${_gemname}-${pkgver}/ri/ext/"
+
+  find "tmp_install/${_gemdir}/gems/" \
+    -type f \
+    \( \
+      -iname "*.o" -o \
+      -iname "*.c" -o \
+      -iname "*.so" -o \
+      -iname "*.bundle" -o \
+      -iname "*.time" -o \
+      -iname "gem.build_complete" -o \
+      -iname "Makefile" \
+    \) \
+    -delete
+
+  find "tmp_install/${_gemdir}/extensions/" \
+    -type f \
+    \( \
+      -iname "mkmf.log" -o \
+      -iname "gem_make.out" \
+    \) \
+    -delete
+}
+
+check() {
+  cd "${_gemname}-${_gitcommit}"
+
+  local _gemdir="$(gem env gemdir)"
+
+  GEM_HOME="tmp_install/${_gemdir}" rake test
+}
+
+package() {
+  cd "${_gemname}-${_gitcommit}"
+
+  cp -av tmp_install/* "${pkgdir}"
+
+  install --verbose --directory --mode=0755 "${pkgdir}/${pacman_root}/usr/share/vim/vimfiles/"
+  mv -v vim/syntax_kpeg/* "${pkgdir}/${pacman_root}/usr/share/vim/vimfiles/"
+
+  install --verbose -D --mode=0644 LICENSE --target-directory "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install --verbose -D --mode=0644 *.rdoc --target-directory "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+}
