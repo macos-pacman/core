@@ -1,0 +1,68 @@
+# Maintainer: Andreas 'Segaja' Schleifer <segaja at archlinux dot org>
+# Contributor: Mario Finelli <mario at finel dot li>
+
+_gemname='racc'
+pkgname="ruby-${_gemname}"
+pkgver=1.7.1
+pkgrel=1
+pkgdesc='LALR parser generator written in Ruby itself and generates ruby programs'
+arch=('x86_64' 'arm64')
+url="https://github.com/ruby/${_gemname}"
+license=('Ruby' 'BSD')
+depends=('ruby')
+makedepends=('rubygems' 'ruby-rake' 'ruby-rake-compiler' 'ruby-rdoc')
+checkdepends=('ruby-test-unit' 'ruby-test-unit-ruby-core')
+options=('!emptydirs')
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('e59e8588e53ea531efb3b5775d3dd2946ef73e688ef5facab227d54c33782f2e')
+
+build() {
+  cd "${_gemname}-${pkgver}"
+
+  rake compile
+  rake build
+}
+
+check() {
+  cd "${_gemname}-${pkgver}"
+
+  rake test
+}
+
+package() {
+  cd "${_gemname}-${pkgver}"
+
+  local _gemdir="$(gem env gemdir)"
+  local _platform="$(gem env platform | cut -d':' -f2)"
+  local _extension_api_version="$(ruby -e 'puts Gem.extension_api_version')"
+
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "${pkgdir}/${_gemdir}" \
+    --bindir "${pkgdir}/${pacman_root}/usr/bin" \
+    "pkg/${_gemname}-${pkgver}.gem"
+
+  install --verbose --directory --mode=0755 \
+    "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_platform}" \
+    "${pkgdir}${_gemdir}/specifications/default"
+
+  mv -v "${pkgdir}${_gemdir}/specifications/${_gemname}-${pkgver}.gemspec" "${pkgdir}${_gemdir}/specifications/default/${_gemname}-${pkgver}.gemspec"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/${_gemname}.rb" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_gemname}.rb"
+  mv -v "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/lib/${_gemname}" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_gemname}"
+  mv -v "${pkgdir}${_gemdir}/extensions/${_platform}/${_extension_api_version}/${_gemname}-${pkgver}/${_gemname}" "${pkgdir}/${pacman_root}/usr/lib/ruby/${_extension_api_version}/${_platform}/${_gemname}"
+
+  # remove unrepreducible files
+  rm -frv \
+    "${pkgdir}${_gemdir}/cache/" \
+    "${pkgdir}${_gemdir}/build_info/" \
+    "${pkgdir}${_gemdir}/extensions/" \
+    "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/"{doc,ext,ChangeLog,COPYING,*.rdoc,TODO} \
+    "${pkgdir}${_gemdir}/plugins/" \
+    "${pkgdir}${_gemdir}/doc/${_gemname}-${pkgver}/ri/ext/"
+
+  install --verbose -D --mode=0644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+  install --verbose -D --mode=0644 ChangeLog README.rdoc --target-directory "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+}
