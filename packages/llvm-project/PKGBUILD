@@ -1,5 +1,5 @@
 pkgname=llvm-project
-pkgver=15.0.7
+pkgver=16.0.6
 pkgrel=1
 arch=('x86_64' 'arm64')
 license=('Apache')
@@ -17,7 +17,7 @@ source=(
 )
 
 sha256sums=(
-	'8b5fcb24b4128cf04df1b0b9410ce8b1a729cb3c544e6da885d234280dedeac6'
+	'ce5e71081d17ce9e86d7cbcfa28c4b04b9300f8fb7e78422b1feb6bc52c3028e'
 	'95f3b49c4bf7575b02836d7fd1172dda67bbbf5ed0a5cd1b5cedfccac84a03f6'
 )
 
@@ -142,13 +142,13 @@ package() {
 	  fix_rpath "${pacman_root}" "${pkgdir}" "${_exe}"
 	done
 
-  # note: don't do this any more -- i gave up on zig.
-#  msg 'Compiling LLVM bitcode to object code'
-#  local _f _files
-#  IFS=$'\n' read -r -d '' -a _files < <(find "${pkgdir}/${pacman_root}" -type f -iname "*.[ao]" -print) || true
-#  for _f in "${_files[@]}"; do
-#    check_convert_bitcode "${_f}"
-#  done
+	# note: don't do this any more -- i gave up on zig.
+	#  msg 'Compiling LLVM bitcode to object code'
+	#  local _f _files
+	#  IFS=$'\n' read -r -d '' -a _files < <(find "${pkgdir}/${pacman_root}" -type f -iname "*.[ao]" -print) || true
+	#  for _f in "${_files[@]}"; do
+	#    check_convert_bitcode "${_f}"
+	#  done
 
 	# need to codesign the debug server
 	msg2 'Codesigning debug server'
