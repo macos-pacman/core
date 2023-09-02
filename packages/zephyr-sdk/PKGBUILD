@@ -1,0 +1,100 @@
+# Maintainer: Alexei Colin <ac@alexeicolin.com>
+
+pkgname=zephyr-sdk
+pkgver=0.16.1
+pkgrel=2
+pkgdesc="SDK for Zephyr real-time operating system"
+arch=('x86_64' 'arm64')
+url="https://www.zephyrproject.org/"
+license=('Apache')
+
+depends=('cmake' 'ninja' 'gperf' 'dtc'
+         'python-pip' 'python-setuptools' 'python-wheel' 'python-pyelftools'
+         'tk' 'xz')
+optdepends=('pyocd: programming and debugging ARM MCUs'
+            'python-west: Zephyr RTOS Project meta-tool'
+            'dfu-util: flash things')
+makedepends=('wget')
+source=("https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${pkgver}/zephyr-sdk-${pkgver}_macos-${CARCH/arm64/aarch64}.tar.xz"
+        "zephyrrc.in"
+)
+sha256sums=('55ffc6b7376fdb5c7bfb6d33c846049e6c0f8ad6262f864294fc42d4059b1a26'
+            '4033cfa3ed3bd1adf8a3e8c123b5aa7e6ee90d979e21a506c97ff5fdd835bd6d')
+
+
+options=(!strip)
+install=$pkgname.install
+
+_installdir=opt/zephyr-sdk
+_setupsh=setup.sh
+
+build() {
+  cd "$srcdir"
+  sed "s@%%PACMAN_ROOT%%@${pacman_root}@g" zephyrrc.in > zephyrrc
+}
+
+package() {
+  cd "$srcdir"
+
+  mkdir -p $pkgdir/${pacman_root}/opt
+
+  echo ">>> Unpacking...."
+  cp -a $srcdir/zephyr-sdk-$pkgver $pkgdir/${pacman_root}/$_installdir
+
+  install -Dm644 zephyrrc $pkgdir/${pacman_root}/usr/share/zephyr-sdk/zephyrrc
+  cd $pkgdir/${pacman_root}/$_installdir
+
+  ######### NOTE: we are in $_installdir after this point
+  ./$_setupsh -t all
+
+  # Manually install the CMake module, because upstream paths are no good:
+  # file installed into $HOME and path is the package build path. Upstream
+  # needs to support overridable path for the module and a -prefix argumnent
+  # to distinguish destination copy dir from final system install path.
+  local _cmake_fname=$(echo -n ${pacman_root}/$_installdir | md5sum | cut -d' ' -f1)
+  local _cmake_module_path="$pkgdir/${pacman_root}/usr/lib/cmake/Zephyr-sdk"
+  mkdir -p "$_cmake_module_path"
+
+  echo "${pacman_root}/$_installdir" > "$_cmake_module_path/${_cmake_fname}"
+
+  rm setup.sh
+
+  local _python_dylib;
+  _python_dylib="libpython"$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')".dylib"
+
+  # don't know who's fucking bright idea it was to hardcode homebrew paths
+  local _f; for _f in $(find "$pkgdir" -iname "*-gdb-py"); do
+    install_name_tool \
+      -change '/opt/homebrew/opt/python@3.8/Frameworks/Python.framework/Versions/3.8/Python' \
+              "${pacman_root}/usr/lib/${_python_dylib}" \
+              "${_f}"
+  done
+}
+
+# Manual test procedure: get Zephyr Kernel, build an example, and run in Qemu:
+#
+# $ wget https://github.com/zephyrproject-rtos/zephyr/archive/master.tar.gz
+# $ tar xf master.tar.gz
+# $ cd zephyr-master
+# $ source zephyr-env.sh
+# $ cd samples/hello_world
+# $ mkdir build && cd build
+# $ cmake -GNinja -DBOARD=qemu_cortex_a53 ..
+# $ ninja run
+
+# Alternative using West:
+#
+# $ west init testws
+# $ cd testws
+# $ west update
+# $ cd zephyr
+# $ west build --pristine=always -b qemu_cortex_a53 samples/hello_world
+# $ cd build
+# $ ninja run
+
+# Expected output for -b qemu_cortex_m3:
+#
+#       *** Booting Zephyr OS version 2.4.99  ***
+#       Hello World! qemu_cortex_a53
+
+# More info: https://docs.zephyrproject.org/latest/getting_started/index.html

@@ -1,0 +1,4 @@
+post_install() {
+    echo ">>> Create a config file:"
+    echo ">>>     cp ${pacman_root}/usr/share/zephyr-sdk/zephyrrc ~/.zephyrrc"
+}
