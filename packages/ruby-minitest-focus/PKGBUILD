@@ -1,0 +1,23 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=minitest-focus
+pkgname=ruby-$_gemname
+pkgver=1.4.0
+pkgrel=1
+pkgdesc="Allows you to focus on a few tests with ease without having to use command-line arguments"
+arch=(any)
+url='https://rubygems.org/gems/'${_gemname}
+license=(BSD-2)
+depends=(ruby ruby-minitest)
+makedepends=('ruby-bundler' 'rubygems')
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+noextract=(${_gemname}-${pkgver}.gem)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+sha256sums=('4cf04bd2b5fe0649922db56f9f2ae30af91475a0f51e02c2baa33f5c5a47ff6c')
+
+package() {
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --ignore-dependencies --no-user-install --no-document -i "$pkgdir/$_gemdir" -n "$pkgdir/${pacman_root}/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
+}
