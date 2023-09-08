@@ -1,6 +1,6 @@
 pkgname=llvm-project
 pkgver=16.0.6
-pkgrel=1
+pkgrel=3
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
@@ -14,22 +14,25 @@ provides=(llvm=${pkgver} llvm-libs=${pkgver} clang=${pkgver} libc++=${pkgver} co
 source=(
 	"https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}/llvm-project-${pkgver}.src.tar.xz"
 	'libstdcxx-on-macos.patch'
+	'sysroot-fix.patch'
 )
 
 sha256sums=(
 	'ce5e71081d17ce9e86d7cbcfa28c4b04b9300f8fb7e78422b1feb6bc52c3028e'
 	'95f3b49c4bf7575b02836d7fd1172dda67bbbf5ed0a5cd1b5cedfccac84a03f6'
+	'0b9f057e3ddac04f86c253c0935b523851ce926d9bc3fafc3b031895c5b09a3a'
 )
 
 prepare() {
 	cd $srcdir/$pkgname-$pkgver.src
 	patch -Np1 -i ../libstdcxx-on-macos.patch
+	patch -Np1 -i ../sysroot-fix.patch
 }
 
 build() {
 	cd $srcdir/$pkgname-$pkgver.src
-	export CFLAGS+=" -Wno-profile-instr-unprofiled "
-	export CXXFLAGS+=" -Wno-profile-instr-unprofiled "
+	export CFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
+	export CXXFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
 
 	rm -rf build-s1 build-s2
 
