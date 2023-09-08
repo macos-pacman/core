@@ -1,0 +1,38 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=minitest-proveit
+pkgname=ruby-$_gemname
+pkgver=1.0.0
+pkgrel=1
+pkgdesc='forces all tests to prove success (via at least one assertion) rather than rely on the absence of failure.'
+arch=(any)
+url='https://github.com/seattlerb/'${_gemname}
+license=(BSD-2)
+depends=(ruby ruby-minitest)
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+source=("git+${url}#commit=1d86852bd820e1dc4f2d204231f1ebbc1b146075")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "${srcdir}/${_gemname}"
+}
+
+build() {
+  cd "${srcdir}/${_gemname}"
+  rake package
+}
+
+check() {
+  cd "${srcdir}/${_gemname}"
+  rake test
+}
+
+package() {
+  cd "${srcdir}/${_gemname}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" "pkg/${_gemname}-${pkgver}.gem"
+  install -Dm 644 *.rdoc -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+
+  rm -fr "${pkgdir}/${_gemdir}/cache/"
+}
