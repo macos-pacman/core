@@ -1,0 +1,25 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=rspectacular
+pkgname=ruby-$_gemname
+pkgver=0.70.8
+pkgrel=1
+pkgdesc="We rock some RSpec configurations and matchers like it ain't nobody's bidnezz."
+arch=(any)
+url='https://rubygems.org/gems/'${_gemname}
+license=(BSD-2)
+depends=('ruby' 'ruby-fuubar')
+makedepends=('ruby-bundler' 'rubygems')
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+noextract=(${_gemname}-${pkgver}.gem)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+sha256sums=('83b51f13bfb955399771c123379119d3c9362c5c140531c520324335025af144')
+
+package() {
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --ignore-dependencies --no-user-install --no-document -i "$pkgdir/$_gemdir" -n "$pkgdir/${pacman_root}/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
+
+  install -Dm 644 "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/LICENSE" -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+}

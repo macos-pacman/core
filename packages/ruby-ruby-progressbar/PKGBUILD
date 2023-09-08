@@ -1,0 +1,48 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname='ruby-progressbar'
+pkgname=ruby-$_gemname
+pkgver=1.13.0
+pkgrel=1
+pkgdesc='Flexible text progress bar library for Ruby'
+arch=(any)
+url='https://github.com/jfelchner/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+checkdepends=(ruby-rake ruby-rspectacular ruby-timecop)
+options=(!emptydirs)
+source=("${url}/archive/releases/v${pkgver}/${_gemname}-${pkgver}.tar.gz")
+sha256sums=('e09f173660fe058f8e13b2b36892f4d74dbc36e2d0cdc337d007c8d517c0fedf')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-releases-v${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  sed --in-place '/cert_chain/d' "${_gemname}.gemspec"
+  sed --in-place '/signing_key/d' "${_gemname}.gemspec"
+
+  rm -fv Gemfile*
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-releases-v${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-releases-v${pkgver}"
+  rspec
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-releases-v${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}

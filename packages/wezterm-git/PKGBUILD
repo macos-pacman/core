@@ -1,6 +1,6 @@
 pkgname=wezterm-git
 pkgver=20230821.rb112fb3f
-pkgrel=1
+pkgrel=2
 pkgdesc="A GPU-accelerated cross-platform terminal emulator and multiplexer"
 arch=(any)
 url="https://wezfurlong.org/wezterm/"
@@ -14,7 +14,7 @@ sha512sums=('SKIP'
 
 build() {
   cd wezterm
-  patch -Np1 -i ../3579.diff
+  git apply --3way -Np1 ../3579.diff
 
   cargo build --release --locked --target-dir target
 }
