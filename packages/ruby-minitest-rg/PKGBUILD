@@ -1,0 +1,52 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=minitest-rg
+pkgname=ruby-$_gemname
+pkgver=5.2.0
+pkgrel=1
+pkgdesc="Colored red/green output for Minitest"
+arch=(any)
+url='https://github.com/blowmage/'${_gemname}
+license=(BSD-2)
+depends=(ruby ruby-minitest)
+checkdepends=(ruby-rake ruby-hoe)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('49a4a7a27ac8be745ea250fce98c1660f39405b2c9d9fa22fafa322207b918d5')
+
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+
+  sed -i "s/s\\.version = .*/s\\.version = \"$pkgver\"/" minitest-rg.gemspec
+  sed -i "s|self.urls        = \['http://blowmage.com/minitest-rg'\]|self.homepage    = 'http://blowmage.com/minitest-rg'|" Rakefile
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+
+  local _gemdir="$(gem env gemdir)"
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/$_gemdir" \
+    --bindir "tmp_install/usr/bin" \
+    minitest-rg-$pkgver.gem
+
+  GEM_HOME="tmp_install/$_gemdir" rake test || :
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
