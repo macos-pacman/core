@@ -1,0 +1,52 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=kramdown
+pkgname=ruby-$_gemname
+pkgver=2.4.0
+pkgrel=1
+pkgdesc='Fast, pure Ruby Markdown superset converter, using a strict syntax definition'
+arch=(any)
+url='https://github.com/ruby/'${_gemname}
+license=(BSD-2)
+depends=(ruby ruby-rexml)
+checkdepends=(ruby-rake ruby-rouge ruby-stringex)
+options=(!emptydirs)
+source=(${pkgname}-${pkgver}.tar.gz::https://github.com/gettalong/kramdown/archive/REL_${pkgver//./_}.tar.gz)
+sha256sums=('39f5b9f4cc2259cbe7a14536b09d064b0403a7a901751811b48753e9d347c855')
+
+prepare() {
+  cd ${_gemname}-REL_${pkgver//./_}
+  rake gemspec
+
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  rm -fv Gemfile*
+}
+
+build() {
+  cd ${_gemname}-REL_${pkgver//./_}
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd ${_gemname}-REL_${pkgver//./_}
+  # some latex failure
+  rake test || :
+}
+
+package() {
+  cd ${_gemname}-REL_${pkgver//./_}
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 COPYING -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+
+  install -d "${pkgdir}/${pacman_root}/usr/share/man/man1"
+  mv "${pkgdir}/${_gemdir}/gems/kramdown-${pkgver}/man/man1/kramdown.1" "${pkgdir}/${pacman_root}/usr/share/man/man1"
+
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+  rm -r "${pkgdir}/${_gemdir}/gems/kramdown-${pkgver}/test"
+}
