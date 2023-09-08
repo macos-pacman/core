@@ -1,0 +1,41 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=maruku
+pkgname=ruby-$_gemname
+pkgver=0.7.3
+pkgrel=1
+pkgdesc='Pure-Ruby Markdown-superset interpreter'
+arch=(any)
+url='https://github.com/bhollis/maruku'
+license=(BSD-2)
+depends=(ruby)
+checkdepends=(ruby-rake)
+makedepends=(ruby-rdoc)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('d503927c2bc04075bbc57c04e5786d55ed872cb6f79ef76781086e142e69c125')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  rm -fv Gemfile Gemfile.lock
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 MIT-LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
