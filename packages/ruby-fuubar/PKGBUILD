@@ -1,0 +1,57 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=fuubar
+pkgname=ruby-$_gemname
+pkgver=2.5.1
+pkgrel=1
+pkgdesc="the instafailing RSpec progress bar formatter"
+arch=(any)
+url='https://github.com/ruby/'${_gemname}
+license=(BSD-2)
+depends=('ruby' 'ruby-rspec-core' 'ruby-ruby-progressbar')
+checkdepends=(ruby-rspec)
+options=(!emptydirs)
+source=(https://github.com/thekompanee/fuubar/archive/releases/v$pkgver/$pkgname-$pkgver.tar.gz)
+sha256sums=('0188e92c6b8582c3bad9de2d8584d46c47b3ed3550648e9b591149605b6d4b06')
+
+
+prepare() {
+  cd "${srcdir}/${_gemname}-releases-v${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+  sed --in-place '/signing_key/d' fuubar.gemspec
+  rm -fv Gemfile*
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-releases-v${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-releases-v${pkgver}"
+
+  local _gemdir="$(gem env gemdir)"
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/$_gemdir" \
+    --bindir "tmp_install/usr/bin" \
+    fuubar-$pkgver.gem
+
+  GEM_HOME="tmp_install/$_gemdir" rspec
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-releases-v${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
