@@ -1,0 +1,47 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=strscan
+pkgname=ruby-$_gemname
+pkgver=3.0.6
+pkgrel=1
+pkgdesc='Provides lexical scanning operations on a String'
+arch=(any)
+url='https://github.com/ruby/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+checkdepends=(ruby-rake ruby-benchmark-driver)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('221ce802327465b3d8ba88c3fe6b65e0760186b650cad323fa841e64dbc742d7')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  # replace broken dep
+  sed -i 's/benchmark-driver/benchmark_driver/g' Gemfile
+  sed -i 's/benchmark-driver/benchmark_driver/g' Rakefile
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  rake test
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE.txt -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
