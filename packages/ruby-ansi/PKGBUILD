@@ -1,0 +1,46 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=ansi
+pkgname=ruby-$_gemname
+pkgver=1.5.0
+pkgrel=1
+pkgdesc="Set of ANSI Code based classes and modules for Ruby"
+arch=(any)
+url='https://github.com/rubyworks/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+checkdepends=('ruby-qed' 'ruby-ae' 'ruby-lemon' 'ruby-rubytest-cli')
+options=(!emptydirs)
+source=("${url}/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('9ec26f2ecfb2ab32757e0b80c6d518e047b84e210b360b51bcd1ef08c1b8b1fd')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  sed -i 's/bundle exec //' Rakefile
+  rm -fv Gemfile Gemfile.lock
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  rake demo test || :
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
