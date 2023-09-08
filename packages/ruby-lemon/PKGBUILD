@@ -1,0 +1,55 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=lemon
+pkgname=ruby-$_gemname
+pkgver=0.9.1
+# https://github.com/rubyworks/lemon/issues/16
+_commit=182f6cb0202fcd267ef296fcc19d46efa68ab091
+pkgrel=1
+pkgdesc="Pucker-Strength Unit Testing"
+arch=(any)
+url='https://github.com/rubyworks/'${_gemname}
+license=(BSD-2)
+depends=(ruby-rubytest-cli ruby-ae ruby-ansi)
+checkdepends=(ruby-qed)
+options=(!emptydirs)
+source=(https://github.com/rubyworks/lemon/archive/$_commit/$pkgname-$_commit.tar.gz)
+sha256sums=('7b5ca2e61a6000cf4b96e03bcf1b12dac453568adfb2e3606378711b680c8242')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  rm -fv Gemfile Gemfile.lock
+
+  sed -i -e 's/rubytest/rubytest-cli/' -e 's/Test::Runner.cli(\*ARGV)/Test::CLI.run(ARGV)/' lib/lemon/cli.rb
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  gem build pkg/lemon.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+
+  local _gemdir="$(gem env gemdir)"
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/$_gemdir" \
+    --bindir "tmp_install/${pacman_root}/usr/bin" \
+    lemon-$pkgver.gem
+
+  PATH="$PWD/tmp_install/${pacman_root}/usr/bin:$PATH" GEM_HOME="tmp_install/$_gemdir" lemons test -Ilib -Itest/fixtures test/*.rb
+  PATH="$PWD/tmp_install/${pacman_root}/usr/bin:$PATH" GEM_HOME="tmp_install/$_gemdir" qed
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
