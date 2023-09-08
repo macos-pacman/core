@@ -41,7 +41,7 @@ check() {
     --ignore-dependencies \
     --no-user-install \
     --install-dir "tmp_install/$_gemdir" \
-    --bindir "tmp_install/usr/bin" \
+    --bindir "tmp_install/${pacman_root}/usr/bin" \
     fuubar-$pkgver.gem
 
   GEM_HOME="tmp_install/$_gemdir" rspec
