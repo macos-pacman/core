@@ -1,0 +1,44 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=appraisal
+pkgname=ruby-$_gemname
+pkgver=2.5.0
+pkgrel=1
+pkgdesc="Find out what your Ruby gems are worth"
+arch=(any)
+url='https://github.com/thoughtbot/'${_gemname}
+license=(BSD-2)
+depends=(ruby ruby-bundler ruby-rake ruby-thor)
+checkdepends=(ruby-rake ruby-rspec ruby-activesupport)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('2f1d6a08bed368852631f81b14006cfbd6454d485619952c9df115716d1de41c')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  rm -fv Gemfile*
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 *LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
