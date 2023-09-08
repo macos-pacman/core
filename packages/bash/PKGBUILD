@@ -6,7 +6,7 @@
 
 pkgname=bash
 pkgver=5.2.15
-pkgrel=3
+pkgrel=8
 pkgdesc='The GNU Bourne Again shell'
 arch=('x86_64' 'arm64')
 license=(GPL)
@@ -17,16 +17,25 @@ depends=(readline glibc ncurses)
 optdepends=('bash-completion: for tab completion')
 provides=('sh')
 source=(https://ftp.gnu.org/gnu/bash/bash-$pkgver.tar.gz{,.sig}
-        system.bashrc
-        system.bash_logout)
+        system.bashrc.in
+        system.bash_logout.in
+        system.bash_profile.in)
 validpgpkeys=('7C0135FB088AAF6C66C650B9BB5869F064EA74AB') # Chet Ramey
 sha256sums=('13720965b5f4fc3a0d4b61dd37e7565c741da9a5be24edc2ae00182fc1b3588c'
             'SKIP'
-            '99c1d87ba9d39e7d4d6863147f414e8361bb196cdcc6b16e3530b222826c5ecb'
+            'd73d271a0123f5a05422b3acd9f45efd76c36f9be3e4eaeac9207c8084ae7be7'
             '025bccfb374a3edce0ff8154d990689f30976b78f7a932dc9a6fcef81821811e'
+            'a6890bbac5676050841121f8a3baeba5ed4c675f2f75e34243f0977a413ffb79'
 )
 
-pacman_root=$(pacman-root-dir)
+prepare() {
+  cd $srcdir
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bashrc.in > system.bashrc
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_logout.in > system.bash_logout
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_profile.in > system.bash_profile
+
+  sed -i "/SYS_PROFILE/d" $pkgname-$pkgver/pathnames.h.in
+}
 
 build() {
   cd $pkgname-$pkgver
@@ -34,6 +43,7 @@ build() {
   _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"${pacman_root}/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin\"\'
                -DSTANDARD_UTILS_PATH=\'\"/usr/bin\"\'
                -DSYS_BASHRC=\'\"${pacman_root}/etc/bash.bashrc\"\'
+               -DSYS_PROFILE=\'\"${pacman_root}/etc/bash.profile\"\'
                -DSYS_BASH_LOGOUT=\'\"${pacman_root}/etc/bash.bash_logout\"\'
                -DNON_INTERACTIVE_LOGIN_SHELLS)
 
@@ -70,6 +80,7 @@ package() {
 
   # system-wide configuration files
   install -Dm644 system.bashrc "$pkgdir/${pacman_root}/etc/bash.bashrc"
+  install -Dm644 system.bash_profile "$pkgdir/${pacman_root}/etc/bash.profile"
   install -Dm644 system.bash_logout "$pkgdir/${pacman_root}/etc/bash.bash_logout"
 }
 
