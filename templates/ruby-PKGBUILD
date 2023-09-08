@@ -40,6 +40,6 @@ package() {
   local _gemdir="$(gem env gemdir)"
   gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
   install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
-  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  install -Dm 644 *LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
   rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
 }

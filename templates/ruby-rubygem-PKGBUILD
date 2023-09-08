@@ -1,0 +1,25 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=
+pkgname=ruby-$_gemname
+pkgver=
+pkgrel=1
+pkgdesc=
+arch=(any)
+url='https://rubygems.org/gems/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+makedepends=('ruby-bundler' 'rubygems')
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+noextract=(${_gemname}-${pkgver}.gem)
+source=(https://rubygems.org/downloads/$_gemname-$pkgver.gem)
+sha256sums=('ASDF')
+
+package() {
+  local _gemdir="$(ruby -e'puts Gem.default_dir')"
+  gem install --ignore-dependencies --no-user-install --no-document -i "$pkgdir/$_gemdir" -n "$pkgdir/${pacman_root}/usr/bin" $_gemname-$pkgver.gem
+  rm "$pkgdir/$_gemdir/cache/$_gemname-$pkgver.gem"
+
+  install -Dm 644 "${pkgdir}${_gemdir}/gems/${_gemname}-${pkgver}/LICENSE.txt" -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+}
