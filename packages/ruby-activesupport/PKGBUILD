@@ -1,0 +1,46 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=activesupport
+pkgname=ruby-$_gemname
+pkgver=7.0.7.2
+pkgrel=1
+pkgdesc='A toolkit of support libraries and Ruby core extensions extracted from the Rails framework.'
+arch=(any)
+url='https://github.com/rails/rails/tree/master/activesupport'
+license=(BSD-2)
+depends=('ruby' 'ruby-concurrent' 'ruby-i18n' 'ruby-tzinfo' 'ruby-zeitwerk' 'ruby-minitest')
+checkdepends=(ruby-rake ruby-minitest)
+options=(!emptydirs)
+source=("${pkgname}-${pkgver}::git+https://github.com/rails/rails#tag=v${pkgver}?signed")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "${srcdir}/ruby-${_gemname}-${pkgver}/activesupport"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  rm -fv Gemfile*
+}
+
+build() {
+  cd "${srcdir}/ruby-${_gemname}-${pkgver}/activesupport"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/ruby-${_gemname}-${pkgver}/activesupport"
+  # tests don't work
+  # rake test
+}
+
+package() {
+  cd "${srcdir}/ruby-${_gemname}-${pkgver}/activesupport"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 *LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
