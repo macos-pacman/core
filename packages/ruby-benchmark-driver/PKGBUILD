@@ -1,0 +1,44 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=benchmark-driver
+pkgname=ruby-$_gemname
+pkgver=0.16.3
+pkgrel=1
+pkgdesc="Fully-featured accurate benchmark driver for Ruby"
+arch=(any)
+url='https://github.com/benchmark-driver/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('345215a1824eefe99015f2e7274ae6f2518de3f426029809809de05df4c80ccd')
+
+# alias
+provides=(ruby-benchmark_driver)
+_gemspec=${_gemname/-/_}.gemspec
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemspec}"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemspec}"
+
+  rm -fv Gemfile*
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemspec}
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname/-/_}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname/-/_}-${pkgver}.gem"
+}
