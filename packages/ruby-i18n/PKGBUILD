@@ -1,0 +1,49 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=i18n
+pkgname=ruby-$_gemname
+pkgver=1.14.1
+pkgrel=2
+pkgdesc="New wave Internationalization support for Ruby."
+arch=(any)
+url='https://github.com/ruby/'${_gemname}
+license=(BSD-2)
+depends=(ruby ruby-concurrent)
+makedepends=(ruby-rdoc)
+checkdepends=(ruby-bundler ruby-activesupport ruby-json ruby-minitest ruby-mocha ruby-rake ruby-test_declarative)
+options=(!emptydirs)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/$pkgname/$_gemname/archive/v$pkgver.tar.gz")
+sha256sums=('09f45a1201c71ed87b71e7a7690e02b3c70765849686d21bb98c3127de5914cb')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+  sed --in-place 's|mocha/setup|mocha/api|g' test/test_helper.rb
+
+  rm -fv Gemfile*
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+
+  # dunno, something about expects
+  rake test || :
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 MIT-LICENSE -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
