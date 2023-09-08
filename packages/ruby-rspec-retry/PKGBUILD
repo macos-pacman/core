@@ -1,0 +1,47 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=rspec-retry
+pkgname=ruby-$_gemname
+pkgver=0.6.2
+pkgrel=1
+pkgdesc='retry intermittently failing rspec examples'
+arch=(any)
+url='https://github.com/NoRedInk/'${_gemname}
+license=(MIT)
+depends=(ruby ruby-rspec-core)
+checkdepends=(ruby-rake ruby-appraisal ruby-byebug ruby-pry-byebug)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz"
+        'https://salsa.debian.org/ruby-team/ruby-rspec-retry/-/raw/master/debian/patches/0002-Workaround-class-variable-issues.patch')
+sha256sums=('8a9bf4ccec2e9b1878bb0cd162415f0d351481a9f1d1c5307836a04c309f6579'
+            '9f89447fb5b6d606dafd32be305e2175d95bba5f254f1fd4bef8524624354970')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  # sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  patch -Np1 -i ../0002-Workaround-class-variable-issues.patch
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  rake
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 *LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
