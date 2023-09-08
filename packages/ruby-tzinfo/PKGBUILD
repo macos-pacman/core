@@ -1,0 +1,48 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=tzinfo
+pkgname=ruby-$_gemname
+pkgver=2.0.6
+pkgrel=1
+pkgdesc="Daylight savings aware transformations between times in different time zones"
+arch=(any)
+url='https://github.com/tzinfo/'${_gemname}
+license=(BSD-2)
+depends=(ruby ruby-concurrent)
+makedepends=(ruby-rake ruby-rdoc)
+checkdepends=(ruby-minitest ruby-simplecov ruby-tzinfo-data)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('dfbf1dbe06d1646ed36ac740e50f27ebb76c5b7f85205918813dc60246cee655')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+
+  rm -fv Gemfile Gemfile.lock
+
+  sed -i '/Tests must be run with bundler/d' test/test_utils.rb
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  rake test || :
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
