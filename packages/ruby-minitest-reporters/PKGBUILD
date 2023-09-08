@@ -1,0 +1,59 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=minitest-reporters
+pkgname=ruby-$_gemname
+pkgver=1.6.1
+pkgrel=1
+pkgdesc="Death to haphazard monkey-patching! Extend Minitest through simple hooks."
+arch=(any)
+url='https://github.com/minitest-reporters/'${_gemname}
+license=(BSD-2)
+depends=('ruby' 'ruby-ansi' 'ruby-builder' 'ruby-minitest' 'ruby-ruby-progressbar')
+makedepends=('rubygems' 'ruby-rdoc')
+checkdepends=('ruby-bundler' 'ruby-maruku' 'ruby-rake')
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('c58bb27cfec1e441d7f8ca0e9a221e39e1450f21129faf9b92776b1c4fee6ca7')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+
+  sed --in-place '/executable/d' "${_gemname}.gemspec"
+  sed --in-place --regexp-extended 's|git ls-files -- \{test,spec,features\}/\*|find test -type f|g' "${_gemname}.gemspec"
+  sed --in-place --regexp-extended 's|git ls-files|find . -type f -not -path "\*/\.git/*"|g' "${_gemname}.gemspec"
+
+  sed --in-place '/Run RuboCop on the lib directory/,+7d' Rakefile
+  sed --in-place '/rubocop/d' Rakefile "${_gemname}.gemspec"
+
+  rm -fv Gemfile Gemfile.lock
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+
+  local _gemdir="$(gem env gemdir)"
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/$_gemdir" \
+    --bindir "tmp_install/${pacman_root}/usr/bin" \
+    ${_gemname}-$pkgver.gem
+
+  GEM_HOME="tmp_install/$_gemdir" rake test
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
