@@ -1,0 +1,52 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=rubytest
+pkgname=ruby-$_gemname
+pkgver=0.8.1
+# https://github.com/rubyworks/rubytest/issues/7
+_commit=39e02662650f2954a7ae7198ac5ea2dc5a7410ce
+pkgrel=1
+pkgdesc="Core API for Ruby Universal Test Harness"
+arch=(any)
+url='https://github.com/rubyworks/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+checkdepends=(ruby-ae ruby-qed)
+options=(!emptydirs)
+source=("${url}/archive/${_commit}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('58130e9c6c9f7c5bb0659fdf385743bb6741233a95bed574a22f499fddca7667')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  rm -fv Gemfile Gemfile.lock
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  gem build .gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+
+  local _gemdir="$(gem env gemdir)"
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/$_gemdir" \
+    --bindir "tmp_install/usr/bin" \
+    rubytest-$pkgver.gem
+
+  GEM_HOME="tmp_install/$_gemdir" qed -Ilib
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
