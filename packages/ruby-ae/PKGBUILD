@@ -1,0 +1,52 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=ae
+pkgname=ruby-$_gemname
+pkgver=1.8.2
+pkgrel=1
+pkgdesc="Assertive Expressive is an assertions library specifically designed for reuse by other test frameworks"
+arch=(any)
+url='https://github.com/rubyworks/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+checkdepends=(ruby-qed)
+options=(!emptydirs)
+source=("${url}/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('3467a71b1b1e0c10d5e7d05eaa1ee90d120761f68d54d484d7ea7452faacf290')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  rm -fv Gemfile Gemfile.lock
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build .gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+
+  local _gemdir="$(gem env gemdir)"
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/$_gemdir" \
+    --bindir "tmp_install/usr/bin" \
+    ae-$pkgver.gem
+
+  GEM_HOME="tmp_install/$_gemdir" qed
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 lib/ae.yml "${pkgdir}/${_gemdir}/gems/${_gemname}-${pkgver}/lib/"
+
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
+
