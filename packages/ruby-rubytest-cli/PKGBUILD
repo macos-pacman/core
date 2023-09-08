@@ -1,0 +1,36 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=rubytest-cli
+pkgname=ruby-$_gemname
+pkgver=0.2.0
+# https://github.com/rubyworks/rubytest-cli/issues/1
+_commit=f57b301b69e0b074ac58d18ec553566b258b758b
+pkgrel=1
+pkgdesc="Rubytest CLI is a command-line interface for running tests for Rubytest-based test frameworks"
+arch=(any)
+url='https://github.com/rubyworks/'${_gemname}
+license=(BSD-2)
+depends=(ruby)
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+source=("${url}/archive/${_commit}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('3bc1dff0a9677de6c9e85156820ab36719e484ab476af145abcef528697b902a')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  rm -fv Gemfile Gemfile.lock
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  gem build .gemspec
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${_commit}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --local --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 *.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE* -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
