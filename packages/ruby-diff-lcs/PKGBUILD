@@ -1,0 +1,43 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+_gemname=diff-lcs
+pkgname=ruby-$_gemname
+pkgver=1.5.0
+pkgrel=1
+pkgdesc='Diff::LCS computes the difference between two Enumerable sequences using the McIlroy-Hunt longest common subsequence (LCS) algorithm'
+arch=(any)
+url='https://github.com/halostatue/'${_gemname}
+license=('MIT' 'PerlArtistic' 'GPL2')
+depends=(ruby)
+checkdepends=(ruby-rake)
+options=(!emptydirs)
+source=("${url}/archive/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('f6bb76be4a7de594660500e1a68c52abf0f32a9fb97bd7bfae8a781d4afc7db8')
+
+prepare() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  # sed -E 's|~>|>=|g' -i ${_gemname}.gemspec
+  sed --in-place 's|`git ls-files -z`|`find . -print0`|' "${_gemname}.gemspec"
+
+  # purge development dependencies
+  sed --in-place '/spec.add_development_dependency/d' "${_gemname}.gemspec"
+}
+
+build() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  gem build ${_gemname}.gemspec
+}
+
+check() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  rake test
+}
+
+package() {
+  cd "${srcdir}/${_gemname}-${pkgver}"
+  local _gemdir="$(gem env gemdir)"
+  gem install --ignore-dependencies --no-user-install -i "${pkgdir}${_gemdir}" -n "${pkgdir}/${pacman_root}/usr/bin" ${_gemname}-${pkgver}.gem
+  install -Dm 644 README.rdoc -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE.md -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+  rm "${pkgdir}/${_gemdir}/cache/${_gemname}-${pkgver}.gem"
+}
