@@ -3,7 +3,7 @@
 _gemname=brass
 pkgname=ruby-$_gemname
 pkgver=1.2.1
-pkgrel=1
+pkgrel=2
 pkgdesc="Bare-Metal Ruby Assertions System Standard"
 arch=(any)
 url='https://github.com/rubyworks/'${_gemname}
@@ -40,7 +40,7 @@ check() {
     --ignore-dependencies \
     --no-user-install \
     --install-dir "tmp_install/$_gemdir" \
-    --bindir "tmp_install/usr/bin" \
+    --bindir "tmp_install/${pacman_root}/usr/bin" \
     brass-$pkgver.gem
 
   GEM_HOME="tmp_install/$_gemdir" rubytest test
