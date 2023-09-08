@@ -1,0 +1,57 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=ruby-shoulda-context
+pkgver=2.0.0
+_commit=eff9fdde51db7681128336c682311b36867fb288
+pkgrel=4
+pkgdesc='Minitest & Test::Unit context framework'
+arch=(any)
+url='https://github.com/thoughtbot/shoulda-context'
+license=(MIT)
+depends=(ruby)
+makedepends=(git)
+options=(!emptydirs)
+source=(git+https://github.com/thoughtbot/shoulda-context.git#commit=$_commit)
+sha256sums=('SKIP')
+
+prepare() {
+  cd shoulda-context
+  sed -i -e 's|~>|>=|' -e '/appraisal/d' -e 's/, "0.71.0"//' Gemfile
+  # Multiple hacks to avoid appraisal and rails
+  sed -i 's/Tests::CurrentBundle.instance.appraisal_in_use?/true/' Rakefile
+  sed -i '/current_bundle/d;/assert_appraisal/d;/rails_application_with_shoulda_context/d' test/test_helper.rb Rakefile
+  git rm Gemfile.lock
+  git rm test/shoulda/test_framework_detection_test.rb test/shoulda/rerun_snippet_test.rb test/shoulda/railtie_test.rb
+}
+
+build() {
+  local _gemdir="$(gem env gemdir)"
+  cd shoulda-context
+  gem build shoulda-context.gemspec
+  gem install \
+    --local \
+    --verbose \
+    --ignore-dependencies \
+    --no-user-install \
+    --install-dir "tmp_install/$_gemdir" \
+    --bindir "tmp_install/${pacman_root}/usr/bin" \
+    shoulda-context-$pkgver.gem
+  find "tmp_install/$_gemdir/gems/" \
+    -type f \
+    \( \
+        -iname "*.o" -o \
+        -iname "*.c" -o \
+        -iname "*.so" -o \
+        -iname "*.time" -o \
+        -iname "gem.build_complete" -o \
+        -iname "Makefile" \
+    \) \
+    -delete
+  rm -r tmp_install/$_gemdir/cache
+}
+
+package() {
+  cd shoulda-context
+  cp -a tmp_install/* "$pkgdir"/
+  install -Dm644 MIT-LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
+}
