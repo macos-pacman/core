@@ -13,7 +13,6 @@
 # Contributor: John Luebs <jkluebs@gmail.com>
 
 pkgname=go
-epoch=2
 pkgver=1.21.1
 pkgrel=1
 pkgdesc='Core compiler tools for the Go programming language'
