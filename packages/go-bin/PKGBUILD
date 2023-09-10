@@ -1,0 +1,51 @@
+pkgname=go-bin
+pkgver=1.21.1
+pkgrel=2
+pkgdesc="Core compiler tools for the Go programming language (binaries)"
+arch=('x86_64' 'arm64')
+url='https://golang.org/'
+license=(BSD)
+provides=(go)
+conflicts=(go)
+
+# go uses 'amd64' for x64 and 'arm64' for aarch64
+if [ $CARCH = "x86_64" ]; then
+  source=("https://go.dev/dl/go${pkgver}.darwin-amd64.tar.gz")
+  sha256sums=('809f5b0ef4f7dcdd5f51e9630a5b2e5a1006f22a047126d61560cdc365678a19')
+else
+  source=("https://go.dev/dl/go${pkgver}.darwin-arm64.tar.gz")
+  sha256sums=('ffd40391a1e995855488b008ad9326ff8c2e81803a6e80894401003bae47fcf1')
+fi
+
+check() {
+  cd go/test
+  ../bin/go test -v cmd/internal/testdir
+}
+
+package() {
+  cd go
+
+  install -d "$pkgdir/${pacman_root}/usr/bin" \
+    "$pkgdir/${pacman_root}/usr/lib/go"       \
+    "$pkgdir/${pacman_root}/usr/share/doc/go"
+
+  cp -a bin pkg src lib misc api "$pkgdir/${pacman_root}/usr/lib/go"
+  cp -r doc/* "$pkgdir/${pacman_root}/usr/share/doc/go"
+
+  ln -sf /${pacman_root}/usr/lib/go/bin/go    "$pkgdir/${pacman_root}/usr/bin/go"
+  ln -sf /${pacman_root}/usr/lib/go/bin/gofmt "$pkgdir/${pacman_root}/usr/bin/gofmt"
+  ln -sf /${pacman_root}/usr/share/doc/go     "$pkgdir/${pacman_root}/usr/lib/go/doc"
+
+  install -Dm644 VERSION "$pkgdir/${pacman_root}/usr/lib/go/VERSION"
+
+  # https://github.com/golang/go/issues/57179
+  install -Dm644 go.env "$pkgdir/${pacman_root}/usr/lib/go/go.env"
+  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}
+
+
+
+
+
+
+# vim: ts=2 sw=2 et:
