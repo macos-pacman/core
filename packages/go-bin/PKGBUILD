@@ -1,12 +1,13 @@
 pkgname=go-bin
 pkgver=1.21.1
-pkgrel=2
+pkgrel=3
 pkgdesc="Core compiler tools for the Go programming language (binaries)"
 arch=('x86_64' 'arm64')
 url='https://golang.org/'
 license=(BSD)
 provides=(go)
 conflicts=(go)
+options=(!strip staticlibs)
 
 # go uses 'amd64' for x64 and 'arm64' for aarch64
 if [ $CARCH = "x86_64" ]; then
