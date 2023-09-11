@@ -20,9 +20,7 @@ build() {
 
 check() {
   cd BTrees-$pkgver
-
-  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
-  PYTHONPATH="$PWD/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-$(uname -m)-cpython-${python_version}" python -m zope.testrunner --test-path=src
+  PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)" python -m zope.testrunner --test-path=src
 }
 
 package() {
