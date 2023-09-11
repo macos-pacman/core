@@ -42,9 +42,10 @@ build() {
 
 check() {
   cd pyobjc-core-${pkgver}
+  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))'
 
   # some tests fail but i can't be bothered to debug them right now
-  PYTHONPATH="${PWD}/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-${CARCH}-cpython-311/:${PYTHONPATH}" \
+  PYTHONPATH="${PWD}/build/lib.macosx-${MACOSX_DEPLOYMENT_TARGET}-$(uname -m)-cpython-${python_version}/:${PYTHONPATH}" \
     python -m pytest -vv -k 'not test_client.py' -o xfail_strict=False \
       -k 'not test_archive_python.py' \
       --deselect 'PyObjCTest/test_ctests.py::test_AlwaysFails' \
