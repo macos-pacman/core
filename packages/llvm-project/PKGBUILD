@@ -1,6 +1,6 @@
 pkgname=llvm-project
 pkgver=16.0.6
-pkgrel=3
+pkgrel=4
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
@@ -20,7 +20,7 @@ source=(
 sha256sums=(
 	'ce5e71081d17ce9e86d7cbcfa28c4b04b9300f8fb7e78422b1feb6bc52c3028e'
 	'95f3b49c4bf7575b02836d7fd1172dda67bbbf5ed0a5cd1b5cedfccac84a03f6'
-	'0b9f057e3ddac04f86c253c0935b523851ce926d9bc3fafc3b031895c5b09a3a'
+	'0346407ec68a1376232d5ad72196cffbcb1d7b547acc688dc9724687b3859dda'
 )
 
 prepare() {
