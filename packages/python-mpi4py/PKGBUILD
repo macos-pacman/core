@@ -30,8 +30,7 @@ check() {
     export OMPI_MCA_opal_warn_on_missing_libcuda=0
 
     cd ${_pkg}-${pkgver}
-    local python_version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-    PYTHONPATH="${PWD}"/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-$CARCH-cpython-${python_version/./} python setup.py test
+    PYTHONPATH="${PWD}"/build/$(_GetPythonPlatformPath) python setup.py test
 }
 
 package() {
