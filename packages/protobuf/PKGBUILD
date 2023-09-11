@@ -74,7 +74,8 @@ check() {
   cd $pkgbase-$pkgver/python
 
   # python tests broken
-  export PYTHONPATH=build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-311
+  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
+  export PYTHONPATH=build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version}
   # pytest -v google/$pkgbase/internal/
 }
 
