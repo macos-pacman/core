@@ -4,12 +4,11 @@
 
 pkgname=autoconf
 pkgver=2.71
-pkgrel=3
+pkgrel=4
 pkgdesc="A GNU tool for automatically configuring source code"
 arch=('any')
 license=('GPL2' 'GPL3' 'custom')
 url="https://www.gnu.org/software/autoconf"
-groups=('base-devel')
 depends=('awk' 'm4' 'diffutils' 'perl' 'sh')
 checkdepends=('gcc-fortran')
 source=(
@@ -20,8 +19,6 @@ sha256sums=('f14c83cfebcc9427f2c3cea7258bd90df972d92eb26752da4ddad81c87a0faa4'
             'SKIP'
             'ee07bb3f9692bed2b7689bd361ae4e2e9a1bd852864a0c98f90b7b4c8beddfe4')
 validpgpkeys=('82F854F3CE73174B8B63174091FCC32B6769AA64')  # Zack Weinberg
-
-pacman_root=$(pacman-root-dir)
 
 prepare() {
 	# fix build for bash >= 5.2
