@@ -24,7 +24,7 @@ build() {
 check() {
   cd ${_pkg}-${pkgver}/test
   local python_version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-  NO_NET=1 PYTHONPATH="../build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version/./}" python -B ./run_all.py
+  NO_NET=1 PYTHONPATH="../build/$(_GetPythonPlatformPath)" python -B ./run_all.py
 }
 
 package() {
