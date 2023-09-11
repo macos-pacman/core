@@ -28,8 +28,9 @@ build() {
 check() {
   cd watchdog-$pkgver
 
+  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
   # Invokes sudo
-  PYTHONPATH="$PWD/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-$(uname -m)-cpython-311" pytest \
+  PYTHONPATH="$PWD/build/lib.macosx-${MACOSX_DEPLOYMENT_TARGET}-$(uname -m)-cpython-${python_version}" pytest \
     --deselect 'tests/test_inotify_buffer.py::test_unmount_watched_directory_filesystem' \
     --deselect 'tests/test_0_watchmedo.py::test_auto_restart_subprocess_termination[False]' \
     --deselect 'tests/test_emitter.py' \
