@@ -22,9 +22,7 @@ build() {
 
 check() {
   cd python-lazy-object-proxy-$pkgver
-
-  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
-  PYTHONPATH="$PWD/build/lib.macosx-${MACOSX_DEPLOYMENT_TARGET}-$(uname -m)-cpython-${python_version}" pytest
+  PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)" pytest
 }
 
 package() {
