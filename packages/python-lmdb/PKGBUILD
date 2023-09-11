@@ -22,9 +22,7 @@ build() {
 
 check() {
   cd ${_pkg}-${_pkg}_${pkgver}
-  local _pyver
-  _pyver="$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')"
-  LMDB_FORCE_SYSTEM=1 PYTHONPATH="${PWD}"/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${_pyver} pytest -vv --color=yes
+  LMDB_FORCE_SYSTEM=1 PYTHONPATH="${PWD}"/build/$(_GetPythonPlatformPath) pytest -vv --color=yes
 }
 
 package() {
