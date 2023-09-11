@@ -22,8 +22,7 @@ build() {
 
 check() {
   cd pysendfile-$pkgver
-  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
-  PYTHONPATH="$PWD/build/lib.macosx-${MACOSX_DEPLOYMENT_TARGET}-$(uname -m)-cpython-${python_version}" python test/test_sendfile.py
+  PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)" python test/test_sendfile.py
 }
 
 package() {
