@@ -28,8 +28,7 @@ check() {
     # name clash is preventing import, rename source temporarily
     # don't forget to rename back after running tests
     mv xxhash _noxxhash
-    local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
-    PYTHONPATH="$PWD/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version}" python -m unittest discover -vs tests
+    PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)" python -m unittest discover -vs tests
     mv _noxxhash xxhash
 }
 
