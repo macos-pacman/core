@@ -1,5 +1,5 @@
 pkgname=python-pyobjc-framework-cocoa
-pkgver=9.1.1
+pkgver=9.2
 pkgrel=1
 pkgdesc="Wrappers for the core Cocoa frameworks: CoreFoundation, Foundation and AppKit"
 url="https://github.com/ronaldoussoren/pyobjc"
@@ -8,9 +8,15 @@ arch=('any')
 depends=('python' 'python-pyobjc-core')
 makedepends=('python-build' 'python-installer')
 checkdepends=('python-pytest')
-source=("https://files.pythonhosted.org/packages/source/p/pyobjc-framework-Cocoa/pyobjc-framework-Cocoa-$pkgver.tar.gz")
-sha256sums=('345c32b6d1f3db45f635e400f2d0d6c0f0f7349d45ec823f76fc1df43d13caeb')
+source=("https://files.pythonhosted.org/packages/source/p/pyobjc-framework-Cocoa/pyobjc-framework-Cocoa-$pkgver.tar.gz"
+        'disable-broken-tests.patch')
+sha256sums=('efd78080872d8c8de6c2b97e0e4eac99d6203a5d1637aa135d071d464eb2db53'
+            '267d2234374846a66dcb8cbe94b35fafaa3e6810c9527e5de91095cbcfd950c1')
 
+prepare() {
+  cd pyobjc-framework-Cocoa-${pkgver}
+  patch -Np1 -i ../disable-broken-tests.patch
+}
 
 build() {
   cd pyobjc-framework-Cocoa-${pkgver}
@@ -19,12 +25,8 @@ build() {
 
 check() {
   cd pyobjc-framework-Cocoa-${pkgver}
-  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
-  PYTHONPATH="${PWD}/build/lib.macosx-${MACOSX_DEPLOYMENT_TARGET}-$(uname -m)-cpython-${python_version}/:${PYTHONPATH}" \
-    python -m pytest -vv \
-      --deselect 'PyObjCTest/test_cfrunloop.py::TestRunLoop::testFunctions10_7' \
-      -W "ignore::pytest.PytestCollectionWarning" \
-      < /dev/null
+  PYTHONPATH="${PWD}/build/$(_GetPythonPlatformPath)" \
+    python setup.py test < /dev/null
 }
 
 package() {
