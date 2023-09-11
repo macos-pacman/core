@@ -2,14 +2,14 @@
 # Maintainer: Dan McGee <dan@archlinux.org>
 
 pkgname=git
-pkgver=2.40.1
+pkgver=2.42.0
 pkgrel=1
 pkgdesc='the fast distributed version control system'
 arch=('x86_64' 'arm64')
 url='https://git-scm.com/'
 license=('GPL2')
 depends=('curl' 'expat' 'perl' 'perl-error' 'perl-mailtools'
-         'openssl' 'pcre2' 'grep' 'zlib')
+         'openssl' 'pcre2' 'grep' 'zlib' 'gettext')
 makedepends=('python' 'xmlto' 'asciidoc')
 optdepends=('tk: gitk and git gui'
             'perl-libwww: git svn'
@@ -24,7 +24,7 @@ optdepends=('tk: gitk and git gui'
             'subversion: git svn')
 validpgpkeys=('96E07AF25771955980DAD10020D04E5A713660A7') # Junio C Hamano
 source=("https://www.kernel.org/pub/software/scm/git/git-$pkgver.tar."{xz,sign})
-sha256sums=('4893b8b98eefc9fdc4b0e7ca249e340004faa7804a433d17429e311e1fef21d2'
+sha256sums=('3278210e9fd2994b8484dd7e3ddd9ea8b940ef52170cdb606daa94d887c93b0d'
             'SKIP')
 
 _make_paths=(
@@ -35,11 +35,15 @@ _make_paths=(
 
 _make_options=(
   CFLAGS="$CFLAGS"
-  LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS -L${pacman_root}/usr/lib/"
   INSTALL_SYMLINKS=1
   MAN_BOLD_LITERAL=1
   NO_PERL_CPAN_FALLBACKS=1
   USE_LIBPCRE2=1
+  NO_FINK=1
+  NO_DARWIN_PORTS=1
+  PYTHON_PATH="${pacman_root}/usr/bin/python"
+  PERL_PATH="${pacman_root}/usr/bin/perl"
 )
 
 build() {
