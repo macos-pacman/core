@@ -34,10 +34,9 @@ build() {
 
 check() {
   local python_version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-  local python_version_truncated=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
 
   # shit does not work correctly
-  # cd "${pkgname}-${pkgver}/_skbuild/$(python -c 'import distutils; print(distutils.util.get_platform())')-${python_version}/setuptools/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version_truncated}"
+  # cd "${pkgname}-${pkgver}/_skbuild/$(python -c 'import distutils; print(distutils.util.get_platform())')-${python_version}/setuptools/$(_GetPythonPlatformPath)"
 
   # PYTHONPATH="${PWD}:$PYTHONPATH" python -m blosc.test
 }
