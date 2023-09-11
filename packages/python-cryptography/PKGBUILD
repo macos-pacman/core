@@ -1,15 +1,15 @@
 # Maintainer: Felix Yan <felixonmars@archlinux.org>
 
 pkgname=python-cryptography
-pkgver=40.0.2
-_commit=f816b457494e010b655cd7fdcd30e3446f86a703
+pkgver=41.0.3
+_commit=b22271cf3c3dd8dc8978f8f4b00b5c7060b6538d
 pkgrel=1
 pkgdesc="A package designed to expose cryptographic recipes and primitives to Python developers"
 arch=('x86_64' 'arm64')
 license=('Apache')
 url="https://pypi.python.org/pypi/cryptography"
 depends=('python-cffi')
-makedepends=('git' 'python-setuptools-rust')
+makedepends=('git' 'python-setuptools-rust' 'llvm' 'clang' 'lld')
 checkdepends=('python-pytest' 'python-pytest-subtests' 'python-iso8601' 'python-pretend'
               'python-hypothesis' 'python-pytz' 'python-pytest-benchmark')
 source=("git+https://github.com/pyca/cryptography.git#commit=$_commit")
@@ -17,12 +17,15 @@ sha512sums=('SKIP')
 
 build() {
   cd cryptography
-  python setup.py build
+  echo $RUSTFLAGS
+  # https://github.com/pyca/cryptography/issues/9023
+  CC=clang python setup.py build
 }
 
 check() {
   cd cryptography
-  PYTHONPATH="$PWD/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-$(uname -m)-cpython-311:$PWD/vectors" pytest
+  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
+  PYTHONPATH="$PWD/build/lib.macosx-${MACOSX_DEPLOYMENT_TARGET}-$(uname -m)-cpython-${python_version}:$PWD/vectors" pytest
 }
 
 package() {
@@ -30,5 +33,5 @@ package() {
   python setup.py install --root="$pkgdir" --optimize=1 --skip-build
 
   # fix dylib
-  fix_rpath "${pacman_root}" "${pkgdir}" "$pkgdir/${pacman_root}/"usr/lib/python3.11/site-packages/cryptography/hazmat/bindings/_rust.abi3.so
+  fix_rpath "${pacman_root}" "${pkgdir}" "$pkgdir/${pacman_root}/"usr/lib/python*/site-packages/cryptography/hazmat/bindings/_rust.abi3.so
 }
