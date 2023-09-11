@@ -31,7 +31,7 @@ build() {
 check() {
   cd py${_pkg}-${pkgver}
   local python_version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-  PYTHONPATH="${PWD}"/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version/./} \
+  PYTHONPATH="${PWD}"/build/$(_GetPythonPlatformPath) \
     pytest -vv --color=yes -k 'not test_cc_supports_switch'
 }
 
