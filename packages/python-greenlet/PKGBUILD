@@ -23,8 +23,7 @@ build() {
 
 check() {
     cd greenlet-$pkgver
-    local _python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
-    PYTHONPATH="$PWD/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-$(uname -m)-cpython-$_python_version" python -m unittest discover -v greenlet.tests
+    PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)" python -m unittest discover -v greenlet.tests
 }
 
 package() {
