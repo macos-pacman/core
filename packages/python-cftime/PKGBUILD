@@ -24,7 +24,7 @@ check() {
   cd ${_pkg}-${pkgver}rel
   sed -i '/--cov/d' setup.cfg
   local python_version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-  PYTHONPATH="${PWD}"/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version/./} pytest -vv --color=yes || :
+  PYTHONPATH="${PWD}"/build/$(_GetPythonPlatformPath) pytest -vv --color=yes || :
 }
 
 package() {
