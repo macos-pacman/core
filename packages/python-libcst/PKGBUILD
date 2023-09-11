@@ -69,7 +69,7 @@ package() {
   rm -frv "$pkgdir/$site_packages/$_pkgname/"{tests,metadata/tests}
 
   # fix rpath
-  fix_rpath "${pacman_root}" "${pkgdir}" "${pkgdir}/${site_packages}/${_pkgname}/native.cpython-311-darwin.so"
+  fix_rpath "${pacman_root}" "${pkgdir}" "${pkgdir}/${site_packages}/${_pkgname}/native.cpython-*-darwin.so"
 }
 
 # vim:set ts=2 sw=2 et:
