@@ -17,6 +17,7 @@ sha256sums=('b6a107ab06206acc5359d4c5632bd9b22d448702a79b3169b0c62e0fb808bb2a')
 prepare() {
   cd $pkgname-$pkgver
   # Move test scripts around, so that they can use the correct sys.path (build/lib.linux...)
+  rm -rf tests
   mkdir tests
   mv test_*.py tests
 }
@@ -28,7 +29,7 @@ build() {
 
 check() {
   cd $pkgname-$pkgver
-  export PYTHONPATH="$PWD/build/_GetPythonPlatformPath"
+  export PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)"
   # Avoid writing .pyc files in check(), or packaging with --nocheck cannot reproduce
   # packages built with check() as .pyc files created in check() embed $srcdir
   PYTHONDONTWRITEBYTECODE=1 pytest tests --ignore=tests/test_snappy_cffi.py
