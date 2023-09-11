@@ -1,5 +1,5 @@
 pkgname=python-pyobjc-core
-pkgver=9.1.1
+pkgver=9.2
 pkgrel=1
 pkgdesc="The Python <-> Objective-C Bridge with bindings for macOS frameworks"
 url="https://github.com/ronaldoussoren/pyobjc"
@@ -11,7 +11,7 @@ checkdepends=('python-pytest' 'python-pyobjc-framework-cocoa' 'python-pyobjc-fra
 source=("https://files.pythonhosted.org/packages/source/p/pyobjc-core/pyobjc-core-$pkgver.tar.gz"
         'fix-testcase-runner.patch'
         'fix-tests.patch')
-sha256sums=('4b6cb9053b5fcd3c0e76b8c8105a8110786b20f3403c5643a688c5ec51c55c6b'
+sha256sums=('d734b9291fec91ff4e3ae38b9c6839debf02b79c07314476e87da8e90b2c68c3'
             '316078f5a3d9adcaffc69101a1f185132b5aae3aceb5769dff81446d09f97bad'
             '500794f3013624e25686a0c9eb0d96455eecad1f0c3ce95292b784364f7ebb8b')
 
@@ -42,14 +42,10 @@ build() {
 
 check() {
   cd pyobjc-core-${pkgver}
-  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))'
 
   # some tests fail but i can't be bothered to debug them right now
-  PYTHONPATH="${PWD}/build/lib.macosx-${MACOSX_DEPLOYMENT_TARGET}-$(uname -m)-cpython-${python_version}/:${PYTHONPATH}" \
-    python -m pytest -vv -k 'not test_client.py' -o xfail_strict=False \
-      -k 'not test_archive_python.py' \
-      --deselect 'PyObjCTest/test_ctests.py::test_AlwaysFails' \
-      -W "ignore::pytest.PytestCollectionWarning" || :
+  PYTHONPATH="${PWD}/build/$(_GetPythonPlatformPath):${PYTHONPATH}" \
+    python setup.py test || :
 }
 
 package() {
