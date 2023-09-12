@@ -1,7 +1,7 @@
 # Maintainer: Anatol Pomozov
 
 pkgname=aws-checksums
-pkgver=0.1.14
+pkgver=0.1.17
 pkgrel=1
 pkgdesc='Cross-Platform HW accelerated CRC32c and CRC32 with fallback to efficient SW implementations.'
 arch=('x86_64' 'arm64')
@@ -10,13 +10,12 @@ license=(Apache)
 depends=(aws-c-common)
 makedepends=(cmake)
 source=(aws-checksums-$pkgver.zip::https://github.com/awslabs/aws-checksums/archive/v$pkgver.zip)
-sha256sums=('936a8eef454ee319175ffae9508e68ae26d4fd8a37e70cd23de7dbee9e923ca1')
+sha256sums=('d76a01d61c3123ab7faab0099fe531530d40cd590ad1fc09458289d83528fd43')
 
 build() {
   cd aws-checksums-$pkgver
 
   cmake -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH=${pacman_root}/usr \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
     -DBUILD_SHARED_LIBS=ON -S . -B build
   cmake --build build
