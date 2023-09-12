@@ -56,7 +56,7 @@ check() {
   local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
   # rename source to avoid name clash
   mv pyarrow _nopyarrow
-  PYTHONPATH="${PWD}/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version/./}" \
+  PYTHONPATH="${PWD}/build/$(_GetPythonPlatformPath)" \
   ARROW_TEST_DATA="${srcdir}"/arrow-testing/data \
   ARROW_HOME=${pacman_root}/usr \
   PARQUET_HOME=${pacman_root}/usr \
