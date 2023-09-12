@@ -3,21 +3,25 @@
 # Contributor: minder
 
 pkgname=python-pillow
-pkgver=9.5.0
+pkgver=10.0.0
 pkgrel=2
 pkgdesc='Python Imaging Library (PIL) fork'
 arch=('x86_64' 'arm64')
 url='https://python-pillow.org'
 license=('BSD')
 depends=(
+  'glibc'
   'python'
+  'python-packaging'
   'freetype2'
   'lcms2'
   'libraqm'
   'libtiff'
   'openjpeg2'
+  'libjpeg-turbo'
   'libimagequant'
   'libxcb'
+  'zlib'
 )
 makedepends=(
   'git'
@@ -28,16 +32,20 @@ makedepends=(
   'libwebp'
   'tk'
 )
-checkdepends=('python-pytest')
+checkdepends=(
+  'python-pytest'
+  'python-pytest-timeout'
+)
 optdepends=(
   'libwebp: for webp images'
   'tk: for the ImageTK module'
   'python-olefile: OLE2 file support'
-  'python-pyqt5: for the ImageQt module'
+  'python-pyqt6: for the ImageQt module'
 )
-_commit='204590600c6a8c5246d0564d3312abd6e6b0ed70'
+_commit='6e28ed1f36d0eb74053af54e1eddc9c29db698cd'
 source=("$pkgname::git+https://github.com/python-pillow/Pillow#commit=$_commit")
 b2sums=('SKIP')
+
 
 pkgver() {
   cd "$pkgname"
@@ -56,8 +64,7 @@ check() {
   cd "$pkgname"
 
   export CFLAGS+=" -Wno-undef-prefix "
-  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
-  export PYTHONPATH="$PWD/build/lib.macosx-${MACOS_MAJOR}.${MACOS_MINOR}-$(uname -m)-cpython-$python_version"
+  export PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)"
   python selftest.py
   pytest -v
 }
