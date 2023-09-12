@@ -4,7 +4,7 @@
 # Contributor: Johan Förberg <johan@forberg.se>
 
 pkgname=zstd
-pkgver=1.5.4
+pkgver=1.5.5
 pkgrel=1
 pkgdesc='Zstandard - Fast real-time compression algorithm'
 url='https://facebook.github.io/zstd/'
@@ -14,13 +14,11 @@ depends=(glibc gcc-libs zlib xz lz4)
 makedepends=(cmake)
 provides=(libzstd.dylib)
 source=(https://github.com/facebook/zstd/releases/download/v${pkgver}/zstd-${pkgver}.tar.gz{,.sig})
-sha256sums=('0f470992aedad543126d06efab344dc5f3e171893810455787d38347343a4424'
+sha256sums=('9c4396cc829cfae319a6e2615202e82aad41372073482fce286fac78646d3ee4'
             'SKIP')
-b2sums=('ffc5fcbbdf4ab04bc14b5037308bf4e879d4cbaaf863462ea1e8af3f1b86b935ee6036e49298c83ac42b00472c003e32c263c977f0ae7d64f31d9ae63c5c28cb'
+b2sums=('7680e27a0adacfb809d9fc81e06d3f99bf74df30374d3b5cb2d58f667dd1b7d5c41697e608592709e17c0e32277f20a6d615edee409b5d7cdcb15da2799a2350'
         'SKIP')
 validpgpkeys=(4EF4AC63455FC9F4545D9B7DEF8FE99528B52FFD)
-
-pacman_root=$(pacman-root-dir)
 
 build() {
   cd ${pkgname}-${pkgver}
