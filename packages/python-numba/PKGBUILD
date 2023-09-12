@@ -1,8 +1,8 @@
 # Maintainer: Bruno Pagani <archange@archlinux.org>
 
 pkgname=python-numba
-pkgver=0.57.0
-pkgrel=1
+pkgver=0.57.1
+pkgrel=2
 pkgdesc="JIT compiler that translates a subset of Python and NumPy code into fast machine code"
 url="https://numba.pydata.org/"
 arch=('x86_64' 'arm64')
@@ -13,13 +13,13 @@ depends=(
   python
   python-llvmlite
   python-numpy
-  python-setuptools
 )
 makedepends=(
   onetbb
   openmp
   python-build
   python-installer
+  python-setuptools
   python-wheel
 )
 optdepends=(
@@ -46,8 +46,18 @@ checkdepends=(
   python-pyyaml
   python-scipy
 )
-source=(https://github.com/numba/numba/archive/$pkgver/$pkgname-$pkgver.tar.gz)
-sha256sums=('a8446398d76336a5c3cb188b9cd556d22abaf73025095eb4a5538b61dd4619f2')
+source=(https://github.com/numba/numba/archive/$pkgver/$pkgname-$pkgver.tar.gz
+        numpy-1.25.patch)
+sha256sums=('3fa256ab0da922b9339711b9909201d02db41c3d31ba9b259d27b68eb3d3083c'
+            'fa8911a8df7b046658747c3a6542243f06fab70d08cfb882c8bc7de316da5d54')
+
+prepare() {
+  cd numba-$pkgver
+# Allow numpy 1.25
+  sed -e 's|1.25|1.26|' -i setup.py
+  sed -e 's|1, 24|1, 25|' -i numba/__init__.py
+  patch -p1 -i ../numpy-1.25.patch
+}
 
 build() {
   cd numba-$pkgver
@@ -55,24 +65,9 @@ build() {
 }
 
 check() {
-  local python_version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-  cd numba-$pkgver/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version/./}
-
-  # Disable NumPy dispatching to AVX512_SKX feature extensions if the chip is
-  # reported to support the feature and NumPy >= 1.22 as this results in the use
-  # of low accuracy SVML libm replacements in ufunc loops.
-  _NPY_CMD='from numba.misc import numba_sysinfo;\
-            sysinfo=numba_sysinfo.get_sysinfo();\
-            print(sysinfo["NumPy AVX512_SKX detected"] and
-                  sysinfo["NumPy Version"]>="1.22")'
-  NUMPY_DETECTS_AVX512_SKX_NP_GT_122=$(python -c "$_NPY_CMD")
-  echo "NumPy >= 1.22 with AVX512_SKX detected: $NUMPY_DETECTS_AVX512_SKX_NP_GT_122"
-  if [[ "$NUMPY_DETECTS_AVX512_SKX_NP_GT_122" == "True" ]]; then
-    export NPY_DISABLE_CPU_FEATURES="AVX512_SKX"
-  fi
-
-  # some of them fail
-  PYTHONPATH="${PWD}" python -m numba.runtests -b -v -m 64 -- numba.tests || :
+  python -m venv --system-site-packages test-env
+  test-env/bin/python -m installer numba-$pkgver/dist/*.whl
+  test-env/bin/python -m numba.runtests -b -v -m 64 -- numba.tests || true # numpy 1.25 support incomplete
 }
 
 package() {
