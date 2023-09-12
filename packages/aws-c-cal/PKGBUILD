@@ -1,7 +1,7 @@
 # Maintainer: Anatol Pomozov
 
 pkgname=aws-c-cal
-pkgver=0.5.26
+pkgver=0.6.1
 pkgrel=1
 pkgdesc='AWS Crypto Abstraction Layer: Cross-Platform, C99 wrapper for cryptography primitives'
 arch=('x86_64' 'arm64')
@@ -10,12 +10,12 @@ license=(Apache)
 depends=(aws-c-common openssl)
 makedepends=(cmake)
 source=(aws-c-cal-$pkgver.zip::https://github.com/awslabs/aws-c-cal/archive/v$pkgver.zip)
-sha256sums=('8730217907d05ea4f3d538a46db7a235f973b7acb8f9f189e747f72051e4b85e')
+sha256sums=('38110cd6b5beb3e99e55a3d55593565ebc8f2b15d190afa4d76f4265d45daf9e')
 
 build() {
   cd aws-c-cal-$pkgver
 
-  cmake -DUSE_OPENSSL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${pacman_root}/usr -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake -DUSE_OPENSSL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
   cmake --build build
 }
 
