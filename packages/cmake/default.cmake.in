@@ -1,9 +1,9 @@
-set(CMAKE_INSTALL_PREFIX "/opt/pacman/usr")
+set(CMAKE_PREFIX_PATH "%%PACMAN_ROOT%%/usr")
+set(CMAKE_INSTALL_PREFIX "%%PACMAN_ROOT%%/usr")
 set(CMAKE_MACOSX_RPATH FALSE)
-set(CMAKE_INSTALL_NAME_DIR "/opt/pacman/usr/lib")
+set(CMAKE_INSTALL_NAME_DIR "%%PACMAN_ROOT%%/usr/lib")
 
 # llvm fucks us up
-
 if(NOT CMAKE_AR)
 	set(CMAKE_AR "/usr/bin/ar")
 endif()

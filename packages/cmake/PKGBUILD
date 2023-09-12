@@ -4,24 +4,26 @@
 
 pkgname=cmake
 pkgver=3.27.4
-pkgrel=1
+pkgrel=2
 pkgdesc='A cross-platform open-source make system'
 arch=('x86_64' 'arm64')
 url="https://www.cmake.org/"
 license=('custom')
-depends=('curl' 'libarchive' 'jsoncpp' 'libjsoncpp.dylib' 'libuv' 'rhash' 'cppdap')
+depends=('curl' 'libarchive' 'jsoncpp' 'libjsoncpp.dylib' 'libuv' 'rhash' 'cppdap' 'libiconv')
 makedepends=('python-sphinx')
 optdepends=('qt6-base: cmake-gui')
 source=("https://www.cmake.org/files/v${pkgver%.*}/${pkgname}-${pkgver}.tar.gz"
         "toolchain.patch"
-        "default.cmake")
+        "default.cmake.in")
 sha512sums=('fc04b041f5c73b0a969ba09251e00e20f33e7a76460630d60e95ce08086c6b41b82315bd8782c19070b5f12a4290858825687f816b69ad5df8101053b4a2b48a'
             'd34e4c271c7ce55dddb87cfc6ca918d2b970253ace26584b1942933d3adc0ccb4092792aca6c8d59b33bb9111df169715bb91fe3ed1b802b7589c9ce95a66bb5'
-            '797d43bd1d300935075e79257d0d827bb350b2510f7ee7feabfc267a1815f481db0f01182826dfb7a838df4c70f806d6c718bef85e67ffb1125a87391a832314')
+            '238c97c1fa3147d082670a99c6a4865fc00dfaa1356cd55a5eaee0a715b2d65e1a3bb72042baeb4497e1731c4427aafa474fbf07e557de4db6f8e2bb88de55e3')
 
 prepare() {
   cd ${pkgname}-${pkgver}
   patch -Np1 -i ../toolchain.patch
+
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../default.cmake.in > default.cmake
 }
 
 build() {
@@ -50,5 +52,5 @@ package() {
   rm -r "$pkgdir"/${pacman_root}/usr/share/doc/cmake/html/_sources
 
   install -Dm644 Copyright.txt "${pkgdir}/${pacman_root}"/usr/share/licenses/${pkgname}/LICENSE
-  install -Dm644 ../default.cmake "${pkgdir}/${pacman_root}/usr/share/cmake/"
+  install -Dm644 default.cmake "${pkgdir}/${pacman_root}/usr/share/cmake/"
 }
