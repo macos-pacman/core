@@ -6,21 +6,23 @@
 
 pkgbase=brotli
 pkgname=('brotli' 'python-brotli' 'brotli-testdata')
-_gitcommit=e61745a6b7add50d380cfd7d3883dd6c62fc2c71
-pkgver=1.0.9
-pkgrel=10
+_gitcommit=ed738e842d2fbdf2d6459e39267a633c4a9b2f5d
+pkgver=1.1.0
+pkgrel=1
 pkgdesc='Generic-purpose lossless compression algorithm'
 url='https://github.com/google/brotli'
 arch=('x86_64' 'arm64')
 license=('MIT')
-makedepends=('git' 'cmake' 'python-setuptools')
+makedepends=(
+  git
+  cmake
+  python-setuptools
+  python-build
+  python-installer
+  python-wheel
+)
 source=(${pkgname}::"git+${url}#commit=${_gitcommit}")
 sha512sums=('SKIP')
-
-prepare() {
-  cd ${pkgbase}
-  git cherry-pick -n 09b0992b6acb7faa6fd3b23f9bc036ea117230fc # Fix broken Libs: in pc file
-}
 
 pkgver() {
   cd ${pkgbase}
@@ -29,20 +31,20 @@ pkgver() {
 
 build() {
   cd ${pkgbase}
-  rm BUILD
-  python setup.py build
+  python -m build --wheel --no-isolation
   cmake -S . -B build \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
     -DBUILD_SHARED_LIBS=True \
-
+    -DCMAKE_C_FLAGS="$CFLAGS"
   cmake --build build -v
 }
 
 check() {
   cd ${pkgbase}
-  local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
-  PYTHONPATH="$PWD/bin/lib.linux-$CARCH-cpython-${python_version}" python -m unittest discover python "*_test.py"
+  PYTHONPATH="$PWD/bin/$(_GetPythonPlatformPath)" \
+    python -m unittest discover python "*_test.py"
+
   cd build
   ctest --output-on-failure --stop-on-failure -j$(nproc)
 }
@@ -65,7 +67,7 @@ package_python-brotli() {
   depends=('python')
 
   cd ${pkgbase}
-  python setup.py install --skip-build -O1 --root="$pkgdir"
+  python -m installer --destdir="$pkgdir" dist/*.whl
   install -Dm 644 LICENSE -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
 }
 
@@ -74,7 +76,9 @@ package_brotli-testdata() {
   depends=()
 
   cd ${pkgbase}
-  install -dm755 "$pkgdir/${pacman_root}"/usr/share/brotli
-  cp -a tests/testdata "$pkgdir/${pacman_root}"/usr/share/brotli/
+  install -dm755 "$pkgdir"/${pacman_root}/usr/share/brotli
+  cp -a tests/testdata "$pkgdir"/${pacman_root}/usr/share/brotli/
   install -Dm 644 LICENSE -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
 }
+
+# vim:set ts=2 sw=2 et:
