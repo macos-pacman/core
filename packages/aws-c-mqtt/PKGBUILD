@@ -1,7 +1,7 @@
 # Maintainer: Anatol Pomozov
 
 pkgname=aws-c-mqtt
-pkgver=0.8.10
+pkgver=0.8.14
 pkgrel=1
 pkgdesc='C99 implementation of the MQTT 3.1.1 specification'
 arch=('x86_64' 'arm64')
@@ -10,12 +10,12 @@ license=(Apache)
 depends=(aws-c-common aws-c-http)
 makedepends=(cmake)
 source=(aws-c-mqtt-$pkgver.zip::https://github.com/awslabs/aws-c-mqtt/archive/v$pkgver.zip)
-sha256sums=('b871d5e2c73516996f27afa24c9227c07ec68e016bae88569a43ea4bb107aabc')
+sha256sums=('2aa18d63ae46bc381986c12d7d13adb514f0996e80bf9d22b390902024e51912')
 
 build() {
   cd aws-c-mqtt-$pkgver
 
-  cmake -DCMAKE_BUILD_TYPE=Releasee -DCMAKE_PREFIX_PATH=${pacman_root}/usr -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake -DCMAKE_BUILD_TYPE=Releasee -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
   cmake --build build
 }
 
