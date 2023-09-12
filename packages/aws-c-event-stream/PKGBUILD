@@ -1,7 +1,7 @@
 # Maintainer: Anatol Pomozov
 
 pkgname=aws-c-event-stream
-pkgver=0.2.20
+pkgver=0.3.1
 pkgrel=1
 pkgdesc='C99 implementation of the vnd.amazon.eventstream content-type'
 arch=('x86_64' 'arm64')
@@ -10,12 +10,12 @@ license=(Apache)
 depends=(aws-c-common aws-checksums aws-c-io)
 makedepends=(cmake)
 source=(aws-c-event-stream-$pkgver.zip::https://github.com/awslabs/aws-c-event-stream/archive/v$pkgver.zip)
-sha256sums=('3627d6d912a73810b4cde60c7339727228420bf6d5ead8e53e32748a85c32108')
+sha256sums=('334c226178fce36d4734cf9705234b094e3ae66a47df026606f1f5a384e851c7')
 
 build() {
   cd aws-c-event-stream-$pkgver
 
-  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${pacman_root}/usr -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
   cmake --build build
 }
 
