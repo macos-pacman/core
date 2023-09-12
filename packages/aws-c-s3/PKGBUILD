@@ -1,7 +1,7 @@
 # Maintainer: Anatol Pomozov
 
 pkgname=aws-c-s3
-pkgver=0.2.8
+pkgver=0.3.14
 pkgrel=1
 pkgdesc='C99 library implementation for communicating with the S3 service, designed for maximizing throughput on high bandwidth EC2 instances'
 arch=('x86_64' 'arm64')
@@ -10,12 +10,12 @@ license=(Apache)
 depends=(aws-c-common aws-c-auth aws-checksums)
 makedepends=(cmake)
 source=(aws-c-s3-$pkgver.zip::https://github.com/awslabs/aws-c-s3/archive/v$pkgver.zip)
-sha256sums=('7609bcebcda1dbe5c06f15468196d75963f1868be0181befdf23a9eabafe9302')
+sha256sums=('94052a4778afab9d9106ddfb2e5d61f99169c8bf50475bf9323fbe51550f2ad2')
 
 build() {
   cd aws-c-s3-$pkgver
 
-  cmake -DCMAKE_BUILD_TYPE=Releasee -DCMAKE_PREFIX_PATH=${pacman_root}/usr -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake -DCMAKE_BUILD_TYPE=Releasee -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
   cmake --build build
 }
 
