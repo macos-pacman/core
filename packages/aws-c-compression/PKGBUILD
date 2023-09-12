@@ -1,7 +1,7 @@
 # Maintainer: Anatol Pomozov
 
 pkgname=aws-c-compression
-pkgver=0.2.16
+pkgver=0.2.17
 pkgrel=1
 pkgdesc='C99 implementation of huffman encoding/decoding'
 arch=('x86_64' 'arm64')
@@ -10,12 +10,12 @@ license=(Apache)
 depends=(aws-c-common)
 makedepends=(cmake)
 source=(aws-c-compression-$pkgver.zip::https://github.com/awslabs/aws-c-compression/archive/v$pkgver.zip)
-sha256sums=('a3434734637c94c3f516f0c91fb5ac13cd76faabcbdc574267e0cf903d9193d8')
+sha256sums=('a94e8ff8c5591e252bb3d17d2b767169f0390b111f690f640aee76098c550e7f')
 
 build() {
   cd aws-c-compression-$pkgver
 
-  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${pacman_root}/usr -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
   cmake --build build
 }
 
