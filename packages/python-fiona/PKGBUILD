@@ -2,8 +2,8 @@
 
 _pkg=Fiona
 pkgname=python-${_pkg,,}
-pkgver=1.9.3
-pkgrel=3
+pkgver=1.9.4.post1
+pkgrel=1
 pkgdesc="Read and write geographic data files"
 arch=('x86_64' 'arm64')
 url="https://github.com/Toblerity/Fiona"
@@ -24,9 +24,8 @@ optdepends=(
 )
 makedepends=(cython python-setuptools)
 checkdepends=(python-pytest python-boto3 python-pytz python-shapely)
-#source=(https://files.pythonhosted.org/packages/source/${_pkg::1}/${_pkg}/${_pkg}-${pkgver}.tar.gz)
 source=(https://github.com/Toblerity/Fiona/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz)
-sha256sums=('d6beb52333b012e612166a3bb14199ced85a26fa72e10ca7a316d0ca4f9d0fbf')
+sha256sums=('4b53bd846d8aac31b43c0745a0150f599291e00a7ee4d991fb5d255cb6ddaaaa')
 
 build() {
   cd ${_pkg}-${pkgver}
@@ -40,7 +39,7 @@ check() {
   local python_version=$(python -c 'import sys; print("".join(map(str, sys.version_info[:2])))')
 
   # Currently they are 66 failing tests but no time to investigate
-  PYTHONPATH="${PWD}"/build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-${python_version}/ \
+  PYTHONPATH="${PWD}"/build/$(_GetPythonPlatformPath) \
     pytest -vv --color=yes -m "not wheel" || echo "Warning: failed tests"
 
   mv fiona{.bak,}
