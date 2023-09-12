@@ -1,7 +1,7 @@
 # Maintainer: Anatol Pomozov
 
 pkgname=aws-c-io
-pkgver=0.13.21
+pkgver=0.13.30
 pkgrel=1
 pkgdesc='AWS SDK module to handle all IO and TLS work for application protocols'
 arch=('x86_64' 'arm64')
@@ -10,12 +10,12 @@ license=(Apache)
 depends=(aws-c-common aws-c-cal s2n-tls)
 makedepends=(cmake)
 source=(aws-c-io-$pkgver.zip::https://github.com/awslabs/aws-c-io/archive/v$pkgver.zip)
-sha256sums=('1dee7a0c20a3361e7a0fae24b766bec9e81e813782a55423a0460f9fc7bfb732')
+sha256sums=('3488f441ff9acce00658a46708103d160415f96bd53cfe5b32e772418fbf6c31')
 
 build() {
   cd aws-c-io-$pkgver
 
-  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${pacman_root}/usr -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
+  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
   cmake --build build
 }
 
