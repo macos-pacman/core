@@ -1,0 +1,72 @@
+diff --git a/wezterm-gui/src/termwindow/mouseevent.rs b/wezterm-gui/src/termwindow/mouseevent.rs
+index 312cdadcd..9e0b89243 100644
+--- a/wezterm-gui/src/termwindow/mouseevent.rs
++++ b/wezterm-gui/src/termwindow/mouseevent.rs
+@@ -970,7 +970,66 @@ impl super::TermWindow {
+                     },
+                 };
+ 
+-                if let Some(action) = self.input_map.lookup_mouse(event_trigger_type, mouse_mods) {
++                use ::window::Modifiers;
++                use mux::renderable::StableCursorPosition;
++                use wezterm_term::KeyCode::{LeftArrow, RightArrow};
++
++                if matches!(event_trigger_type, MouseEventTrigger::Up { .. })
++                    && mouse_mods.mods.contains(::window::Modifiers::ALT)
++                    && !mouse_reporting
++                {
++                    let click_x = column as i64;
++                    let click_y = row as i64;
++
++                    // do the thing.
++                    fn cursor_pos(pane: &Arc<dyn Pane>) -> (i64, i64) {
++                        let StableCursorPosition { x, y, .. } = pane.get_cursor_position();
++                        return (x as i64, y as i64);
++                    }
++
++                    fn move_cursor_to_target(pane: &Arc<dyn Pane>, target: (i64, i64)) {
++                        let cur_pos = cursor_pos(&pane);
++
++                        // this is just a best effort kind of thing.
++                        let height_diff = (target.1 - cur_pos.1).abs();
++                        if height_diff == 0 {
++                            // compare by x
++                            let key = if target.0 < cur_pos.0 {
++                                LeftArrow
++                            } else {
++                                RightArrow
++                            };
++                            for _ in 0..(target.0 - cur_pos.0).abs() {
++                                pane.key_down(key, Modifiers::NONE).ok();
++                            }
++                        } else {
++                            let width = pane.get_dimensions().cols as i64;
++
++                            // compare by y.
++                            let key = if target.1 < cur_pos.1 {
++                                LeftArrow
++                            } else {
++                                RightArrow
++                            };
++
++                            let to_move = if target.1 < cur_pos.1 {
++                                (height_diff - 1) * width + cur_pos.0 + (width - target.0)
++                            } else {
++                                (height_diff - 1) * width + target.0 + (width - cur_pos.0)
++                            };
++
++                            for _ in 0..to_move {
++                                pane.key_down(key, Modifiers::NONE).ok();
++                            }
++                        }
++                    }
++
++                    if cursor_pos(&pane) != (click_x, click_y) {
++                        move_cursor_to_target(&pane, (click_x, click_y));
++                    }
++                } else if let Some(action) =
++                    self.input_map.lookup_mouse(event_trigger_type, mouse_mods)
++                {
+                     self.perform_key_assignment(&pane, &action).ok();
+                     return;
+                 }

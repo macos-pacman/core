@@ -1,6 +1,6 @@
 pkgname=wezterm-git
-pkgver=20230821.rb112fb3f
-pkgrel=3
+pkgver=20231017.rfec90ae0
+pkgrel=5
 pkgdesc="A GPU-accelerated cross-platform terminal emulator and multiplexer"
 arch=('x86_64' 'arm64')
 url="https://wezfurlong.org/wezterm/"
@@ -8,13 +8,17 @@ license=('MIT')
 depends=('fontconfig' 'freetype2' 'harfbuzz' 'openssl' 'libssh2')
 makedepends=('rust' 'cargo' 'git' 'cargo-nextest')
 source=("wezterm::git+https://github.com/wez/wezterm.git"
-        'https://patch-diff.githubusercontent.com/raw/wez/wezterm/pull/3579.diff')    # upstream doesn't even want to comment on this PR
+        'https://patch-diff.githubusercontent.com/raw/wez/wezterm/pull/3579.diff' # upstream doesn't even want to comment on this PR
+        'alt-click-mouse.patch'   # not even gonna bother to PR this. author seems like they don't care about this feature.
+)
 sha512sums=('SKIP'
-            '29ff217648db78ea4faf0708f76de5d38d7789eccd136a61c5d1c9213d626a642fd2058411d12da3d707f52da6c558dc71a0bf60827294e76570b08fbbd1fe05')
+            '29ff217648db78ea4faf0708f76de5d38d7789eccd136a61c5d1c9213d626a642fd2058411d12da3d707f52da6c558dc71a0bf60827294e76570b08fbbd1fe05'
+            '3c2782882ad1eb22cd8ec713ce3f6c8ebc2e804a7d57b87c1b96e4567a518c9163b9a773b262b74022fb15ba25c57b84dee01a25afc94c5fda137d2496cc2f01')
 
 build() {
   cd wezterm
   git apply --3way -Np1 ../3579.diff
+  git apply --3way -Np1 ../alt-click-mouse.patch
 
   cargo build --release --locked --target-dir target
 }
