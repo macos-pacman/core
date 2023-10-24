@@ -1,6 +1,6 @@
 pkgname=wezterm-git
 pkgver=20231017.rfec90ae0
-pkgrel=5
+pkgrel=6
 pkgdesc="A GPU-accelerated cross-platform terminal emulator and multiplexer"
 arch=('x86_64' 'arm64')
 url="https://wezfurlong.org/wezterm/"
@@ -13,7 +13,7 @@ source=("wezterm::git+https://github.com/wez/wezterm.git"
 )
 sha512sums=('SKIP'
             '29ff217648db78ea4faf0708f76de5d38d7789eccd136a61c5d1c9213d626a642fd2058411d12da3d707f52da6c558dc71a0bf60827294e76570b08fbbd1fe05'
-            '3c2782882ad1eb22cd8ec713ce3f6c8ebc2e804a7d57b87c1b96e4567a518c9163b9a773b262b74022fb15ba25c57b84dee01a25afc94c5fda137d2496cc2f01')
+            'd3475c13598b76a79966c1a0b426f31befdd0029715ff1db39ac3a89f5dac00c00e237ac5f05e9b5d72c68a3aadc71c4cde1f34cdb374f5d0812c113667b8911')
 
 build() {
   cd wezterm

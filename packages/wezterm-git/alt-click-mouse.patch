@@ -16,7 +16,7 @@ index 312cdadcd..9e0b89243 100644
 +                    && !mouse_reporting
 +                {
 +                    let click_x = column as i64;
-+                    let click_y = row as i64;
++                    let click_y = stable_row as i64;
 +
 +                    // do the thing.
 +                    fn cursor_pos(pane: &Arc<dyn Pane>) -> (i64, i64) {
