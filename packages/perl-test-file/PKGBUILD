@@ -1,0 +1,31 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Bruno Dupuis <lisael@lisael.org>
+# Contributor: Rafael Reggiani Manzo <rr.manzo@gmail.com>
+
+pkgname=perl-test-file
+pkgver=1.993
+pkgrel=2
+pkgdesc="This modules provides a collection of test utilities for file attributes."
+arch=('any')
+url='https://github.com/briandfoy/test-file'
+license=('PerlArtistic' 'GPL')
+options=('!emptydirs')
+depends=('perl')
+source=("https://search.cpan.org/CPAN/authors/id/B/BD/BDFOY/Test-File-$pkgver.tar.gz")
+sha512sums=('0e14580a11afc2f3115d5594be226237803ad8e462c314a2b775ca96bf491cfeea84bd90ae92a70c58d3d8fc7c0f21d38b54a58d29dd01a2c082c0cbfecb0aaf')
+
+build() {
+  cd Test-File-$pkgver
+  perl Makefile.PL INSTALLDIRS=vendor
+  make
+}
+
+check() {
+  cd Test-File-$pkgver
+  make test
+}
+
+package() {
+  cd Test-File-$pkgver
+  make DESTDIR="$pkgdir" install
+}
