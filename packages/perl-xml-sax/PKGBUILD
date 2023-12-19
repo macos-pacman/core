@@ -1,0 +1,40 @@
+# Maintainer: Giovanni Scafora <giovanni@archlinux.org>
+# Contributor: François Charette <firmicus ατ gmx δοτ net>
+
+pkgname=perl-xml-sax
+pkgver=1.02
+pkgrel=1
+pkgdesc="Simple API for XML"
+arch=('any')
+url="https://search.cpan.org/dist/XML-SAX"
+license=('GPL' 'PerlArtistic')
+depends=('perl' 'perl-xml-sax-base' 'perl-xml-namespacesupport')
+options=('!emptydirs')
+install=perl-xml-sax.install
+source=("https://www.cpan.org/authors/id/G/GR/GRANTM/XML-SAX-$pkgver.tar.gz"
+        'perl-xml-sax.install.in')
+sha512sums=('bb30ddbbcf27803825d2f0936257e102999a197cb14bd77fa8b7a469f3a24fb7d861ef4eb03230e5581e4ed88beb8676cbb907b2cb63e9ef1a64b2c211ebdc5a'
+            '10a78e229006108c65f022786e41cfc6e3c8abcfc928e4c03e5754adb17ca98eae591712c7d34596e1be69bb9fa105827d46d6839f80020d576f1ee6163de96f')
+
+prepare() {
+  sed -e "s|@@PACMAN_ROOT@@|${pacman_root}|g" perl-xml-sax.install.in > ../perl-xml-sax.install
+}
+
+build() {
+  cd XML-SAX-$pkgver
+  PERL_MM_USE_DEFAULT=1 perl Makefile.PL INSTALLDIRS=vendor
+  make
+}
+
+check() {
+  cd XML-SAX-$pkgver
+  make test
+}
+
+package() {
+  cd XML-SAX-$pkgver
+  PERLLIB=blib/lib make install DESTDIR="$pkgdir"
+
+  find "$pkgdir" -name '.packlist' -delete
+  find "$pkgdir" -name '*.pod' -delete
+}
