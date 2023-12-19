@@ -1,0 +1,82 @@
+diff --git a/wezterm-gui/src/overlay/copy.rs b/wezterm-gui/src/overlay/copy.rs
+index 49f5a16f6..6358b784b 100644
+--- a/wezterm-gui/src/overlay/copy.rs
++++ b/wezterm-gui/src/overlay/copy.rs
+@@ -223,8 +223,8 @@ impl CopyRenderable {
+     }
+ 
+     fn incrementally_recompute_results(&mut self, mut results: Vec<SearchResult>) {
+-        results.sort();
+-        results.reverse();
++        // results.sort();
++        // results.reverse();
+         for (result_index, res) in results.iter().enumerate() {
+             let result_index = self.results.len() + result_index;
+             for idx in res.start_y..=res.end_y {
+@@ -281,6 +281,39 @@ impl CopyRenderable {
+         .detach();
+     }
+ 
++    fn rearrange_search_results(
++        viewport_top: Option<StableRowIndex>,
++        dims: RenderableDimensions,
++        mut results: Vec<SearchResult>,
++    ) -> Vec<SearchResult> {
++        /*
++            it appears that whatever is iterating the results starts from the last
++            member. so, find the last result that has its end_y still within the viewport,
++            and move those to the back. then, the remaining should go in the front.
++
++            eg. if we have [ A B C D E F G H ], and 'E' is the last guy that's in the viewport,
++            we want to return [ F G H A B C D E ]
++        */
++
++        let threshold = viewport_top
++            .map(|vpt| {
++                (vpt + dims.viewport_rows as isize).min(dims.scrollback_rows as isize)
++                    as StableRowIndex
++            })
++            .unwrap_or(dims.scrollback_rows as isize);
++
++        let pp = results.partition_point(|&x| x.end_y <= threshold);
++
++        println!("viewport: {viewport_top:?}, threshold: {threshold:?}, pp: {pp:?}");
++        for r in results.as_slice() {
++            println!("{r:?}");
++        }
++
++        results.rotate_left(pp);
++        results.reverse();
++        return results;
++    }
++
+     fn update_search(&mut self) {
+         for idx in self.by_line.keys() {
+             self.dirty_results.add(*idx);
+@@ -316,10 +349,13 @@ impl CopyRenderable {
+                 remain: range.start - dims.scrollback_top,
+             });
+ 
++            let viewport = self.viewport;
++
+             promise::spawn::spawn(async move {
+                 let limit = None;
+                 log::trace!("Searching for {pattern:?} in {range:?}");
+                 let results = pane.search(pattern.clone(), range.clone(), limit).await?;
++                let results = Self::rearrange_search_results(viewport, dims, results);
+ 
+                 let pane_id = pane.pane_id();
+                 let mut results = Some(results);
+@@ -383,10 +419,12 @@ impl CopyRenderable {
+             remain: range.start - dims.scrollback_top,
+         });
+ 
++        let viewport = self.viewport;
+         promise::spawn::spawn(async move {
+             let limit = None;
+             log::trace!("Searching for {pattern:?} in {range:?}");
+             let results = pane.search(pattern.clone(), range.clone(), limit).await?;
++            let results = Self::rearrange_search_results(viewport, dims, results);
+ 
+             let pane_id = pane.pane_id();
+             let mut results = Some(results);

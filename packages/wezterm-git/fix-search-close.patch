@@ -1,0 +1,44 @@
+diff --git a/config/src/keyassignment.rs b/config/src/keyassignment.rs
+index 034920e57..2a9af2344 100644
+--- a/config/src/keyassignment.rs
++++ b/config/src/keyassignment.rs
+@@ -669,6 +669,7 @@ pub enum CopyModeAssignment {
+     PageUp,
+     PageDown,
+     Close,
++    CloseWithoutResetting,
+     PriorMatch,
+     NextMatch,
+     PriorMatchPage,
+diff --git a/wezterm-gui/src/overlay/copy.rs b/wezterm-gui/src/overlay/copy.rs
+index 24304f472..49f5a16f6 100644
+--- a/wezterm-gui/src/overlay/copy.rs
++++ b/wezterm-gui/src/overlay/copy.rs
+@@ -558,6 +558,10 @@ impl CopyRenderable {
+ 
+     fn close(&self) {
+         self.set_viewport(None);
++        self.close_without_resetting();
++    }
++
++    fn close_without_resetting(&self) {
+         TermWindow::schedule_cancel_overlay_for_pane(self.window.clone(), self.delegate.pane_id());
+     }
+ 
+@@ -1189,6 +1193,7 @@ impl Pane for CopyOverlay {
+                     PageUp => render.move_by_page(-1.0),
+                     PageDown => render.move_by_page(1.0),
+                     Close => render.close(),
++                    CloseWithoutResetting => render.close_without_resetting(),
+                     PriorMatch => render.prior_match(),
+                     NextMatch => render.next_match(),
+                     PriorMatchPage => render.prior_match_page(),
+@@ -1521,7 +1526,7 @@ pub fn search_key_table() -> KeyTable {
+         (
+             WKeyCode::Char('\x1b'),
+             Modifiers::NONE,
+-            KeyAssignment::CopyMode(CopyModeAssignment::Close),
++            KeyAssignment::CopyMode(CopyModeAssignment::CloseWithoutResetting),
+         ),
+         (
+             WKeyCode::UpArrow,
