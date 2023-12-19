@@ -1,0 +1,30 @@
+# Maintainer: Eric Bélanger <eric@archlinux.org>
+
+pkgname=perl-io-socket-ssl
+pkgver=2.084
+pkgrel=1
+pkgdesc="Nearly transparent SSL encapsulation for IO::Socket::INET"
+arch=('any')
+license=('GPL' 'PerlArtistic')
+url="https://search.cpan.org/dist/IO-Socket-SSL/"
+depends=('perl-net-ssleay' 'perl' 'perl-uri')
+checkdepends=('perl-io-socket-inet6')
+options=('!emptydirs')
+source=(https://www.cpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-${pkgver}.tar.gz)
+sha512sums=('348e71cda3b0f6c06f9e72a9cd332e5c747feec82b6e74fe508ef294fdca85f9318bdda2e369b1dd1f0f2c857bfba89f52f09a3088c9906326cda5f43a91b6b5')
+
+build() {
+  cd IO-Socket-SSL-${pkgver}
+  yes | perl Makefile.PL INSTALLDIRS=vendor
+  make
+}
+
+check() {
+  cd IO-Socket-SSL-${pkgver}
+  make test || warning "TLS 1.3 related errors"
+}
+
+package() {
+  cd IO-Socket-SSL-${pkgver}
+  make DESTDIR="${pkgdir}" install
+}
