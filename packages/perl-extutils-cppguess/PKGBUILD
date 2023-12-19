@@ -1,0 +1,30 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=perl-extutils-cppguess
+pkgver=0.27
+pkgrel=1
+pkgdesc="Guess C++ compiler and flags"
+arch=('any')
+license=('PerlArtistic')
+url="https://metacpan.org/release/ExtUtils-CppGuess"
+depends=('perl-capture-tiny')
+makedepends=('perl-module-build')
+options=('!emptydirs')
+source=("https://cpan.metacpan.org/authors/id/E/ET/ETJ/ExtUtils-CppGuess-$pkgver.tar.gz")
+sha512sums=('289e38f3033b3072ff40dffdea8cb60bc9f91e426ff927de2e8499724cecb03f76c4740b2f868d6c55bf019c9e6eb1a5de20111591c7292e60765f65a249e60c')
+
+build() {
+  cd ExtUtils-CppGuess-$pkgver
+  perl Makefile.PL INSTALLDIRS=vendor
+  make
+}
+
+check() {
+  cd ExtUtils-CppGuess-$pkgver
+  make test
+}
+
+package() {
+  cd ExtUtils-CppGuess-$pkgver
+  make DESTDIR="$pkgdir" install
+}
