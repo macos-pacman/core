@@ -1,0 +1,37 @@
+# $ID$
+# Maintainer: Rémy Oudompheng <remy@archlinux.org>
+
+pkgname=perl-lingua-translit
+_dist=Lingua-Translit
+pkgver=0.29
+pkgrel=2
+pkgdesc="Transliteration of text between writing systems"
+arch=('any')
+url="https://metacpan.org/release/${_dist}"
+license=('PerlArtistic' 'GPL')
+depends=('perl')
+options=('!emptydirs')
+source=(https://search.cpan.org/CPAN/authors/id/A/AL/ALINKE/${_dist}-${pkgver}.tar.gz)
+md5sums=('605a82f06b05fef4fc18bf069b1be511')
+sha256sums=('1ad2fabc0079dad708b7d9d55437c9ebb192e610bf960af25945858b92597752')
+
+build() {
+    cd "${srcdir}/${_dist}-${pkgver}"
+    unset PERL5LIB PERL_MM_OPT PERL_MB_OPT PERL_LOCAL_LIB_ROOT
+    export PERL_MM_USE_DEFAULT=1 PERL_AUTOINSTALL=--skipdeps
+    perl Makefile.PL
+    make
+}
+
+check() {
+    cd "${srcdir}/${_dist}-${pkgver}"
+    unset PERL5LIB PERL_MM_OPT PERL_MB_OPT PERL_LOCAL_LIB_ROOT
+    export PERL_MM_USE_DEFAULT=1
+    make test
+}
+
+package() {
+    cd "${srcdir}/${_dist}-${pkgver}"
+    unset PERL5LIB PERL_MM_OPT PERL_MB_OPT PERL_LOCAL_LIB_ROOT
+    make install INSTALLDIRS=vendor DESTDIR="$pkgdir"
+}
