@@ -1,6 +1,6 @@
 pkgname=llvm-project
 pkgver=16.0.6
-pkgrel=4
+pkgrel=5
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
@@ -15,18 +15,21 @@ source=(
 	"https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}/llvm-project-${pkgver}.src.tar.xz"
 	'libstdcxx-on-macos.patch'
 	'sysroot-fix.patch'
+	'fix-clangd-paths.patch'
 )
 
 sha256sums=(
 	'ce5e71081d17ce9e86d7cbcfa28c4b04b9300f8fb7e78422b1feb6bc52c3028e'
 	'95f3b49c4bf7575b02836d7fd1172dda67bbbf5ed0a5cd1b5cedfccac84a03f6'
 	'0346407ec68a1376232d5ad72196cffbcb1d7b547acc688dc9724687b3859dda'
+	'5fb05e040360dee14ad152ff6faa536d257b05cd68a949df283419fc0adaae8b'
 )
 
 prepare() {
 	cd $srcdir/$pkgname-$pkgver.src
 	patch -Np1 -i ../libstdcxx-on-macos.patch
 	patch -Np1 -i ../sysroot-fix.patch
+	patch -Np1 -i ../fix-clangd-paths.patch
 }
 
 build() {
@@ -34,7 +37,7 @@ build() {
 	export CFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
 	export CXXFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
 
-	rm -rf build-s1 build-s2
+  rm -rf build-s1 build-s2
 
 	cmake -S llvm -B build-s1 -G Ninja \
 		-DCMAKE_BUILD_TYPE=Release \
