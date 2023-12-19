@@ -1,0 +1,30 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=perl-b-keywords
+pkgver=1.26
+pkgrel=2
+pkgdesc="Lists of reserved barewords and symbol names"
+arch=('any')
+license=('PerlArtistic')
+url="https://metacpan.org/release/B-Keywords"
+depends=('perl')
+checkdepends=('perl-test-pod')
+options=('!emptydirs')
+source=("https://cpan.metacpan.org/authors/id/R/RU/RURBAN/B-Keywords-$pkgver.tar.gz")
+sha512sums=('b2abf8df82975db907ce4061c00faf7ad03b2324e98ded6a008b58b80b90a3d7bc1d63b68a404b3bfbabed97c1640e355c3d17e15819f9093d12f257754a7393')
+
+build() {
+  cd B-Keywords-$pkgver
+  perl Makefile.PL INSTALLDIRS=vendor
+  make
+}
+
+check() {
+  cd B-Keywords-$pkgver
+  make test
+}
+
+package() {
+  cd B-Keywords-$pkgver
+  make DESTDIR="$pkgdir" install
+}
