@@ -1,0 +1,13 @@
+--- include/noatime.h	2023-09-29 03:28:45.000000000 -0400
++++ include/noatime.h.2	2023-11-10 11:45:27.376620000 -0500
+@@ -9,6 +9,10 @@
+ #ifdef __linux__
+ #include <mntent.h>
+ #elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
++typedef unsigned char   u_char;
++typedef unsigned short  u_short;
++typedef unsigned int    u_int;
++typedef unsigned long   u_long;
+ #include <sys/param.h>
+ #include <sys/mount.h>
+ #include <errno.h>
