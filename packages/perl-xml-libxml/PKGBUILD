@@ -1,0 +1,43 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Jonathan Steel <jsteel@aur.archlinux.org>
+# Contributor: Justin "juster" Davis <jrcd83@gmail.com>
+# Contributor: François Charette <francois.archlinux.org>
+
+pkgname=perl-xml-libxml
+pkgver=2.0209
+pkgrel=1
+pkgdesc="Interface to the libxml library"
+arch=('x86_64' 'arm64')
+url="https://search.cpan.org/dist/XML-LibXML"
+license=('GPL')
+depends=('perl-alien-libxml2' 'perl-xml-sax' 'perl-xml-namespacesupport')
+checkdepends=('perl-test-pod' 'perl-test-leaktrace' 'perl-cpan-changes' 'perl-uri')
+provides=('perl-libxml' 'perl-xml-libxml-common')
+replaces=('perl-libxml' 'perl-xml-libxml-common')
+options=('!emptydirs')
+source=(https://www.cpan.org/authors/id/S/SH/SHLOMIF/XML-LibXML-$pkgver.tar.gz
+        'perl-xml-libxml.install.in')
+sha512sums=('3fd41775477ccb2eb9c72c72453436edcf2ed3db9aa1bbf53451c1407c5b6feeafd3ecc9f30507679f4dba15476044f43b5048da787c20a200831c0669b49262'
+            'de00084658669ddd0a693d4820dd7384024aa88a4c9d1cde87fbb032d678ea6eef6fa9495bf0778b04dac4c47d702233c84b314b3bd6b0f61e254a3a2dc568b3')
+
+prepare() {
+  sed -e "s|@@PACMAN_ROOT@@|${pacman_root}|g" perl-xml-libxml.install.in > ../perl-xml-libxml.install
+}
+
+build() {
+  cd XML-LibXML-$pkgver
+  perl Makefile.PL INSTALLDIRS=vendor
+  make  CCFLAGS+=" -Wno-incompatible-function-pointer-types -Wno-compound-token-split-by-macro "
+}
+
+check() {
+  cd XML-LibXML-$pkgver
+  make test
+}
+
+package() {
+  install=perl-xml-libxml.install
+
+  cd XML-LibXML-$pkgver
+  make pure_install doc_install DESTDIR="$pkgdir"/
+}
