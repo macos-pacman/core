@@ -1,0 +1,47 @@
+# Maintainer: Sergej Pupykin <arch+pub@sergej.pp.ru>
+# Maintainer: Maxwell Pray a.k.a. Synthead <synthead@gmail.com>
+# Contributor: Justin Davis <jrcd83@gmail.com>
+
+pkgname="perl-variable-magic"
+_cpanname="Variable-Magic"
+pkgver=0.63
+pkgrel=2
+pkgdesc="Associate user-defined magic to variables from Perl."
+arch=("x86_64" 'arm64')
+license=("PerlArtistic" "GPL")
+options=("!emptydirs")
+depends=("perl")
+url="https://search.cpan.org/dist/$_cpanname"
+source=("https://search.cpan.org/CPAN/authors/id/V/VP/VPIT/$_cpanname-$pkgver.tar.gz")
+
+# Function to change to the working directory and set
+# environment variables to override undesired options.
+prepareEnvironment() {
+  cd "$srcdir/$_cpanname-$pkgver"
+  export \
+    PERL_MM_USE_DEFAULT="1" \
+    PERL_AUTOINSTALL="--skipdeps" \
+    PERL_MM_OPT="INSTALLDIRS=vendor DESTDIR='${pkgdir//\'/\\\'}'" \
+    PERL_MB_OPT="--installdirs vendor --destdir '${pkgdir//\'/\\\'}'" \
+    MODULEBUILDRC="/dev/null"
+}
+sha256sums=('ba4083b2c31ff2694f2371333d554c826aaf24b4d98d03e48b5b4a43a2a0e679')
+
+build() {
+  prepareEnvironment
+  perl Makefile.PL
+  make
+}
+
+check() {
+  prepareEnvironment
+  make test
+}
+
+package() {
+  prepareEnvironment
+  make install
+
+  # Remove "perllocal.pod" and ".packlist".
+  find "$pkgdir" -name .packlist -o -name perllocal.pod -delete
+}
