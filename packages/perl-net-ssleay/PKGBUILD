@@ -1,0 +1,52 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Giovanni Scafora <giovanni@archlinux.org>
+# Contributor: Manolis Tzanidakis
+
+pkgname=perl-net-ssleay
+_cpanname=Net-SSLeay
+pkgver=1.92
+pkgrel=3
+pkgdesc='Perl bindings for OpenSSL and LibreSSL'
+url='https://search.cpan.org/dist/Net-SSLeay/'
+arch=('x86_64' 'arm64')
+license=('custom:BSD')
+depends=('openssl')
+replaces=('net-ssleay')
+provides=('net-ssleay')
+options=('!emptydirs')
+source=(https://cpan.metacpan.org/authors/id/C/CH/CHRISN/${_cpanname}-${pkgver}.tar.gz
+        'fix-openssl-finding.patch')
+sha512sums=('e9d9161ebeb7be90f4c7a0ea98f1034892ce6d33aa72872683177b19daa1f4c5819f85ea9a052a076ec8d7c21705f6c344aef64680bc881bf3218d38e8b7b173'
+            '6945ce71c9c98a1c445c8fa9c70f328a1762c8b732ca105565269a21606c1f7faccf03e3786ee33fbe1331e91e39668660e093af2d7b6f5016d9259639b3c01c')
+b2sums=('04d97860817b013a9680e0ef29b0004ddb98da2db859761a45612c4d25b6edd16bf92645293d1108d83352bce18665721c6df05455426b32a95a42b464119a3d'
+        'f006c16bcc8a41d4f392b2a085b8a61b72aade496eb60d3ff727f6688b0b8609d13588e2a3b7d4bff1b50a1f3dd8511522f462f9aa0dd30391ad3cce9c53061d')
+
+prepare() {
+  cd ${_cpanname}-${pkgver}
+  patch -Np1 -i ../fix-openssl-finding.patch
+  sed -ie "s|@@PACMAN_ROOT@@|${pacman_root}/usr|g" Makefile.PL
+}
+
+build() {
+  cd ${_cpanname}-${pkgver}
+  PERL_MM_USE_DEFAULT=1 perl Makefile.PL INSTALLDIRS=vendor
+  make
+}
+
+check() {
+  cd ${_cpanname}-${pkgver}
+  make test
+}
+
+package() {
+  cd ${_cpanname}-${pkgver}
+
+  make install DESTDIR="${pkgdir}"
+  install -Dm 644 README -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+
+  # strip rpath
+  # find "${pkgdir}" -name '*.so' -exec chrpath -d '{}' \;
+}
+
+# vim: ts=2 sw=2 et:

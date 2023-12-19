@@ -1,0 +1,10 @@
+--- a/Makefile.PL	2023-12-19 03:14:42.827732276 -0500
++++ b/Makefile.PL	2023-12-19 03:15:35.238669176 -0500
+@@ -341,6 +341,7 @@
+ 	'/usr/local/opt/openssl/bin/openssl' => '/usr/local/opt/openssl', # OSX homebrew openssl
+ 	'/usr/local/bin/openssl'         => '/usr/local', # OSX homebrew openssl
+ 	'/opt/local/bin/openssl'         => '/opt/local', # Macports openssl
++	'@@PACMAN_ROOT@@/bin/openssl'    => '@@PACMAN_ROOT@@',
+ 	'/usr/bin/openssl'               => '/usr',
+ 	'/usr/sbin/openssl'              => '/usr',
+ 	'/opt/ssl/bin/openssl'           => '/opt/ssl',
