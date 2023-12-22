@@ -115,7 +115,7 @@ build() {
 check() {
   cd "$srcdir/$pkgbase-$pkgver"
   local _pyver=$(python -c "import sys; print('{0}{1}'.format(*sys.version_info[:2]))")
-  PYTHONPATH="python_build/lib.$(python -c 'import distutils; print(distutils.util.get_platform())')-cpython-$_pyver" python -c 'import grpc'
+  PYTHONPATH="python_build/$(_GetPythonPlatformPath)" python -c 'import grpc'
 }
 
 package_grpc() {
