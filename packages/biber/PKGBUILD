@@ -4,7 +4,7 @@
 pkgname=biber
 epoch=1
 pkgver=2.19
-pkgrel=2
+pkgrel=3
 pkgdesc='A Unicode-capable BibTeX replacement for biblatex users'
 arch=(any)
 license=(PerlArtistic GPL)
@@ -85,4 +85,6 @@ package() {
   cd $pkgname-$pkgver
   unset PERL5LIB PERL_MM_OPT PERL_MB_OPT PERL_LOCAL_LIB_ROOT
   ./Build install installdirs=vendor destdir="$pkgdir"
+
+  ln -s "${pacman_root}/usr/bin/vendor_perl/biber" "$pkgdir/${pacman_root}/usr/bin/biber"
 }
