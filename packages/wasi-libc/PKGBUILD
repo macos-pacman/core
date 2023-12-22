@@ -1,0 +1,40 @@
+# Maintainer: Frederik Schwan <freswa at archlinux dot org>
+
+pkgname=wasi-libc
+pkgver=0+339+9f51a710
+_commit=9f51a7102085ec6a6ced5778f0864c9af9f50000  # main
+pkgrel=1
+pkgdesc='WASI libc implementation for WebAssembly'
+arch=('any')
+url='https://github.com/WebAssembly/wasi-libc'
+license=('Apache' 'MIT')
+makedepends=('git' 'llvm' 'clang')
+source=("git+https://github.com/WebAssembly/wasi-libc.git#commit=${_commit}")
+b2sums=('SKIP')
+options=('staticlibs')
+
+pkgver() {
+  cd ${pkgname}
+  printf "0+%s+%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  local make_options=(
+    WASM_CC=${pacman_root}/usr/bin/clang
+    WASM_AR=${pacman_root}/usr/bin/llvm-ar
+    WASM_NM=${pacman_root}/usr/bin/llvm-nm
+
+    # Remove bulk memory support
+    # https://bugzilla.mozilla.org/show_bug.cgi?id=1773200#c4
+    BULK_MEMORY_SOURCES=
+  )
+
+  cd ${pkgname}
+  make "${make_options[@]}"
+}
+
+package() {
+  cd ${pkgname}
+  install -dm755 "${pkgdir}"/${pacman_root}/usr/share
+  cp -a sysroot "${pkgdir}"/${pacman_root}/usr/share/wasi-sysroot
+}
