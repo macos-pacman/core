@@ -9,9 +9,10 @@
 # it also lets us not have rust depend on rust, which is kinda dumb.
 
 
-pkgname=rust
+pkgbase=rust
+pkgname=(rust rust-wasm rust-src)
 pkgver=1.72.0
-pkgrel=1
+pkgrel=3
 pkgdesc="Systems programming language focused on safety, speed and concurrency"
 url=https://www.rust-lang.org/
 arch=('x86_64' 'arm64')
@@ -36,6 +37,7 @@ makedepends=(
   ninja
   perl
   python
+  wasi-libc
 )
 source=(
   "https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.gz"{,.asc}
@@ -91,18 +93,18 @@ link-shared = true
 
 [build]
 host = ["${_arch}"]
-target = ["${_arch}"]
+target = ["${_arch}", "wasm32-unknown-unknown", "wasm32-wasi"]
 locked-deps = true
 vendor = true
 tools = [
   "cargo",
-  "rls",
   "clippy",
   "rustfmt",
   "rustdoc",
   "analysis",
   "src",
   "rust-demangler",
+  "rust-analyzer-proc-macro-srv",
 ]
 sanitizers = true
 profiler = true
@@ -144,6 +146,16 @@ ar = "/usr/bin/ar"
 ranlib = "/usr/bin/ranlib"
 llvm-config = "${pacman_root}/usr/bin/llvm-config"
 
+
+[target.wasm32-unknown-unknown]
+sanitizers = false
+profiler = false
+
+[target.wasm32-wasi]
+sanitizers = false
+profiler = false
+wasi-root = "${pacman_root}/usr/share/wasi-sysroot"
+
 END
 }
 
@@ -152,8 +164,8 @@ _pick() {
   for f; do
     d="$srcdir/$p/$f"
     mkdir -p "$(dirname "$d")"
-    mv "$f" "$d"
-    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
+    mv -f "$f" "$d"
+    rmdir -p "$(dirname "$f")" || :
   done
 }
 
@@ -177,9 +189,12 @@ build() {
 
   mkdir -p ${_root}/usr/share/licenses/rust
   mv ${_root}/usr/share/doc/rust/{COPYRIGHT,LICENSE*} ${_root}/usr/share/licenses/rust
+
+  _pick dest-wasm ${_root}/usr/lib/rustlib/wasm32-*
+  _pick dest-src  ${_root}/usr/lib/rustlib/src
 }
 
-package() {
+package_rust() {
   optdepends=(
     'gdb: rust-gdb script'
     'lldb: rust-lldb script'
@@ -214,7 +229,8 @@ package() {
   # fix those rpaths
   msg 'Fixing dylib names'
   local _lib _libs
-  IFS=$'\n' read -r -d '' -a _libs < <(find ${pkgdir}/${pacman_root}/usr/lib -iname '*.dylib') || true
+  IFS=$'\n' read -r -d '' -a _libs < <(find ${pkgdir}/${pacman_root}/usr/lib -iname '*.dylib' \
+    -o -iname "rust-analyzer-proc-macro-srv") || true
 
   for _lib in "${_libs[@]}"; do
     fix_rpath "${pacman_root}" "${pkgdir}" "${_lib}"
@@ -233,6 +249,30 @@ package() {
   for _lib in "${_libs[@]}"; do
       codesign --force -s - "${_lib}"
   done
+}
+
+package_rust-src() {
+  pkgdesc="Source code for the Rust standard library"
+  depends=(rust)
+
+  cp -a dest-src/* "$pkgdir"
+
+  mkdir -p "$pkgdir/${pacman_root}/usr/share/licenses"
+  ln -s rust "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+}
+
+package_rust-wasm() {
+  pkgdesc="WebAssembly targets for Rust"
+  depends=(
+    lld
+    rust
+  )
+
+  cp -a dest-wasm/* "$pkgdir"
+
+  mkdir -p "$pkgdir/${pacman_root}/usr/share/licenses"
+  ln -s rust "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+
 }
 
 # vim:set ts=2 sw=2 et:
