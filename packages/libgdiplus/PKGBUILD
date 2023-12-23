@@ -1,0 +1,47 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Daniel Isenmann <daniel@archlinux.org>
+
+pkgname=libgdiplus
+pkgver=5.6.1
+pkgrel=4
+url='https://www.mono-project.com/docs/gui/libgdiplus/'
+pkgdesc='Open Source Implementation of the GDI+ API'
+arch=('x86_64' 'arm64')
+license=('MPL' 'LGPL')
+depends=('libtiff' 'libjpeg' 'libpng' 'cairo' 'giflib' 'libgif.dylib' 'glib2'
+         'libexif' 'zlib' 'freetype2')
+source=(https://github.com/mono/libgdiplus/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz
+        'giflib-quantize-decl.patch')
+sha256sums=('deff863023950b1d1de7e47e44fc31c8ba39cfc06334737261965f697b2ad312'
+            'aaa59b7bbcd32678aa8d5a0a76c6e84f66e8da6a9f352570e6897dd8c86b6532')
+sha512sums=('fe6a798da6ad194d4e1d3ce2ebb71a43d3f2f3d198bdf053e8a03e861c81c1c838f3d5d60cfde6b1d6f662fb7f9c2192a9acc89c30a65999e841f4ad7b180baf'
+            '956e66645c23771f5c86cb929dbaa18b3e01be1aaf2bf949c5819e05e64b94482a5388b5c5174f071a2ef70e082c114fcc2e0920060d75dcfe2d49be361a6e40')
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+  autoreconf -fiv
+
+  patch -Np1 -i ../giflib-quantize-decl.patch
+}
+
+build() {
+  cd ${pkgname}-${pkgver}
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --without-x11 \
+    --with-cairo=system
+  make
+}
+
+check() {
+  cd ${pkgname}-${pkgver}
+  make check
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+  install -Dm 644 NEWS README TODO AUTHORS ChangeLog -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:

@@ -1,0 +1,18 @@
+--- a/src/gifcodec.c	2019-03-14 16:09:55.000000000 -0400
++++ b/src/gifcodec.c	2023-12-23 00:47:33.960425097 -0500
+@@ -39,6 +39,15 @@
+ 
+ #include "gifcodec.h"
+ 
++extern int GifQuantizeBuffer(
++               unsigned int Width,
++               unsigned int Height,
++               int *ColorMapSize,
++               GifByteType * RedInput,
++               GifByteType * GreenInput,
++               GifByteType * BlueInput,
++               GifByteType * OutputBuffer,
++               GifColorType * OutputColorMap);
+ 
+ /* Data structure used for callback */
+ typedef struct
