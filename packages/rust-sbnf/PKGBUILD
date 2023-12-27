@@ -1,7 +1,7 @@
 # Maintainer: zhiayang <zhiayang@nowhere>
 
 pkgname=rust-sbnf
-pkgver=0.6.0
+pkgver=0.6.4
 pkgrel=1
 pkgdesc="A BNF-style language for writing sublime-syntax files"
 arch=('arm64' 'x86_64')
@@ -9,9 +9,9 @@ url="https://github.com/BenjaminSchaaf/sbnf"
 license=('MIT')
 makedepends=('cargo' 'git')
 options=('!lto')
-_commit=c1b67aa583b3bd271db167995dd223590643af8a
+_commit=c99d43b127fb081cdd133c3045a573c07b369c82
 source=("$pkgname::https://github.com/BenjaminSchaaf/sbnf/archive/${_commit}.tar.gz")
-sha256sums=('2eeca6cb0b284799ebda2bc554bbd64743b079b1622e7d3e3911222c523bc3f4')
+sha256sums=('SKIP')
 
 prepare() {
   cd "sbnf-$_commit"
