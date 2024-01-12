@@ -21,6 +21,32 @@ strip_libname() {
 _RPATH_FILES=()
 _PROBLEM_FILES=()
 
+_read_pkginfo() {
+	if [ ! -e "${1}/.PKGINFO" ]; then
+		error "Did not find .PKGINFO for ${1}"
+	fi
+
+	cat "${1}/.PKGINFO"
+}
+
+_find_referenced_file() {
+	if [ -e "${1}" ] || [ -e "${pkgdir}/${1}" ]; then
+		return 0
+	fi
+
+	# check whether we are doing split packages
+	# if so, see whether it exists in the other split packages
+	if (( $SPLITPKG )); then
+		# kinda hacky, but this variable leaks from makepkg.
+		local _p; for _p in "${pkgname_backup[@]}"; do
+			if [[ -e "${pkgdir}/../${_p}/${1}" ]] && in_array "${_p}" "${depends[@]}"; then
+				return 0
+			fi
+		done
+	fi
+	return 1
+}
+
 check_file() {
 	local libs arg="$1"
 	IFS=$'\n' read -r -d '' -a libs <<< "${arg}"
@@ -46,8 +72,8 @@ check_file() {
 				# if it doesn't exist, complain. note that we should check under ${pkgdir} since
 				# we (likely) will be looking at dylibs referencing stuff from the currently-being-packaged
 				# $pkgdir tree (and not under '/')
-				if [ ! -e "${_tmp}" ] && [ ! -e "${pkgdir}/${_tmp}" ]; then
-					echo "could not find ${_tmp} anywhere"
+				if ! _find_referenced_file "${_tmp}"; then
+					error "Library/executable '${file#"$pkgdir/"}' -- missing dylib ${_tmp}"
 					broken_libs+=("${lib}")
 				fi ;;
 
@@ -85,6 +111,8 @@ warn_library_rpath() {
 	local file
 	local problems
 
+	local should_fail="0"
+
 	find "$pkgdir" -type f -print0 | {
 		while IFS= read -r -d '' file; do
 			tmp=$(file "${file}")
@@ -101,6 +129,7 @@ warn_library_rpath() {
 		if [ ${#_PROBLEM_FILES[@]} -gt 0 ]; then
 			error 'Package contains broken dylib paths:'
 			printf '%s\n' "${_PROBLEM_FILES[@]#"$pkgdir/"}" >&2
+			should_fail="1"
 		fi
 
 		if [ ${#_RPATH_FILES[@]} -gt 0 ]; then
@@ -108,4 +137,10 @@ warn_library_rpath() {
 			printf '%s\n' "${_RPATH_FILES[@]#"$pkgdir/"}" >&2
 		fi
 	}
+
+	if [[ "${should_fail}" = "1" ]]; then
+		return 1
+	else
+		return 0
+	fi
 }
