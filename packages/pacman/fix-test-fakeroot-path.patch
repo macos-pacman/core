@@ -1,0 +1,18 @@
+--- a/test/pacman/pmtest.py	2024-01-15 18:10:30.815265665 -0500
++++ b/test/pacman/pmtest.py	2024-01-15 18:10:37.346302416 -0500
+@@ -244,13 +244,13 @@
+             if not fakechroot:
+                 tap.diag("WARNING: fakechroot not found!")
+             else:
+-                cmd.append("fakechroot")
++                cmd.append(fakechroot)
+ 
+             fakeroot = util.which("fakeroot")
+             if not fakeroot:
+                 tap.diag("WARNING: fakeroot not found!")
+             else:
+-                cmd.append("fakeroot")
++                cmd.append(fakeroot)
+ 
+         if pacman["gdb"]:
+

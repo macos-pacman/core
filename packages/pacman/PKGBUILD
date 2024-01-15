@@ -4,7 +4,7 @@
 
 pkgname=pacman
 pkgver=6.0.2
-pkgrel=7.1
+pkgrel=8
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64' 'arm64')
 url="https://www.archlinux.org/pacman/"
@@ -26,6 +26,8 @@ source=(https://sources.archlinux.org/other/pacman/$pkgname-$pkgver.tar.xz{,.sig
         pacman-always-create-directories-from-debugedit-fixup.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/86981383a2f4380bda26311831be94cdc743649b.patch
         pacman-fix-unique-source-paths.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/478af273dfe24ded197ec54ae977ddc3719d74a0.patch
         pacman-strip-include-o-files-similar-to-kernel-modules.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/de11824527ec4e2561e161ac40a5714ec943543c.patch
+        pacman-fix-compatibility-with-bash-5.2-patsub_replacement.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/0e938f188692c710be36f9dd9ea7b94381aed1b4.patch
+        pacman-fix-order-of-fakechroot-fakeroot-nesting.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/05f283b5ad8f5b8f995076e93a27c8772076f872.patch
         'macos-bsd-touch-date.patch'
         'macos-no-statvfs.patch'
         'better-purge.patch'
@@ -40,6 +42,7 @@ source=(https://sources.archlinux.org/other/pacman/$pkgname-$pkgver.tar.xz{,.sig
         'check_rpath.sh.in'
         'fix_rpath.sh.in'
         'fix-bin-true.patch'
+        'fix-test-fakeroot-path.patch'
         'macos-bsd-cp.patch'
         'macos-no-chroot.patch'
         'pacman-support-oci.patch'
@@ -52,6 +55,8 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             'd2bc104788290e3de829a232590b66ad745cf5b4762a01acc1191ebf70fef114'  # ...
             'f3d4f39ef24e312f610cbb3439fb02bc6b8829e37bcf1a50ae50cd0a69bde5d0'  # ...
             'd87d0c9957c613fda272553bee58140349d151ae399f346ddaf6d75ee5916312'  # ...
+            '8641d514ef4cae9e4d1867aadf4b9c850a9e8dc9792c6c559f9d2a0e1713a5a1'
+            'b11f62d4bd9557e9d3e7456bc95f63e9eabab5ecee1368f4a14a84bc94b1c8d1'
             'f2b0e859b49696cae08538cf0783d7b53d9e8eaa8bfe15aad0e2621e7c11dfdb'  # macos-bsd-touch-date.patch
             'ff6c9766bf2e6391df3d581754b1299f3be7461c7e3cd66e10be6e1414ebf1cc'  # macos-no-statvfs.patch
             '22388ffa08d57934f64e93e3ba63675330ca6cc58c3af62e08f5a7a244b7a45e'  # better-purge.patch
@@ -66,6 +71,7 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             '9a59ab2c2be6a9068daeea9c8a5172d0cf64155bdbc7406338e20ab226bc790c'  # check_rpath.sh.in
             'ac3e4c96e056ed05267fbd0ff31df71e130be2b505156bf32c04b2a3d401ea2d'  # fix_rpath.sh.in
             '69b76b9a2eab66a3d9219d32f379cad426678de6c18485fab132348930f36ac9'  # fix-bin-true.patch
+            'dc5e13d965f4c1e12630ba24601a223b908f12fe19d5e3287d7176369acb8fe4'  # fix-test-fakeroot-path.patch
             'fbd50755b9fd9ae11874fd83c94f5f922655e6256b527e4ba61be0e2c6157967'  # macos-bsd-cp.patch
             '79e2b649ae4a62528ab55f032395e2b113eb0ac3895c5e3d6fc1fc8825b6acd3'  # macos-no-chroot.patch
             '7370ff221767ac9df2d56184f9f66151de92fd59ba2864e209311d7c54df282e'  # pacman-support-oci.patch
@@ -113,7 +119,7 @@ check() {
   cd "$pkgname-$pkgver"
 
   # nope
-  MESON_TESTTHREADS=1 meson test -C build --print-errorlogs --maxfail=1 || :
+  MESON_TESTTHREADS=1 meson test -C build --print-errorlogs || :
 }
 
 package() {
