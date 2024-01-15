@@ -19,9 +19,6 @@ validpgpkeys=('F7ABE8761E6FE68638E6283AFE0842EE36DD8C0C'  # Nathan Scott <nathan
 source=("git+https://github.com/htop-dev/htop.git#tag=${_tag}?signed")
 sha256sums=('SKIP')
 
-pacman_root=$(pacman-root-dir)
-
-
 prepare() {
   cd "${pkgname}"
 
