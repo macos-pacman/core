@@ -3,7 +3,7 @@
 # Contributor: Anatol Pomozov <anatol dot pomozov at gmail>
 
 pkgname=meson
-pkgver=1.1.0
+pkgver=1.3.1
 pkgrel=1
 pkgdesc="High productivity build system"
 url="https://mesonbuild.com/"
@@ -67,13 +67,17 @@ source=(
   meson-reference-$pkgver.json::https://github.com/mesonbuild/meson/releases/download/$pkgver/reference_manual.json
   0001-Skip-broken-tests.patch
   arch-meson
+  0002-Use-C-17-for-protobuf-tests.patch
 )
-b2sums=('149dedc0e49b72682fa053f27f9a6c2543362539861b4b79ce65ecf4d913e221ac2d63f3b9aa350bd7622851c73be418b804ae1131dd27607eb01218e0204a5e'
-        'SKIP'
-        '6f8ec9ccee50e8e33c8c289bae0f33887dc998b5753c373afddc050fa2561172f34ec573f701ed1c5c1715fabcaec2daf5d1979709546816a3813396f34178d5'
-        'afc89e9f7c8c0af12ab86c7030c17d045eb1b0758ea813d86fc88f83963795a6a9abe9a45e11829f15f5c7daf49fcc0238c31881060d16e2a0e93197f9215e1d'
-        '36b41dd2006b52dbe91cb8200e01fa86f33cc41fa4c54d712312d7aa0bb14b780e5e4ccbf431820d7d589bfceb1dd19187e40b73eceb28965baf9cfa91ff4f97'
-        '1a2e1fe1ccc184f3049d5bc81bded36ec03430c232f4914406064398c2ab31cc9dd6a1cb6ff0ac9ad3db4916d53e166ef72957468ed035527f11aae5dc93e737')
+b2sums=(
+  '64d53eddc8cb321a4e2dabaa4b7499798a7b68764b1a7a5182bfa21d081dc07105acab616119b88ff610e5d75504f03d1c0aefee3602ddf538fc491ff3d0204a'
+  'SKIP'
+  '95eff6139275ddc826395192e2e7043d665641260454aeda06dca7e573d34b348c2a935ac1603d8d838f480fe6b57ba2ece51fa90760ab3014e15c70f6d130ea'
+  '82f234701f578f5c85d527a95e6026b5d219fde9b212bead51615f38b43c8b0d129a700e792099778802f5b511250a2b56b5074e55709f4aa1ace64ef8949ff8'
+  '36b41dd2006b52dbe91cb8200e01fa86f33cc41fa4c54d712312d7aa0bb14b780e5e4ccbf431820d7d589bfceb1dd19187e40b73eceb28965baf9cfa91ff4f97'
+  '1a2e1fe1ccc184f3049d5bc81bded36ec03430c232f4914406064398c2ab31cc9dd6a1cb6ff0ac9ad3db4916d53e166ef72957468ed035527f11aae5dc93e737'
+  'd39072faf452db4fa4f67bc275d7ab1a996c9b9da22e212825a6a779fa169ebaab4bdaa578b7bd1948502e4faa484795036123b1916cce69eade944cb104564d'
+)
 validpgpkeys=('19E2D6D9B46D8DAA6288F877C24E631BABB1FE70') # Jussi Pakkanen <jpakkane@gmail.com>
 
 prepare() {
