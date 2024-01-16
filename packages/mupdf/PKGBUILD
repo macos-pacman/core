@@ -1,0 +1,193 @@
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Maintainer: Robin Candau <antiz@archlinux.org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Brad Fanella <bradfanella@archlinux.us>
+# Contributor: Stefan Husmann <stefan-husmann@t-online.de>
+# Contributor: Pierre-Paul Paquin <pierrepaulpaquin@gmail.com>
+# Contributor: xduugu
+
+pkgbase=mupdf
+pkgname=(libmupdf mupdf-x11 mupdf mupdf-tools)
+pkgver=1.23.7
+pkgrel=1
+pkgdesc='Lightweight PDF and XPS viewer'
+arch=('x86_64' 'arm64')
+url='https://mupdf.com/'
+license=('AGPL-3.0-or-later')
+makedepends=(
+  'pkg-config'
+  'curl'
+  'freeglut'
+  'freetype2'
+  'glu'
+  'gumbo-parser'
+  'harfbuzz'
+  'jbig2dec'
+  # 'lcms2'  # requires fork (not the version we are packaging)
+  'leptonica'
+  'libjpeg'
+  'libx11'
+  'libxext'
+  'mesa-libgl'
+  # 'mujs'  # is hardcoded and needs a patch to debundle
+  'openjpeg2'
+  'openssl'
+  'tesseract'
+  'zlib'
+)
+options=('staticlibs')
+source=(
+  "https://mupdf.com/downloads/archive/$pkgbase-${pkgver/_/}-source.tar.gz"
+  'mupdf.xpm'
+)
+sha256sums=('35a54933f400e89667a089a425f1c65cd69d462394fed9c0679e7c52efbaa568'
+            'a435f44425f5432c074dee745d8fbaeb879038ec1f1ec64f037c74662f09aca8')
+
+prepare() {
+  cd $pkgbase-${pkgver/_/}-source
+
+  # remove bundled packages, we want our system libraries
+  rm -rf thirdparty/{curl,freeglut,freetype,gumbo-parser,harfbuzz,jbig2dec,leptonica,libjpeg,openjpeg,tesseract,zlib}
+
+  {
+    printf "USE_SYSTEM_CURL := yes\n"
+    printf "USE_SYSTEM_FREETYPE := yes\n"
+    printf "USE_SYSTEM_GLUT := yes\n"
+    printf "USE_SYSTEM_GUMBO := yes\n"
+    printf "USE_SYSTEM_HARFBUZZ := yes\n"
+    printf "USE_SYSTEM_JBIG2DEC := yes\n"
+    printf "USE_SYSTEM_JPEGXR := yes\n"  # not used without HAVE_JPEGXR
+    printf "USE_SYSTEM_LCMS2 := no\n"  # need lcms2-art fork
+    printf "USE_SYSTEM_LEPTONICA := yes\n"
+    printf "USE_SYSTEM_LIBJPEG := yes\n"
+    printf "USE_SYSTEM_MUJS := no\n"  # needs patch to debundle
+    printf "USE_SYSTEM_OPENJPEG := yes\n"
+    printf "USE_SYSTEM_TESSERACT := yes\n"
+    printf "USE_SYSTEM_ZLIB := yes\n"
+    printf "USE_TESSERACT := yes\n"
+  } > user.make
+
+  # if your fucking makefile won't support platforms properly, id rather you just
+  # stick to assuming linux and stop fucking around with macos
+  {
+    echo "HAVE_FREETYPE := yes"
+    echo "HAVE_GUMBO := yes"
+    echo "HAVE_HARFBUZZ := yes"
+    echo "HAVE_LIBJPEG := yes"
+    echo "HAVE_OPENJPEG := yes"
+    echo "HAVE_TESSERACT := yes"
+    echo "HAVE_LEPTONICA := yes"
+    echo "HAVE_X11 := yes"
+  } >> user.make
+}
+
+# again but part 2 because their makefile is FUCKED
+_extra_flags=(
+    "SYS_FREETYPE_CFLAGS=$(pkg-config --cflags freetype2)"
+    "SYS_GUMBO_CFLAGS=$(pkg-config --cflags gumbo)"
+    "SYS_HARFBUZZ_CFLAGS=$(pkg-config --cflags harfbuzz)"
+    "SYS_LIBJPEG_CFLAGS=$(pkg-config --cflags libjpeg)"
+    "SYS_OPENJPEG_CFLAGS=$(pkg-config --cflags libopenjp2)"
+    "SYS_TESSERACT_CFLAGS=$(pkg-config --cflags tesseract)"
+    "SYS_LEPTONICA_CFLAGS=$(pkg-config --cflags lept)"
+    "X11_CFLAGS=$(pkg-config --cflags x11 xext)"
+
+    "SYS_FREETYPE_LIBS=$(pkg-config --libs freetype2)"
+    "SYS_GUMBO_LIBS=$(pkg-config --libs gumbo)"
+    "SYS_HARFBUZZ_LIBS=$(pkg-config --libs harfbuzz)"
+    "SYS_LIBJPEG_LIBS=$(pkg-config --libs libjpeg)"
+    "SYS_OPENJPEG_LIBS=$(pkg-config --libs libopenjp2)"
+    "SYS_TESSERACT_LIBS=$(pkg-config --libs tesseract)"
+    "SYS_LEPTONICA_LIBS=$(pkg-config --libs lept)"
+    "X11_LIBS=$(pkg-config --libs x11 xext)"
+)
+
+build() {
+  cd $pkgbase-${pkgver/_/}-source
+
+  make shared=yes build=release verbose=yes CC=${CC} "${_extra_flags[@]}" libs apps
+}
+
+package_libmupdf() {
+  pkgdesc='Library for Lightweight PDF and XPS viewer'
+  depends=(
+    'freetype2'
+    'gcc-libs'
+    'glibc'
+    'gumbo-parser'
+    'harfbuzz'
+    'jbig2dec'
+    'leptonica'
+    'libjpeg'
+    'openjpeg2'
+    'tesseract'
+    'zlib'
+  )
+
+  cd $pkgbase-${pkgver/_/}-source
+
+  make verbose=yes shared=yes build=release prefix="$pkgdir"/${pacman_root}/usr CC=${CC} "${_extra_flags[@]}" install
+
+  rm -rf "$pkgdir"/${pacman_root}/usr/{bin,share/man}
+  mv "$pkgdir"/${pacman_root}/usr/share/doc/$pkgbase "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname
+
+  # work around find-libdeps bug: https://gitlab.archlinux.org/archlinux/devtools/-/issues/102
+  chmod +x "$pkgdir/${pacman_root}/usr/lib/$pkgname.dylib"
+  fix_rpath "${pkgdir}/${pacman_root}/usr/lib/$pkgname.dylib"
+}
+
+package_mupdf-x11() {
+  pkgdesc='Lightweight PDF and XPS viewer with OpenGL backend'
+  depends=(
+    'glibc'
+    'libmupdf'
+    'libx11'
+    'libxext'
+  )
+
+  cd $pkgbase-${pkgver/_/}-source
+
+  install -vDm 0755 build/shared-release/$pkgbase-x11 "$pkgdir"/${pacman_root}/usr/bin/${pkgbase}-x11
+  install_name_tool -change build/shared-release/libmupdf.dylib ${pacman_root}/usr/lib/libmupdf.dylib \
+    "${pkgdir}/${pacman_root}/usr/bin/${pkgbase}-x11"
+}
+
+package_mupdf() {
+  pkgdesc='Lightweight PDF and XPS viewer'
+  provides=('mupdf-gl')
+  depends=(
+    'glibc'
+    'libmupdf'
+  )
+
+  cd $pkgbase-${pkgver/_/}-source
+
+  install -vDm 0755 build/shared-release/${pkgbase}-gl "$pkgdir"/${pacman_root}/usr/bin/${pkgbase}
+  install -vDm 0644 docs/man/$pkgbase.1 -t "$pkgdir"/${pacman_root}/usr/share/man/man1/
+  install -vDm 0644 README COPYING CHANGES -t "$pkgdir"/${pacman_root}/usr/share/doc/$pkgbase/
+  install -vDm 0644 ../$pkgbase.xpm -t "$pkgdir"/${pacman_root}/usr/share/pixmaps/
+
+  install_name_tool -change build/shared-release/libmupdf.dylib ${pacman_root}/usr/lib/libmupdf.dylib \
+    "${pkgdir}/${pacman_root}/usr/bin/${pkgbase}"
+}
+
+
+package_mupdf-tools() {
+  pkgdesc='Tools for Lightweight PDF and XPS viewer'
+  depends=(
+    'glibc'
+    'libmupdf'
+    'openssl'
+  )
+
+  cd $pkgbase-${pkgver/_/}-source
+
+  install -vDm 0755 build/shared-release/{mutool,muraster} -t "$pkgdir"/${pacman_root}/usr/bin/
+  install -vDm 0644 docs/man/mutool.1 -t "$pkgdir"/${pacman_root}/usr/share/man/man1/
+  # install -vDm 0644 README COPYING CHANGES -t "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/
+
+  local _f; for _f in mutool muraster; do
+    install_name_tool -change build/shared-release/libmupdf.dylib ${pacman_root}/usr/lib/libmupdf.dylib \
+      "${pkgdir}/${pacman_root}/usr/bin/${_f}"
+  done
+}

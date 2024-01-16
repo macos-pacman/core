@@ -1,0 +1,167 @@
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Maintainer: Robin Candau <antiz@archlinux.org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Brad Fanella <bradfanella@archlinux.us>
+# Contributor: Stefan Husmann <stefan-husmann@t-online.de>
+# Contributor: Pierre-Paul Paquin <pierrepaulpaquin@gmail.com>
+# Contributor: xduugu
+
+pkgbase=mupdf
+pkgname=(libmupdf mupdf mupdf-gl mupdf-tools)
+pkgver=1.23.9
+pkgrel=1
+pkgdesc='Lightweight PDF and XPS viewer'
+arch=('x86_64')
+url='https://mupdf.com/'
+license=('AGPL-3.0-or-later')
+makedepends=(
+  'curl'
+  'desktop-file-utils'
+  'freeglut'
+  'freetype2'
+  'glu'
+  'gumbo-parser'
+  'harfbuzz'
+  'jbig2dec'
+  # 'lcms2'  # requires fork (not the version we are packaging)
+  'leptonica'
+  'libjpeg'
+  'libx11'
+  'libxext'
+  'mesa-libgl'
+  # 'mujs'  # is hardcoded and needs a patch to debundle
+  'openjpeg2'
+  'openssl'
+  'tesseract'
+  'zlib'
+)
+options=('staticlibs')
+source=(
+  "https://mupdf.com/downloads/archive/$pkgbase-${pkgver/_/}-source.tar.gz"
+  $pkgbase.desktop
+  $pkgbase.xpm
+)
+sha256sums=('d4a5d66801d85f97d76da978b155f66a5659d1131070c0400f076883f604e297'
+            'ccff66979249bd4ab4ba8918660f194eb90eb0ae231b16e36a6cecdcf471883f'
+            'a435f44425f5432c074dee745d8fbaeb879038ec1f1ec64f037c74662f09aca8')
+
+prepare() {
+  cd $pkgbase-${pkgver/_/}-source
+
+  # remove bundled packages, we want our system libraries
+  rm -rf thirdparty/{curl,freeglut,freetype,gumbo-parser,harfbuzz,jbig2dec,leptonica,libjpeg,openjpeg,tesseract,zlib}
+
+  {
+    printf "USE_SYSTEM_CURL := yes\n"
+    printf "USE_SYSTEM_FREETYPE := yes\n"
+    printf "USE_SYSTEM_GLUT := yes\n"
+    printf "USE_SYSTEM_GUMBO := yes\n"
+    printf "USE_SYSTEM_HARFBUZZ := yes\n"
+    printf "USE_SYSTEM_JBIG2DEC := yes\n"
+    printf "USE_SYSTEM_JPEGXR := yes\n"  # not used without HAVE_JPEGXR
+    printf "USE_SYSTEM_LCMS2 := no\n"  # need lcms2-art fork
+    printf "USE_SYSTEM_LEPTONICA := yes\n"
+    printf "USE_SYSTEM_LIBJPEG := yes\n"
+    printf "USE_SYSTEM_MUJS := no\n"  # needs patch to debundle
+    printf "USE_SYSTEM_OPENJPEG := yes\n"
+    printf "USE_SYSTEM_TESSERACT := yes\n"
+    printf "USE_SYSTEM_ZLIB := yes\n"
+    printf "USE_TESSERACT := yes\n"
+  } > user.make
+}
+
+build() {
+  cd $pkgbase-${pkgver/_/}-source
+  make shared=yes build=release libs apps
+}
+
+package_libmupdf() {
+  pkgdesc='Library for Lightweight PDF and XPS viewer'
+  depends=(
+    'freetype2'
+    'gcc-libs'
+    'glibc'
+    'gumbo-parser'
+    'harfbuzz'
+    'jbig2dec'
+    'leptonica'
+    'libjpeg'
+    'openjpeg2'
+    'tesseract'
+    'zlib'
+  )
+
+  cd $pkgbase-${pkgver/_/}-source
+
+  make shared=yes build=release prefix="$pkgdir"/usr install
+
+  rm -rf "$pkgdir"/usr/{bin,share/man}
+  mv "$pkgdir"/usr/share/doc/$pkgbase "$pkgdir"/usr/share/doc/$pkgname
+
+  # work around find-libdeps bug: https://gitlab.archlinux.org/archlinux/devtools/-/issues/102
+  chmod +x "$pkgdir/usr/lib/$pkgname.so"
+}
+
+package_mupdf() {
+  pkgdesc='Lightweight PDF and XPS viewer'
+  depends=(
+    'desktop-file-utils'
+    'glibc'
+    'libmupdf'
+    'libx11'
+    'libxext'
+  )
+
+  cd $pkgbase-${pkgver/_/}-source
+
+  install -vDm 0755 build/shared-release/$pkgbase-x11 "$pkgdir"/usr/bin/$pkgbase
+
+  install -vDm 0644 docs/man/$pkgbase.1 -t "$pkgdir"/usr/share/man/man1/
+
+  install -vDm 0644 README COPYING CHANGES -t "$pkgdir"/usr/share/doc/$pkgbase/
+
+  install -vDm 0644 ../$pkgbase.desktop -t "$pkgdir"/usr/share/applications/
+  install -vDm 0644 ../$pkgbase.xpm -t "$pkgdir"/usr/share/pixmaps/
+}
+
+package_mupdf-gl() {
+  pkgdesc='Lightweight PDF and XPS viewer with OpenGL backend'
+  conflicts=('mupdf')
+  provides=("mupdf=${pkgver}")
+  depends=(
+    'desktop-file-utils'
+    'glibc'
+    'glut'
+    'libgl'
+    'libmupdf'
+    'openssl'
+  )
+
+  cd $pkgbase-${pkgver/_/}-source
+
+  install -vDm 0755 build/shared-release/$pkgbase-gl "$pkgdir"/usr/bin/$pkgbase
+
+  install -vDm 0644 docs/man/$pkgbase.1 -t "$pkgdir"/usr/share/man/man1/
+
+  install -vDm 0644 README COPYING CHANGES -t "$pkgdir"/usr/share/doc/$pkgbase/
+
+  install -vDm 0644 ../$pkgbase.desktop -t "$pkgdir"/usr/share/applications/
+  install -vDm 0644 ../$pkgbase.xpm -t "$pkgdir"/usr/share/pixmaps/
+}
+
+package_mupdf-tools() {
+  pkgdesc='Tools for Lightweight PDF and XPS viewer'
+  depends=(
+    'glibc'
+    'libmupdf'
+    'openssl'
+  )
+
+  cd $pkgbase-${pkgver/_/}-source
+
+  install -vDm 0755 build/shared-release/{mutool,muraster} -t "$pkgdir"/usr/bin/
+
+  install -vDm 0644 docs/man/mutool.1 -t "$pkgdir"/usr/share/man/man1/
+
+  install -vDm 0644 README COPYING CHANGES -t "$pkgdir"/usr/share/doc/$pkgname/
+}
