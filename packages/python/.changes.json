@@ -1,0 +1,9 @@
+{
+  "upstream_commit": "547eee4deb54fda2a3892997145b57de37301c5d",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "EXTERNALLY-MANAGED"
+  ]
+}
