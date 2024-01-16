@@ -4,7 +4,7 @@
 
 pkgname=meson
 pkgver=1.3.1
-pkgrel=1
+pkgrel=1.2
 pkgdesc="High productivity build system"
 url="https://mesonbuild.com/"
 arch=(any)
@@ -76,13 +76,16 @@ b2sums=(
   '82f234701f578f5c85d527a95e6026b5d219fde9b212bead51615f38b43c8b0d129a700e792099778802f5b511250a2b56b5074e55709f4aa1ace64ef8949ff8'
   '36b41dd2006b52dbe91cb8200e01fa86f33cc41fa4c54d712312d7aa0bb14b780e5e4ccbf431820d7d589bfceb1dd19187e40b73eceb28965baf9cfa91ff4f97'
   '1a2e1fe1ccc184f3049d5bc81bded36ec03430c232f4914406064398c2ab31cc9dd6a1cb6ff0ac9ad3db4916d53e166ef72957468ed035527f11aae5dc93e737'
-  'd39072faf452db4fa4f67bc275d7ab1a996c9b9da22e212825a6a779fa169ebaab4bdaa578b7bd1948502e4faa484795036123b1916cce69eade944cb104564d'
+  'c0154434fefb00aebb66b276c3b871b9ec629adc8f3c5b020a21b4662667c0bdaa2c48c6a7498d0c7ab901bb9c3911bd0bb82fbae5e5f3ae2da006e3849e0ff0'
 )
 validpgpkeys=('19E2D6D9B46D8DAA6288F877C24E631BABB1FE70') # Jussi Pakkanen <jpakkane@gmail.com>
 
 prepare() {
   cd $pkgname-$pkgver
   patch -Np1 -i ../0001-Skip-broken-tests.patch
+  patch -Np1 -i ../0002-Use-C-17-for-protobuf-tests.patch
+
+  chmod a+x ../arch-meson
 }
 
 build() {
@@ -113,7 +116,7 @@ package() {
   install -Dm644 ../meson-reference-$pkgver.json "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/reference_manual.json"
 
   install -D ../arch-meson -t "$pkgdir/${pacman_root}/usr/bin"
-  chmod +x $pkgdir/${pacman_root}/usr/bin/arch-meson
+  chmod a+x $pkgdir/${pacman_root}/usr/bin/arch-meson
 }
 
 # vim:set sw=2 sts=-1 et:
