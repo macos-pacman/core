@@ -10,7 +10,7 @@ pkgver=3.8.0
 pkgrel=2
 pkgdesc="Alliance for Open Media video codec"
 url="https://aomedia.org/"
-arch=(x86_64)
+arch=('x86_64' 'arm64')
 license=(
   BSD
   custom:PATENTS
@@ -22,16 +22,21 @@ makedepends=(
   cmake
   doxygen
   ninja
-  yasm
 )
 source=(
   https://storage.googleapis.com/aom-releases/libaom-$pkgver.tar.gz{,.asc}
 )
-b2sums=('276e50c134a5a5925591cbc5c76a11383d288854bc5f4db79d97f1e4e41e74f5739ee916df127112cb678673f09aeb5dfa91f1d8696b0894923837cea991bd73'
-        'SKIP')
+b2sums=(
+  '276e50c134a5a5925591cbc5c76a11383d288854bc5f4db79d97f1e4e41e74f5739ee916df127112cb678673f09aeb5dfa91f1d8696b0894923837cea991bd73'
+  'SKIP'
+)
 validpgpkeys=(
   B002F08B74A148DAA01F7123A48E86DB0B830498 # AOMedia release signing key <av1-discuss@aomedia.org>
 )
+
+if [ $(uname -m) = "x86_64" ]; then
+  makedepends+=('yasm')
+fi
 
 prepare() {
   cd libaom-$pkgver
@@ -39,35 +44,37 @@ prepare() {
 
 build() {
   local cmake_options=(
-    # Upstream would like Release, adding -O3 and removing assertions
-    # https://gitlab.archlinux.org/archlinux/packaging/packages/aom/-/issues/1
-    -D CMAKE_BUILD_TYPE=Release
-
-    -D CMAKE_INSTALL_PREFIX=/usr
-    -D BUILD_SHARED_LIBS=1
-    -D ENABLE_TESTS=0
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
+    -DCMAKE_BUILD_TYPE=Release
+    -DBUILD_SHARED_LIBS=1
+    -DENABLE_TESTS=0
   )
 
-  cmake -S libaom-$pkgver -B build -G Ninja "${cmake_options[@]}"
+  # Upstream would like -O3
+  CFLAGS="${CFLAGS/-O2/-O3}"
+  CXXFLAGS="${CXXFLAGS/-O2/-O3}"
+
+  # the 'assembler' just dies waiting for stdin, so just cat null into it.
+  cat /dev/null | cmake -S libaom-$pkgver -B build -G Ninja "${cmake_options[@]}"
   cmake --build build
 }
 
 package_aom() {
-  provides=(libaom.so)
+  provides=(libaom.dylib)
 
   DESTDIR="$pkgdir" cmake --install build
 
-  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
 }
 
 package_aom-docs() {
   pkgdesc+=" (documentation)"
   depends=()
 
-  mkdir -p "$pkgdir/usr/share/doc"
-  cp -r build/docs/html "$pkgdir/usr/share/doc/$pkgbase"
+  mkdir -p "$pkgdir/${pacman_root}/usr/share/doc"
+  cp -r build/docs/html "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase"
 
-  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
 }
 
 # vim:set sw=2 sts=-1 et:
