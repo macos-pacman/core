@@ -1,0 +1,23 @@
+# Maintainer: Frederik Schwan <freswa at archlinux dot org>
+
+pkgname=python-bracex
+pkgver=2.4
+pkgrel=1
+pkgdesc='Bash style brace expansion for Python'
+arch=('any')
+url='https://github.com/facelessuser/bracex'
+license=('MIT')
+makedepends=('python-build' 'python-hatchling' 'python-installer' 'python-wheel')
+source=("https://github.com/facelessuser/bracex/archive/${pkgver}/bracex-${pkgver}.tar.gz")
+b2sums=('381c8dbd890ecd7934ae0780928a9d4deb08c5605dbe11d2427b564ea598b554b20a390a66ca21676acf4eff73d7409b0ad38423811fc48282e25d3800b64765')
+
+build() {
+  cd bracex-${pkgver}
+  python -m build --wheel --skip-dependency-check --no-isolation
+}
+
+package() {
+  cd bracex-${pkgver}
+  python -m installer --destdir="${pkgdir}" dist/*.whl
+  install -Dm644 LICENSE.md "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE
+}
