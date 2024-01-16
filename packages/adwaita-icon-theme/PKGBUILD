@@ -35,25 +35,25 @@ pkgver() {
 }
 
 prepare() {
-  cd $pkgname
-  autoreconf -fvi
+  cd $pkgbase
+
+  # rm unused and problematic .icon-theme.cache.
+  git cherry-pick -n 32affe610606b3a550c2953993a72063eb2b7381
 }
 
 build() {
-  cd $pkgname
-  ./configure --prefix=${pacman_root}/usr
-  make
+  arch-meson $pkgbase build
+  meson compile -C build
 }
 
 check() {
-  cd $pkgname
-  make check
+  meson test -C build --print-errorlogs
 }
 
 package_adwaita-icon-theme() {
   depends+=(adwaita-cursors)
 
-  make -C $pkgname DESTDIR="$pkgdir" install
+  meson install -C build --destdir "$pkgdir"
 
   mkdir -p cursors/${pacman_root}/usr/share/icons/Adwaita
   mv {"$pkgdir",cursors}/${pacman_root}/usr/share/icons/Adwaita/cursors
