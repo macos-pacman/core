@@ -1,0 +1,53 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -13 +13 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -25 +24,0 @@
+-  yasm
+@@ -30,2 +29,4 @@
+-b2sums=('276e50c134a5a5925591cbc5c76a11383d288854bc5f4db79d97f1e4e41e74f5739ee916df127112cb678673f09aeb5dfa91f1d8696b0894923837cea991bd73'
+-        'SKIP')
++b2sums=(
++  '276e50c134a5a5925591cbc5c76a11383d288854bc5f4db79d97f1e4e41e74f5739ee916df127112cb678673f09aeb5dfa91f1d8696b0894923837cea991bd73'
++  'SKIP'
++)
+@@ -35,0 +37,4 @@
++if [ $(uname -m) = "x86_64" ]; then
++  makedepends+=('yasm')
++fi
++
+@@ -42,7 +47,4 @@
+-    # Upstream would like Release, adding -O3 and removing assertions
+-    # https://gitlab.archlinux.org/archlinux/packaging/packages/aom/-/issues/1
+-    -D CMAKE_BUILD_TYPE=Release
+-
+-    -D CMAKE_INSTALL_PREFIX=/usr
+-    -D BUILD_SHARED_LIBS=1
+-    -D ENABLE_TESTS=0
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
++    -DCMAKE_BUILD_TYPE=Release
++    -DBUILD_SHARED_LIBS=1
++    -DENABLE_TESTS=0
+@@ -51 +53,6 @@
+-  cmake -S libaom-$pkgver -B build -G Ninja "${cmake_options[@]}"
++  # Upstream would like -O3
++  CFLAGS="${CFLAGS/-O2/-O3}"
++  CXXFLAGS="${CXXFLAGS/-O2/-O3}"
++
++  # the 'assembler' just dies waiting for stdin, so just cat null into it.
++  cat /dev/null | cmake -S libaom-$pkgver -B build -G Ninja "${cmake_options[@]}"
+@@ -56 +63 @@
+-  provides=(libaom.so)
++  provides=(libaom.dylib)
+@@ -60 +67 @@
+-  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
++  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
+@@ -67,2 +74,2 @@
+-  mkdir -p "$pkgdir/usr/share/doc"
+-  cp -r build/docs/html "$pkgdir/usr/share/doc/$pkgbase"
++  mkdir -p "$pkgdir/${pacman_root}/usr/share/doc"
++  cp -r build/docs/html "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase"
+@@ -70 +77 @@
+-  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
++  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 libaom-$pkgver/{LICENSE,PATENTS}
