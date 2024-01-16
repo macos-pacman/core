@@ -6,4 +6,7 @@
   "clean_files": [
     "EXTERNALLY-MANAGED"
   ]
+  "ignore_files": [
+    "genrebuild"
+  ]
 }
