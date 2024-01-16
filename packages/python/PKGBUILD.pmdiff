@@ -9,9 +9,9 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
 @@ -19,2 +18,2 @@
--depends=('bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib')
+-depends=('bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib' 'tzdata')
 -makedepends=('tk' 'sqlite' 'bluez-libs' 'mpdecimal' 'llvm' 'gdb' 'xorg-server-xvfb' 'ttf-font')
-+depends=('bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib' 'readline' 'gnureadline') # note: explicitly depend on gnureadline
++depends=('bzip2' 'expat' 'gdbm' 'libffi' 'libnsl' 'libxcrypt' 'openssl' 'zlib' 'tzdata' 'readline' 'gnureadline') # note: explicitly depend on gnureadline
 +makedepends=('tk' 'sqlite')
 @@ -22 +21,3 @@
 -        EXTERNALLY-MANAGED)

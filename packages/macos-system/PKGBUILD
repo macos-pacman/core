@@ -1,6 +1,6 @@
-pkgname=(macos-system macos-accelerate-blas-lapack)
+pkgname=(macos-system tzdata macos-accelerate-blas-lapack)
 pkgver=13.3
-pkgrel=16
+pkgrel=17
 pkgdesc='builtin macos packages'
 arch=('x86_64' 'arm64')
 license=(MIT)
@@ -20,8 +20,6 @@ sha256sums=(
 )
 
 pacman_root=$(dirname $(which pacman))/../../
-
-_file_cmds_list=('stat' 'cp' 'chmod' 'chown' 'mknod' 'mkfifo' 'ls')
 
 prepare() {
 	cd $srcdir
@@ -49,6 +47,11 @@ package_macos-accelerate-blas-lapack() {
   )
 
   # do nothing, this package is literally empty
+}
+
+package_tzdata() {
+  # same, this package does nothing -- macos comes with tzdata
+  :
 }
 
 package_macos-system() {
