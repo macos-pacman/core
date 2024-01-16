@@ -20,9 +20,9 @@
 +        system.bash_logout.in
 +        system.bash_profile.in)
 @@ -37,0 +35,4 @@
-+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bashrc.in > system.bashrc
-+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_logout.in > system.bash_logout
-+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_profile.in > system.bash_profile
++  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../system.bashrc.in > system.bashrc
++  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../system.bash_logout.in > system.bash_logout
++  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../system.bash_profile.in > system.bash_profile
 +
 @@ -43,0 +45,2 @@
 +

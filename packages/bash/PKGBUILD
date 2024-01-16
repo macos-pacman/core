@@ -10,20 +10,17 @@ _patchlevel=026
 pkgver=${_basever}.${_patchlevel}
 pkgrel=2
 pkgdesc='The GNU Bourne Again shell'
-arch=(x86_64)
+arch=('x86_64' 'arm64')
 license=('GPL-3.0-or-later')
 url='https://www.gnu.org/software/bash/bash.html'
-backup=(etc/bash.bash{rc,_logout} etc/skel/.bash{rc,_profile,_logout})
-depends=(readline libreadline.so glibc ncurses)
+backup=(${pacman_root#/}etc/bash.bash{rc,_logout})
+depends=(readline glibc ncurses)
 optdepends=('bash-completion: for tab completion')
 provides=('sh')
-install=bash.install
 source=(https://ftp.gnu.org/gnu/bash/bash-$_basever.tar.gz{,.sig}
-        dot.bashrc
-        dot.bash_profile
-        dot.bash_logout
-        system.bashrc
-        system.bash_logout)
+        system.bashrc.in
+        system.bash_logout.in
+        system.bash_profile.in)
 validpgpkeys=('7C0135FB088AAF6C66C650B9BB5869F064EA74AB') # Chet Ramey
 
 if [[ $((10#${_patchlevel})) -gt 0 ]]; then
@@ -35,60 +32,72 @@ fi
 prepare() {
   cd $pkgname-$_basever
 
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bashrc.in > system.bashrc
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_logout.in > system.bash_logout
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_profile.in > system.bash_profile
+
   msg "Applying patches..."
   for (( _p=1; _p<=$((10#${_patchlevel})); _p++ )); do
     local patch="bash${_basever//.}-$(printf "%03d" $_p)"
     msg2 "applying patch ${patch}"
     patch -Np0 -i ../"${patch}"
   done
+
+  sed -i "/SYS_PROFILE/d" $pkgname-$_basever/pathnames.h.in
 }
 
 build() {
   cd $pkgname-$_basever
 
-  _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"/usr/local/sbin:/usr/local/bin:/usr/bin\"\'
+  _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"${pacman_root}/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin\"\'
                -DSTANDARD_UTILS_PATH=\'\"/usr/bin\"\'
-               -DSYS_BASHRC=\'\"/etc/bash.bashrc\"\'
-               -DSYS_BASH_LOGOUT=\'\"/etc/bash.bash_logout\"\'
+               -DSYS_BASHRC=\'\"${pacman_root}/etc/bash.bashrc\"\'
+               -DSYS_PROFILE=\'\"${pacman_root}/etc/bash.profile\"\'
+               -DSYS_BASH_LOGOUT=\'\"${pacman_root}/etc/bash.bash_logout\"\'
                -DNON_INTERACTIVE_LOGIN_SHELLS)
   export CFLAGS="${CFLAGS} ${_bashconfig[@]}"
 
   ./configure \
-    --prefix=/usr \
+    --prefix=${pacman_root}/usr \
     --with-curses \
     --enable-readline \
     --without-bash-malloc \
-    --with-installed-readline
+    --disable-nls \
+    --with-included-gettext \
+    --with-installed-readline \
+    --without-libintl-prefix \
+    --without-libiconv-prefix
   make
 }
 
 check() {
-  make -C $pkgname-$_basever check
+  make -C $pkgname-$_basever check < /dev/null
 }
 
 package() {
   make -C $pkgname-$_basever DESTDIR="$pkgdir" install
-  ln -s bash "$pkgdir/usr/bin/sh"
-  ln -s bash "$pkgdir/usr/bin/rbash"
+  ln -s bash "$pkgdir/${pacman_root}/usr/bin/sh"
+  ln -s bash "$pkgdir/${pacman_root}/usr/bin/rbash"
+
+  # fix shared libs
+  local _l _libs
+  IFS=$'\n' read -r -d '' -a _libs < <(find "$pkgdir/${pacman_root}/usr/lib/bash" -type f) || true
+  for _l in "${_libs[@]}"; do
+    fix_rpath "${pacman_root}" "${pkgdir}" "${_l}"
+  done
 
   # system-wide configuration files
-  install -Dm644 system.bashrc "$pkgdir/etc/bash.bashrc"
-  install -Dm644 system.bash_logout "$pkgdir/etc/bash.bash_logout"
-
-  # user configuration file skeletons
-  install -dm755 "$pkgdir/etc/skel/"
-  install -m644 dot.bashrc "$pkgdir/etc/skel/.bashrc"
-  install -m644 dot.bash_profile "$pkgdir/etc/skel/.bash_profile"
-  install -m644 dot.bash_logout "$pkgdir/etc/skel/.bash_logout"
+  install -Dm644 system.bashrc "$pkgdir/${pacman_root}/etc/bash.bashrc"
+  install -Dm644 system.bash_logout "$pkgdir/${pacman_root}/etc/bash.bash_logout"
+  install -Dm644 system.bash_profile "$pkgdir/${pacman_root}/etc/bash.bash_profile"
 }
 
 sha256sums=('a139c166df7ff4471c5e0733051642ee5556c1cc8a4a78f145583c5c81ab32fb'
             'SKIP'
-            '959bc596166c9758fdd68836581f6b8f1d6fdb947d580bf24dce607998a077b8'
-            'e149407c2bee17779caec70a7edd3d0000d172e7e4347429b80cb4d55bcec9c2'
-            '4330edf340394d0dae50afb04ac2a621f106fe67fb634ec81c4bfb98be2a1eb5'
-            '51ceca7cd615ff4e2f8f3373a46ac7bfd453be70bbaddc074cb17f6db1ac7370'
+            'd73d271a0123f5a05422b3acd9f45efd76c36f9be3e4eaeac9207c8084ae7be7'
             '025bccfb374a3edce0ff8154d990689f30976b78f7a932dc9a6fcef81821811e'
+            'a6890bbac5676050841121f8a3baeba5ed4c675f2f75e34243f0977a413ffb79'
+
             'f42f2fee923bc2209f406a1892772121c467f44533bedfe00a176139da5d310a'
             'SKIP'
             '45cc5e1b876550eee96f95bffb36c41b6cb7c07d33f671db5634405cd00fd7b8'
