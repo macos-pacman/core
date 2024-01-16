@@ -1,0 +1,47 @@
+# Maintainer: George Rawlinson <grawlinson@archlinux.org>
+
+pkgname=cppzmq
+pkgver=4.9.0
+pkgrel=1
+pkgdesc='Header-only C++ binding for libzmq'
+arch=('any')
+url='https://github.com/zeromq/cppzmq'
+license=('MIT')
+makedepends=(
+  'git'
+  'zeromq'
+  'cmake'
+)
+checkdepends=('catch2')
+optdepends=('cmake: to build with CMake')
+_commit='d67b6352b87a238775cd17e4376b980d07fa7939'
+source=("$pkgname::git+$url#commit=$_commit")
+b2sums=('SKIP')
+
+pkgver() {
+  cd "$pkgname"
+
+  git describe --tags | sed 's/^v//'
+}
+
+build() {
+  cmake \
+    -B build \
+    -S "$pkgname" \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -W no-dev
+
+  cmake --build build
+}
+
+check() {
+  ctest --test-dir build --output-on-failure
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+
+  # license
+  install -vDm644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" "$pkgname/LICENSE"
+}
