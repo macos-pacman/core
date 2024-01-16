@@ -2,7 +2,7 @@
 # Contributor: François Charette <firmicus@gmx.net>
 
 pkgname=xz
-pkgver=5.4.1
+pkgver=5.4.5
 pkgrel=1
 pkgdesc='Library and command line tools for XZ and LZMA compressed files'
 arch=('x86_64' 'arm64')
@@ -11,11 +11,17 @@ license=('GPL' 'LGPL' 'custom')
 depends=('sh')
 provides=('liblzma.dylib')
 validpgpkeys=('3690C240CE51B4670D30AD1C38EE757D69184620') # Lasse Collin <lasse.collin@tukaani.org>
-source=("https://tukaani.org/${pkgname}/${pkgname}-${pkgver}.tar.gz"{,.sig})
-sha256sums=('e4b0f81582efa155ccf27bb88275254a429d44968e488fc94b806f2a61cd3e22'
-            'SKIP')
-sha512sums=('5cff8383a68fb88ecbb3770ec48af0ad5582e08de9dccd339e0b685aaa53447e59d6425caa3f63b54a674e5d78c20520876db547d156e6658ad4841660cba85b'
-            'SKIP')
+source=(
+  https://tukaani.org/${pkgname}/${pkgname}-${pkgver}.tar.gz{,.sig}
+)
+sha256sums=(
+  '135c90b934aee8fbc0d467de87a05cb70d627da36abe518c357a873709e5b7d6'
+  'SKIP'
+)
+sha512sums=(
+  '91f8f548c915de0ed79cee13ce0336b51c1cebf2eb142fa1efecfd07771c662c99cad3730540fcb712057ab274130e13b87960f6b4c62f0bd9477f27a303fb2b'
+  'SKIP'
+)
 
 pacman_root=$(pacman-root-dir)
 
