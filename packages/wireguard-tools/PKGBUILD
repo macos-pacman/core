@@ -1,0 +1,48 @@
+# Maintainer: Christian Hesse <mail@eworm.de>
+# Contributor: Jason A. Donenfeld <Jason@zx2c4.com>
+
+pkgname=wireguard-tools
+pkgver=1.0.20210914
+pkgrel=4
+pkgdesc='next generation secure network tunnel - tools for configuration'
+arch=('x86_64' 'arm64')
+url='https://www.wireguard.com/'
+license=('GPL')
+depends=('bash>=4' 'wireguard-go')
+validpgpkeys=('AB9942E6D4A4CFC3412620A749FC7012A5DE03AE') # Jason A. Donenfeld <Jason@zx2c4.com>
+source=("https://git.zx2c4.com/${pkgname}/snapshot/${pkgname}-${pkgver}.tar"{.xz,.asc})
+sha256sums=('97ff31489217bb265b7ae850d3d0f335ab07d2652ba1feec88b734bc96bd05ac'
+            'SKIP')
+
+prepare() {
+	cd ${pkgname}-${pkgver}/
+
+	find contrib/ -name '.gitignore' -delete
+	sed -i -e "s|/usr/local/etc/wireguard||g" \
+	       -e "s|/etc/wireguard|${pacman_root}/etc/wireguard|g" \
+	       src/completion/wg-quick.bash-completion \
+	       src/wg-quick/*.bash \
+	       src/man/*
+}
+
+build() {
+	cd ${pkgname}-${pkgver}/
+
+	make -C src/ PREFIX="${pacman_root}/usr"
+}
+
+package() {
+	cd ${pkgname}-${pkgver}/
+
+	make -C src/ \
+		DESTDIR="${pkgdir}/" \
+		WITH_BASHCOMPLETION=yes \
+		WITH_WGQUICK=yes \
+		WITH_SYSTEMDUNITS=no \
+		SYSCONFDIR="${pacman_root}/etc" \
+		PREFIX="${pacman_root}/usr" \
+		install
+
+	install -d -m0755 "${pkgdir}"/${pacman_root}/usr/share/${pkgname}/
+	cp -r contrib/ "${pkgdir}"/${pacman_root}/usr/share/${pkgname}/examples/
+}
