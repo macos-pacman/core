@@ -1,0 +1,173 @@
+diff --git a/man/mono-configuration-crypto.1 b/man/mono-configuration-crypto.1
+index ce48364182d..39f872b2880 100644
+--- a/man/mono-configuration-crypto.1
++++ b/man/mono-configuration-crypto.1
+@@ -18,7 +18,7 @@ Show verbose information (including exception stacktraces)
+ .TP
+ .B   -m, --machine, --global
+ Use machine (global) store for all the key actions. Note that on Unix machines global store is located in
+-\fI/usr/share/.mono\fR and modifying it requires root user permissions.
++\fI@@PACMAN_ROOT@@/usr/share/.mono\fR and modifying it requires root user permissions.
+ 
+ .TP
+ .B   -u, --user, --local
+diff --git a/man/mono.1 b/man/mono.1
+index fc2d8b90c8b..e928ae89e5c 100644
+--- a/man/mono.1
++++ b/man/mono.1
+@@ -2017,7 +2017,7 @@ assemblies are located.
+ Mono runtime configuration file.  See the mono-config(5) manual page
+ for more information.
+ .TP
+-.B ~/.config/.mono/certs, /usr/share/.mono/certs
++.B ~/.config/.mono/certs, @@PACMAN_ROOT@@/usr/share/.mono/certs
+ .Sp
+ Contains Mono certificate stores for users / machine. See the certmgr(1) 
+ manual page for more information on managing certificate stores and
+@@ -2030,13 +2030,13 @@ Files in this directory allow a user to customize the configuration
+ for a given system assembly, the format is the one described in the
+ mono-config(5) page. 
+ .TP
+-.B ~/.config/.mono/keypairs, /usr/share/.mono/keypairs
++.B ~/.config/.mono/keypairs, @@PACMAN_ROOT@@/usr/share/.mono/keypairs
+ .Sp
+ Contains Mono cryptographic keypairs for users / machine. They can be 
+ accessed by using a CspParameters object with DSACryptoServiceProvider
+ and RSACryptoServiceProvider classes.
+ .TP
+-.B ~/.config/.isolatedstorage, ~/.local/share/.isolatedstorage, /usr/share/.isolatedstorage
++.B ~/.config/.isolatedstorage, ~/.local/share/.isolatedstorage, @@PACMAN_ROOT@@/usr/share/.isolatedstorage
+ .Sp
+ Contains Mono isolated storage for non-roaming users, roaming users and 
+ local machine. Isolated storage can be accessed using the classes from 
+diff --git a/man/mozroots.1 b/man/mozroots.1
+index 438f7692bee..57887513605 100644
+--- a/man/mozroots.1
++++ b/man/mozroots.1
+@@ -162,7 +162,7 @@ required if no changes are made to your trust store.
+ .fi
+ .SH FILES
+ .PP
+-~/.config/.mono/certs, /usr/share/.mono/certs
++~/.config/.mono/certs, @@PACMAN_ROOT@@/usr/share/.mono/certs
+ .PP
+ Contains Mono certificate stores for users / machine. See the certmgr(1) 
+ manual page for more information on managing certificate stores.
+diff --git a/mcs/class/corlib/System/Environment.cs b/mcs/class/corlib/System/Environment.cs
+index fd936ab21a4..9cb36bbc95d 100644
+--- a/mcs/class/corlib/System/Environment.cs
++++ b/mcs/class/corlib/System/Environment.cs
+@@ -678,7 +678,7 @@ internal static string UnixGetFolderPath (SpecialFolder folder, SpecialFolderOpt
+ 			case SpecialFolder.MyVideos:
+ 				return ReadXdgUserDir (config, home, "XDG_VIDEOS_DIR", "Videos");
+ 			case SpecialFolder.CommonTemplates:
+-				return "/usr/share/templates";
++				return "@@PACMAN_ROOT@@/usr/share/templates";
+ 			case SpecialFolder.Fonts:
+ 				if (Platform == PlatformID.MacOSX)
+ 					return Path.Combine (home, "Library", "Fonts");
+@@ -741,7 +741,7 @@ internal static string UnixGetFolderPath (SpecialFolder folder, SpecialFolderOpt
+ 				return String.Empty;
+ 			// This is where data common to all users goes
+ 			case SpecialFolder.CommonApplicationData:
+-				return "/usr/share";
++				return "@@PACMAN_ROOT@@/usr/share";
+ 			default:
+ 				throw new ArgumentException ("Invalid SpecialFolder");
+ 			}
+diff --git a/mcs/class/corlib/System/Environment.iOS.cs b/mcs/class/corlib/System/Environment.iOS.cs
+index 04ad76d43ed..00d905ef41b 100644
+--- a/mcs/class/corlib/System/Environment.iOS.cs
++++ b/mcs/class/corlib/System/Environment.iOS.cs
+@@ -120,7 +120,7 @@ internal static string iOSGetFolderPath (SpecialFolder folder)
+ 				return Path.Combine (NSDocumentDirectory, "Videos");
+ 
+ 			case SpecialFolder.CommonTemplates:
+-				return "/usr/share/templates";
++				return "@@PACMAN_ROOT@@/usr/share/templates";
+ 
+ 			case SpecialFolder.Fonts:
+ 				return Path.Combine (NSDocumentDirectory, ".fonts");
+@@ -138,11 +138,11 @@ internal static string iOSGetFolderPath (SpecialFolder folder)
+ 				return internalGetHome ();
+ 
+ 			case SpecialFolder.CommonApplicationData:
+-				return "/usr/share";
++				return "@@PACMAN_ROOT@@/usr/share";
+ 
+ 			default:
+ 				throw new ArgumentException ("Invalid SpecialFolder");
+ 			}
+ 		}
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/mcs/class/corlib/System/TermInfoDriver.cs b/mcs/class/corlib/System/TermInfoDriver.cs
+index c16b7367279..b3478d30842 100644
+--- a/mcs/class/corlib/System/TermInfoDriver.cs
++++ b/mcs/class/corlib/System/TermInfoDriver.cs
+@@ -53,7 +53,7 @@ class TermInfoDriver : IConsoleDriver {
+ 		static int terminal_size;
+ 		
+ 		//static uint flag = 0xdeadbeef;
+-		readonly static string [] locations = { "/usr/share/terminfo", "/etc/terminfo", "/usr/lib/terminfo", "/lib/terminfo" };
++		readonly static string [] locations = { "@@PACMAN_ROOT@@/usr/share/terminfo", "/usr/share/terminfo", "/etc/terminfo", "/usr/lib/terminfo", "/lib/terminfo" };
+ 
+ 		TermInfoReader reader;
+ 		int cursorLeft;
+diff --git a/mono/metadata/assembly.c b/mono/metadata/assembly.c
+index f9feaacf2c1..8a6b9caf636 100644
+--- a/mono/metadata/assembly.c
++++ b/mono/metadata/assembly.c
+@@ -1012,7 +1012,7 @@ mono_set_rootdir (void)
+ 	installdir = g_path_get_dirname (bindir);
+ 	root = g_build_path (G_DIR_SEPARATOR_S, installdir, "lib", (const char*)NULL);
+ 
+-	config = g_build_filename (root, "..", "etc", (const char*)NULL);
++	config = g_build_filename (root, "..", "..", "etc", (const char*)NULL);
+ #ifdef HOST_WIN32
+ 	mono_set_dirs (root, config);
+ #else
+diff --git a/netcore/System.Private.CoreLib/shared/System/Environment.Unix.cs b/netcore/System.Private.CoreLib/shared/System/Environment.Unix.cs
+index d733feb5316..d809d8c64bd 100644
+--- a/netcore/System.Private.CoreLib/shared/System/Environment.Unix.cs
++++ b/netcore/System.Private.CoreLib/shared/System/Environment.Unix.cs
+@@ -93,8 +93,8 @@ private static string GetFolderPathCoreWithoutValidation(SpecialFolder folder)
+             // https://www.freedesktop.org/software/systemd/man/file-hierarchy.html
+             switch (folder)
+             {
+-                case SpecialFolder.CommonApplicationData: return "/usr/share";
+-                case SpecialFolder.CommonTemplates: return "/usr/share/templates";
++                case SpecialFolder.CommonApplicationData: return "@@PACMAN_ROOT@@/usr/share";
++                case SpecialFolder.CommonTemplates: return "@@PACMAN_ROOT@@/usr/share/templates";
+ #if PLATFORM_OSX
+                 case SpecialFolder.ProgramFiles: return "/Applications";
+                 case SpecialFolder.System: return "/System";
+diff --git a/src/System.Console/src/System/TermInfo.cs b/src/System.Console/src/System/TermInfo.cs
+index cb30386d20..56da7bc8b3 100644
+--- a/external/corefx/src/System.Console/src/System/TermInfo.cs
++++ b/external/corefx/src/System.Console/src/System/TermInfo.cs
+@@ -175,6 +175,7 @@ namespace System
+             private static readonly string[] _terminfoLocations = new string[] {
+                     "/etc/terminfo",
+                     "/lib/terminfo",
++                    "@@PACMAN_ROOT@@/usr/share/terminfo",
+                     "/usr/share/terminfo",
+                 };
+ 
+diff --git a/src/System.Runtime.Extensions/src/System/Environment.Unix.cs b/src/System.Runtime.Extensions/src/System/Environment.Unix.cs
+index afd510137e..07e2117362 100644
+--- a/external/corefx/src/System.Runtime.Extensions/src/System/Environment.Unix.cs
++++ b/external/corefx/src/System.Runtime.Extensions/src/System/Environment.Unix.cs
+@@ -98,8 +98,8 @@ namespace System
+             // https://www.freedesktop.org/software/systemd/man/file-hierarchy.html
+             switch (folder)
+             {
+-                case SpecialFolder.CommonApplicationData: return "/usr/share";
+-                case SpecialFolder.CommonTemplates: return "/usr/share/templates";
++                case SpecialFolder.CommonApplicationData: return "@@PACMAN_ROOT@@/usr/share";
++                case SpecialFolder.CommonTemplates: return "@@PACMAN_ROOT@@/usr/share/templates";
+             }
+             if (IsMac)
+             {
