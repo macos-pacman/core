@@ -3,14 +3,7 @@
   "diff_files": [
     "PKGBUILD.pmdiff"
   ],
-  "clean_files": [
-    "bash.install",
-    "dot.bash_logout",
-    "dot.bash_profile",
-    "dot.bashrc",
-    "system.bash_logout",
-    "system.bashrc"
-  ],
+  "clean_files": [],
   "ignore_files": [
     ".SRCINFO",
     "bash.install",
@@ -18,6 +11,8 @@
     "dot.bash_logout",
     "dot.bash_profile",
     "system.bashrc",
-    "system.bash_logout"
+    "system.bash_logout",
+    ".SRCINFO",
+    ".SRCINFO"
   ]
 }
