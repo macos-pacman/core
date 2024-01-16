@@ -1,0 +1,23 @@
+{
+  "upstream_commit": "c5dfc21dfe74524ca5766af83924cc8c3e3f1a0a",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "bash.install",
+    "dot.bash_logout",
+    "dot.bash_profile",
+    "dot.bashrc",
+    "system.bash_logout",
+    "system.bashrc"
+  ],
+  "ignore_files": [
+    ".SRCINFO",
+    "bash.install",
+    "dot.bashrc",
+    "dot.bash_logout",
+    "dot.bash_profile",
+    "system.bashrc",
+    "system.bash_logout"
+  ]
+}
