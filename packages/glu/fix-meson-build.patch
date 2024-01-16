@@ -1,0 +1,9 @@
+--- a/meson.build	2023-12-28 16:55:10.868075849 -0500
++++ b/meson.build	2023-12-28 16:55:18.190616489 -0500
+@@ -34,5 +34,5 @@
+   libglu,
+   name : 'glu',
+   description : 'Mesa OpenGL Utility Library',
+-  requires: dep_gl
++  libraries: dep_gl
+ )
