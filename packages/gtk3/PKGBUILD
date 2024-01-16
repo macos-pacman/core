@@ -4,7 +4,7 @@
 pkgbase=gtk3
 pkgname=(gtk3)
 pkgver=3.24.37
-pkgrel=1
+pkgrel=1.2
 pkgdesc="GObject-based multi-platform GUI toolkit"
 url="https://www.gtk.org/"
 arch=('x86_64' 'arm64')
@@ -30,9 +30,12 @@ _commit=013b629a2e5420cc01647f859226eb1a37ebe661  # tags/3.24.37^0
 source=(
   "git+https://gitlab.gnome.org/GNOME/gtk.git#commit=$_commit"
   gtk-query-immodules-3.0.hook
+  gtk-update-icon-cache.{hook,script}
 )
 sha256sums=('SKIP'
-            'd2155274b14fce01141e29c4f3ae625778fd48c2a32ece8dcd8da4ab3e56da1b')
+            'd2155274b14fce01141e29c4f3ae625778fd48c2a32ece8dcd8da4ab3e56da1b'
+            '2b205ac63038299d8671be1669c8802b77ccab9a1be39ffacef7b8665b127ff0'
+            'ce1b18652ef9b245ad7123d12b8681ceac44d295274bb9f889cfd5d89b62b9a3')
 
 pkgver() {
   cd gtk
@@ -43,7 +46,11 @@ prepare() {
   cd gtk
   sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
       -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
-      -i ../gtk-query-immodules-3.0.hook
+      ../gtk-query-immodules-3.0.hook > gtk-query-immodules-3.0.hook
+
+  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
+      -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
+      ../gtk-update-icon-cache.hook > gtk-update-icon-cache.hook
 }
 
 build() {
@@ -73,6 +80,7 @@ _pick() {
 package_gtk3() {
   optdepends=('evince: Default print preview command')
   provides=(
+    gtk-update-icon-cache
     libgailutil-3.dylib
     libgdk-3.dylib
     libgtk-3.dylib
@@ -82,13 +90,15 @@ package_gtk3() {
   install=gtk3.install
 
   meson install -C build --destdir "$pkgdir"
-  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 gtk-query-immodules-3.0.hook
+  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 gtk/gtk-query-immodules-3.0.hook
 
-  cd "$pkgdir"
+  # i'm not ready for GTK4 yet, so keep these
+  # rm -f ${pacman_root#/}/usr/bin/gtk-update-icon-cache
+  # rm -f ${pacman_root#/}/usr/share/man/man1/gtk-update-icon-cache.1
 
-  # Built by GTK 4, shared with GTK 3
-  rm -f ${pacman_root#/}/usr/bin/gtk-update-icon-cache
-  rm -f ${pacman_root#/}/usr/share/man/man1/gtk-update-icon-cache.1
+  # and add the hooks
+  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 gtk/gtk-update-icon-cache.hook
+  install -D gtk-update-icon-cache.script -m755 "$pkgdir/${pacman_root}/usr/share/libalpm/scripts/gtk-update-icon-cache"
 }
 
 # vim:set sw=2 sts=-1 et:
