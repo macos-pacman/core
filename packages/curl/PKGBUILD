@@ -6,13 +6,13 @@
 
 pkgbase=curl
 pkgname=(curl libcurl-compat libcurl-gnutls)
-_tag='50490c0679fcd0e50bb3a8fbf2d9244845652cf0' # git rev-parse v${_tag_name}
-_tag_name='8_2_1'
+_tag='55b5fafb094ebe07ca8a5d4f79813c8b40670795' # git rev-parse v${_tag_name}
+_tag_name='8_5_0'
 pkgver="${_tag_name//_/.}"
 pkgrel=1
 pkgdesc='command line tool and library for transferring data with URLs'
 arch=('x86_64' 'arm64')
-url='https://curl.haxx.se/'
+url='https://curl.se/'
 license=('MIT')
 depends=('ca-certificates' 'brotli' 'libbrotlidec.dylib' 'krb5'
          'libidn2' 'libidn2.dylib' 'libnghttp2' 'libpsl' 'libpsl.dylib'
@@ -59,8 +59,8 @@ prepare() {
 
 build() {
   local _configure_options=(
-    --prefix="${pacman_root}/usr"
-    --mandir="${pacman_root}/usr/share/man"
+    --prefix=${pacman_root}/usr
+    --mandir=${pacman_root}/usr/share/man
     --disable-ldap
     --disable-ldaps
     --disable-manual
@@ -71,7 +71,7 @@ build() {
     --with-libidn2
     --with-ca-fallback
     --with-secure-transport
-    --with-ca-bundle="${pacman_root}/etc/ssl/cert.pem"
+    --with-ca-bundle=${pacman_root}/etc/ssl/cert.pem
   )
 
   mkdir -p build-curl{,-compat,-gnutls}
@@ -108,7 +108,6 @@ build() {
     --with-gnutls
   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
   make -C lib
-
   install_name_tool -id ${pacman_root}/usr/lib/'libcurl-gnutls.dylib' ./lib/.libs/libcurl.dylib
 }
 
@@ -122,7 +121,6 @@ package_curl() {
 
   # license
   install -Dt "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}" -m0644 COPYING
-
   chmod a+x "${pkgdir}/${pacman_root}/usr/bin/curl-config"
 }
 

@@ -1,0 +1,7 @@
+{
+  "upstream_commit": "bd31120f8ead77e8ea41eaabe9f8389bad22b5a0",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": []
+}
