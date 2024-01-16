@@ -4,7 +4,7 @@
 
 pkgbase=adwaita-icon-theme
 pkgname=(adwaita-icon-theme adwaita-cursors)
-pkgver=44.0
+pkgver=45.0
 pkgrel=1
 pkgdesc="GNOME standard icons"
 url="https://gitlab.gnome.org/GNOME/adwaita-icon-theme"
@@ -21,9 +21,13 @@ makedepends=(
   git
   gtk3
 )
-_commit=a5a52e09d26ccbb28e60a253e5b6e7eb18247e16  # tags/44.0^0
-source=("git+https://gitlab.gnome.org/GNOME/adwaita-icon-theme.git#commit=$_commit")
-b2sums=('SKIP')
+_commit=709725baa9e17e8d0ca62eab7920162bfeda37b9  # tags/45.0^0
+source=(
+  git+https://gitlab.gnome.org/GNOME/adwaita-icon-theme.git#commit=$_commit
+)
+b2sums=(
+  'SKIP'
+)
 
 pkgver() {
   cd $pkgname
