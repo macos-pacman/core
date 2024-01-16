@@ -26,7 +26,7 @@
 +
 @@ -43,0 +45,2 @@
 +
-+  sed -i "/SYS_PROFILE/d" $pkgname-$_basever/pathnames.h.in
++  sed -i "/SYS_PROFILE/d" pathnames.h.in
 @@ -49 +52 @@
 -  _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"/usr/local/sbin:/usr/local/bin:/usr/bin\"\'
 +  _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"${pacman_root}/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin\"\'

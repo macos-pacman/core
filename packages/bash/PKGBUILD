@@ -32,9 +32,9 @@ fi
 prepare() {
   cd $pkgname-$_basever
 
-  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bashrc.in > system.bashrc
-  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_logout.in > system.bash_logout
-  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_profile.in > system.bash_profile
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../system.bashrc.in > system.bashrc
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../system.bash_logout.in > system.bash_logout
+  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../system.bash_profile.in > system.bash_profile
 
   msg "Applying patches..."
   for (( _p=1; _p<=$((10#${_patchlevel})); _p++ )); do
