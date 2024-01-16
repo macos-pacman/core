@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "390cde89d70224611384b0c3a9cc4afc026a6317",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "scoped-mock-log.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
