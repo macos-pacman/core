@@ -109,6 +109,7 @@ package() {
   install -Dm644 ../meson-reference-$pkgver.json "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/reference_manual.json"
 
   install -D ../arch-meson -t "$pkgdir/${pacman_root}/usr/bin"
+  chmod +x $pkgdir/${pacman_root}/usr/bin/arch-meson
 }
 
 # vim:set sw=2 sts=-1 et:
