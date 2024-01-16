@@ -8,7 +8,9 @@
 -depends=(readline libreadline.so glibc ncurses)
 +backup=(${pacman_root#/}etc/bash.bash{rc,_logout})
 +depends=(readline glibc ncurses)
-@@ -22,5 +22,3 @@
+@@ -20 +19,0 @@
+-install=bash.install
+@@ -22,5 +21,3 @@
 -        dot.bashrc
 -        dot.bash_profile
 -        dot.bash_logout
@@ -17,42 +19,42 @@
 +        system.bashrc.in
 +        system.bash_logout.in
 +        system.bash_profile.in)
-@@ -37,0 +36,4 @@
+@@ -37,0 +35,4 @@
 +  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bashrc.in > system.bashrc
 +  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_logout.in > system.bash_logout
 +  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" system.bash_profile.in > system.bash_profile
 +
-@@ -43,0 +46,2 @@
+@@ -43,0 +45,2 @@
 +
 +  sed -i "/SYS_PROFILE/d" $pkgname-$_basever/pathnames.h.in
-@@ -49 +53 @@
+@@ -49 +52 @@
 -  _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"/usr/local/sbin:/usr/local/bin:/usr/bin\"\'
 +  _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"${pacman_root}/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin\"\'
-@@ -51,2 +55,3 @@
+@@ -51,2 +54,3 @@
 -               -DSYS_BASHRC=\'\"/etc/bash.bashrc\"\'
 -               -DSYS_BASH_LOGOUT=\'\"/etc/bash.bash_logout\"\'
 +               -DSYS_BASHRC=\'\"${pacman_root}/etc/bash.bashrc\"\'
 +               -DSYS_PROFILE=\'\"${pacman_root}/etc/bash.profile\"\'
 +               -DSYS_BASH_LOGOUT=\'\"${pacman_root}/etc/bash.bash_logout\"\'
-@@ -57 +62 @@
+@@ -57 +61 @@
 -    --prefix=/usr \
 +    --prefix=${pacman_root}/usr \
-@@ -61 +66,5 @@
+@@ -61 +65,5 @@
 -    --with-installed-readline
 +    --disable-nls \
 +    --with-included-gettext \
 +    --with-installed-readline \
 +    --without-libintl-prefix \
 +    --without-libiconv-prefix
-@@ -66 +75 @@
+@@ -66 +74 @@
 -  make -C $pkgname-$_basever check
 +  make -C $pkgname-$_basever check < /dev/null
-@@ -71,2 +80,2 @@
+@@ -71,2 +79,2 @@
 -  ln -s bash "$pkgdir/usr/bin/sh"
 -  ln -s bash "$pkgdir/usr/bin/rbash"
 +  ln -s bash "$pkgdir/${pacman_root}/usr/bin/sh"
 +  ln -s bash "$pkgdir/${pacman_root}/usr/bin/rbash"
-@@ -74,3 +83,6 @@
+@@ -74,3 +82,6 @@
 -  # system-wide configuration files
 -  install -Dm644 system.bashrc "$pkgdir/etc/bash.bashrc"
 -  install -Dm644 system.bash_logout "$pkgdir/etc/bash.bash_logout"
@@ -62,7 +64,7 @@
 +  for _l in "${_libs[@]}"; do
 +    fix_rpath "${pacman_root}" "${pkgdir}" "${_l}"
 +  done
-@@ -78,5 +90,4 @@
+@@ -78,5 +89,4 @@
 -  # user configuration file skeletons
 -  install -dm755 "$pkgdir/etc/skel/"
 -  install -m644 dot.bashrc "$pkgdir/etc/skel/.bashrc"
@@ -72,12 +74,12 @@
 +  install -Dm644 system.bashrc "$pkgdir/${pacman_root}/etc/bash.bashrc"
 +  install -Dm644 system.bash_logout "$pkgdir/${pacman_root}/etc/bash.bash_logout"
 +  install -Dm644 system.bash_profile "$pkgdir/${pacman_root}/etc/bash.bash_profile"
-@@ -87,4 +98 @@
+@@ -87,4 +97 @@
 -            '959bc596166c9758fdd68836581f6b8f1d6fdb947d580bf24dce607998a077b8'
 -            'e149407c2bee17779caec70a7edd3d0000d172e7e4347429b80cb4d55bcec9c2'
 -            '4330edf340394d0dae50afb04ac2a621f106fe67fb634ec81c4bfb98be2a1eb5'
 -            '51ceca7cd615ff4e2f8f3373a46ac7bfd453be70bbaddc074cb17f6db1ac7370'
 +            'd73d271a0123f5a05422b3acd9f45efd76c36f9be3e4eaeac9207c8084ae7be7'
-@@ -91,0 +100,2 @@
+@@ -91,0 +99,2 @@
 +            'a6890bbac5676050841121f8a3baeba5ed4c675f2f75e34243f0977a413ffb79'
 +
