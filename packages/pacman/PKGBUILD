@@ -5,6 +5,7 @@
 pkgname=pacman
 pkgver=6.0.2
 pkgrel=8
+pkgrel+=".1"
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64' 'arm64')
 url="https://www.archlinux.org/pacman/"
@@ -68,7 +69,7 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             '4f48a60e2035fcdc07032ef7fed1833cf58783bd013d0f8d9d9d7da0bcd82564'  # makepkg-rpath-fixer.patch
             '6b66c29a0a15689952e7ebb79df7b2a39123d9de6d51f150dc4cc48e739814c9'  # makepkg-rpath-check.patch
             'c22049fba34aa3d019815f48b112c518236a9e696105478dfaaedb15c9d522a4'  # mac_checksums.sh.in
-            '9a59ab2c2be6a9068daeea9c8a5172d0cf64155bdbc7406338e20ab226bc790c'  # check_rpath.sh.in
+            'ba85b27d56eeaf6705e9a2974b5c9add9707b8b74738595f47925edffbd368f4'  # check_rpath.sh.in
             'ac3e4c96e056ed05267fbd0ff31df71e130be2b505156bf32c04b2a3d401ea2d'  # fix_rpath.sh.in
             '69b76b9a2eab66a3d9219d32f379cad426678de6c18485fab132348930f36ac9'  # fix-bin-true.patch
             'dc5e13d965f4c1e12630ba24601a223b908f12fe19d5e3287d7176369acb8fe4'  # fix-test-fakeroot-path.patch

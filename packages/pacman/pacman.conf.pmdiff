@@ -1,0 +1,93 @@
+--- pacman.conf
++++ pacman.conf
+@@ -2 +2 @@
+-# /etc/pacman.conf
++# /opt/pacman/etc/pacman.conf
+@@ -13,7 +13,6 @@
+-#DBPath      = /var/lib/pacman/
+-#CacheDir    = /var/cache/pacman/pkg/
+-#LogFile     = /var/log/pacman.log
+-#GPGDir      = /etc/pacman.d/gnupg/
+-#HookDir     = /etc/pacman.d/hooks/
+-HoldPkg     = pacman glibc
+-#XferCommand = /usr/bin/curl -L -C - -f -o %o %u
++#DBPath      = /opt/pacman/var/lib/pacman/
++#CacheDir    = /opt/pacman/var/cache/pacman/pkg/
++#LogFile     = /opt/pacman/var/log/pacman.log
++#GPGDir      = /opt/pacman/etc/pacman.d/gnupg/
++#HookDir     = /opt/pacman/etc/pacman.d/hooks/
++#XferCommand = /usr/bin/curl -s -L -C - -f -o %o %u
+@@ -21,0 +21,2 @@
++
++HoldPkg     = pacman macos-system
+@@ -33 +34 @@
+-#Color
++Color
+@@ -37,34 +38 @@
+-#ParallelDownloads = 5
+-
+-# By default, pacman accepts packages signed by keys that its local keyring
+-# trusts (see pacman-key and its man page), as well as unsigned packages.
+-SigLevel    = Required DatabaseOptional
+-LocalFileSigLevel = Optional
+-#RemoteFileSigLevel = Required
+-
+-# NOTE: You must run `pacman-key --init` before first using pacman; the local
+-# keyring can then be populated with the keys of all official Arch Linux
+-# packagers with `pacman-key --populate archlinux`.
+-
+-#
+-# REPOSITORIES
+-#   - can be defined here or included from another file
+-#   - pacman will search repositories in the order defined here
+-#   - local/custom mirrors can be added here or in separate files
+-#   - repositories listed first will take precedence when packages
+-#     have identical names, regardless of version number
+-#   - URLs will have $repo replaced by the name of the current repo
+-#   - URLs will have $arch replaced by the name of the architecture
+-#
+-# Repository entries are of the format:
+-#       [repo-name]
+-#       Server = ServerName
+-#       Include = IncludePath
+-#
+-# The header [repo-name] is crucial - it must be present and
+-# uncommented to enable the repo.
+-#
+-
+-# The testing repositories are disabled by default. To enable, uncomment the
+-# repo name header and Include lines. You can add preferred servers immediately
+-# after the header, and they will be used before the default mirrors.
++ParallelDownloads = 5
+@@ -72,2 +40,4 @@
+-#[core-testing]
+-#Include = /etc/pacman.d/mirrorlist
++# PGP signature checking
++#SigLevel = Optional
++#LocalFileSigLevel = Optional
++#RemoteFileSigLevel = Optional
+@@ -76,22 +46,2 @@
+-Include = /etc/pacman.d/mirrorlist
+-
+-#[extra-testing]
+-#Include = /etc/pacman.d/mirrorlist
+-
+-[extra]
+-Include = /etc/pacman.d/mirrorlist
+-
+-# If you want to run 32 bit applications on your x86_64 system,
+-# enable the multilib repositories as required here.
+-
+-#[multilib-testing]
+-#Include = /etc/pacman.d/mirrorlist
+-
+-#[multilib]
+-#Include = /etc/pacman.d/mirrorlist
+-
+-# An example of a custom package repository.  See the pacman manpage for
+-# tips on creating your own repositories.
+-#[custom]
+-#SigLevel = Optional TrustAll
+-#Server = file:///home/custompkgs
++SigLevel = Optional
++Server = oci://github.com/macos-pacman/$repo/releases/download/pkg-db-$arch/

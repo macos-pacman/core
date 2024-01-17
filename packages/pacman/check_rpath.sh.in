@@ -111,7 +111,7 @@ warn_library_rpath() {
 	local file
 	local problems
 
-	local should_fail="0"
+	local ret=0
 
 	find "$pkgdir" -type f -print0 | {
 		while IFS= read -r -d '' file; do
@@ -129,7 +129,7 @@ warn_library_rpath() {
 		if [ ${#_PROBLEM_FILES[@]} -gt 0 ]; then
 			error 'Package contains broken dylib paths:'
 			printf '%s\n' "${_PROBLEM_FILES[@]#"$pkgdir/"}" >&2
-			should_fail="1"
+			ret=1
 		fi
 
 		if [ ${#_RPATH_FILES[@]} -gt 0 ]; then
@@ -138,9 +138,5 @@ warn_library_rpath() {
 		fi
 	}
 
-	if [[ "${should_fail}" = "1" ]]; then
-		return 1
-	else
-		return 0
-	fi
+	return $ret
 }

@@ -1,0 +1,121 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -0,0 +1 @@
++# vim: set ts=2 sw=2 et:
+@@ -6,0 +8 @@
++pkgrel+=".1"
+@@ -8 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -11 +13 @@
+-depends=('bash' 'glibc' 'libarchive' 'curl' 'gpgme' 'pacman-mirrorlist'
++depends=('bash' 'glibc' 'libarchive' 'curl' 'gpgme'
+@@ -13,2 +15,2 @@
+-makedepends=('meson' 'asciidoc' 'doxygen')
+-checkdepends=('python' 'fakechroot')
++makedepends=('meson')
++checkdepends=('python')
+@@ -16,3 +18,4 @@
+-provides=('libalpm.so')
+-backup=(etc/pacman.conf
+-        etc/makepkg.conf)
++provides=('libalpm.dylib')
++_root=${pacman_root#/}
++backup=(${_root}/etc/pacman.conf
++        ${_root}/etc/makepkg.conf)
+@@ -29,2 +32,21 @@
+-        pacman.conf
+-        makepkg.conf)
++        'macos-bsd-touch-date.patch'
++        'macos-no-statvfs.patch'
++        'better-purge.patch'
++        'writeable-pkg-dir.patch'
++        'show-exec-error.patch'
++        'no-fakeroot.patch'
++        'macos-bsd-wc.patch'
++        'macos-bsd-checksums.patch'
++        'makepkg-rpath-fixer.patch'
++        'makepkg-rpath-check.patch'
++        'mac_checksums.sh.in'
++        'check_rpath.sh.in'
++        'fix_rpath.sh.in'
++        'fix-bin-true.patch'
++        'fix-test-fakeroot-path.patch'
++        'macos-bsd-cp.patch'
++        'macos-no-chroot.patch'
++        'pacman-support-oci.patch'
++        'pacman.conf'
++        'makepkg.conf')
++
+@@ -33,4 +55,4 @@
+-            '6fed94326b9ecfbb438ab17a4576b5e9d52ecc0f4574f29d46adfde3886dee03'
+-            'd2bc104788290e3de829a232590b66ad745cf5b4762a01acc1191ebf70fef114'
+-            'f3d4f39ef24e312f610cbb3439fb02bc6b8829e37bcf1a50ae50cd0a69bde5d0'
+-            'd87d0c9957c613fda272553bee58140349d151ae399f346ddaf6d75ee5916312'
++            '6fed94326b9ecfbb438ab17a4576b5e9d52ecc0f4574f29d46adfde3886dee03'  # ...
++            'd2bc104788290e3de829a232590b66ad745cf5b4762a01acc1191ebf70fef114'  # ...
++            'f3d4f39ef24e312f610cbb3439fb02bc6b8829e37bcf1a50ae50cd0a69bde5d0'  # ...
++            'd87d0c9957c613fda272553bee58140349d151ae399f346ddaf6d75ee5916312'  # ...
+@@ -39,2 +61,21 @@
+-            '656c4d4cb8cb12adbf178fc8cb2fd25f8c285d6572bbdbb24d865d00e0d5a85a'
+-            'b46bca4d3f8b41138923b7a1d7ada272b56ad8b89d0d6ce09145638bdf15185d')
++            'f2b0e859b49696cae08538cf0783d7b53d9e8eaa8bfe15aad0e2621e7c11dfdb'  # macos-bsd-touch-date.patch
++            'ff6c9766bf2e6391df3d581754b1299f3be7461c7e3cd66e10be6e1414ebf1cc'  # macos-no-statvfs.patch
++            '22388ffa08d57934f64e93e3ba63675330ca6cc58c3af62e08f5a7a244b7a45e'  # better-purge.patch
++            '2f13fe60de9368008e8bed6df0a238e5fff3c8ecb3dadf91e1b168b5ddc755fb'  # writeable-pkg-dir.patch
++            '7478cb6c7b22bf9f3cb3224c1ff9571c96a956660409b5e3e96be36d6afff467'  # show-exec-error.patch
++            '626376190b48667128cc667e78f20d713c5a708a7dcb711a3ed272ec89aabbd4'  # no-fakeroot.patch
++            'cabf1f38abaed55d47f5967b64bf1c169cbfed02843c1f49439cc00932a743b7'  # macos-bsd-wc.patch
++            '595a61c76ec4fd3eaada632d9c35fcf9a6f8450f186eebedec351b958a4f56a4'  # macos-bsd-checksums.patch
++            '4f48a60e2035fcdc07032ef7fed1833cf58783bd013d0f8d9d9d7da0bcd82564'  # makepkg-rpath-fixer.patch
++            '6b66c29a0a15689952e7ebb79df7b2a39123d9de6d51f150dc4cc48e739814c9'  # makepkg-rpath-check.patch
++            'c22049fba34aa3d019815f48b112c518236a9e696105478dfaaedb15c9d522a4'  # mac_checksums.sh.in
++            'ba85b27d56eeaf6705e9a2974b5c9add9707b8b74738595f47925edffbd368f4'  # check_rpath.sh.in
++            'ac3e4c96e056ed05267fbd0ff31df71e130be2b505156bf32c04b2a3d401ea2d'  # fix_rpath.sh.in
++            '69b76b9a2eab66a3d9219d32f379cad426678de6c18485fab132348930f36ac9'  # fix-bin-true.patch
++            'dc5e13d965f4c1e12630ba24601a223b908f12fe19d5e3287d7176369acb8fe4'  # fix-test-fakeroot-path.patch
++            'fbd50755b9fd9ae11874fd83c94f5f922655e6256b527e4ba61be0e2c6157967'  # macos-bsd-cp.patch
++            '79e2b649ae4a62528ab55f032395e2b113eb0ac3895c5e3d6fc1fc8825b6acd3'  # macos-no-chroot.patch
++            '7370ff221767ac9df2d56184f9f66151de92fd59ba2864e209311d7c54df282e'  # pacman-support-oci.patch
++            'b11689f2502a881ab908d64a8c30d442e6713b2a27a78ce3d7ed692390246ef8'  # pacman.conf
++            'b3aa595f3c22813075ba15161a3df9b87f4477455913e8b290323a038d29e5c7'  # makepkg.conf
++)
+@@ -43,0 +85,6 @@
++
++  # patch is dumb
++  cp ../fix_rpath.sh.in scripts/libmakepkg/util/
++  cp ../mac_checksums.sh.in scripts/libmakepkg/util/
++  cp ../check_rpath.sh.in scripts/libmakepkg/lint_package/
++
+@@ -50 +97 @@
+-    [[ $src = *.patch ]] || continue
++    [[ $src = *.patch ]] && [ $src != "no-fakeroot.patch" ] || continue
+@@ -59,6 +106,8 @@
+-  meson --prefix=/usr \
+-        --buildtype=plain \
+-        -Ddoc=enabled \
+-        -Ddoxygen=enabled \
+-        -Dscriptlet-shell=/usr/bin/bash \
+-        -Dldconfig=/usr/bin/ldconfig \
++  meson setup --prefix=${pacman_root}/usr \
++        --localstatedir=${pacman_root}/var \
++        --sysconfdir=${pacman_root}/etc \
++        --buildtype=release \
++        --default-library=static \
++        --prefer-static \
++        -Di18n=false \
++        -Dscriptlet-shell=${pacman_root}/usr/bin/bash \
+@@ -73 +122,2 @@
+-  meson test -C build
++  # nope
++  MESON_TESTTHREADS=1 meson test -C build --print-errorlogs || :
+@@ -82,3 +132,3 @@
+-  install -dm755 "$pkgdir/etc"
+-  install -m644 "$srcdir/pacman.conf" "$pkgdir/etc"
+-  install -m644 "$srcdir/makepkg.conf" "$pkgdir/etc"
++  install -dm755 "$pkgdir/${pacman_root}/etc"
++  install -m644 "$srcdir/pacman.conf" "$pkgdir/${pacman_root}/etc"
++  install -m644 "$srcdir/makepkg.conf" "$pkgdir/${pacman_root}/etc"
+@@ -86,2 +135,0 @@
+-
+-# vim: set ts=2 sw=2 et:
