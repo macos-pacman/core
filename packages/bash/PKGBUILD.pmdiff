@@ -6,9 +6,9 @@
 @@ -16,2 +16,3 @@
 -backup=(etc/bash.bash{rc,_logout} etc/skel/.bash{rc,_profile,_logout})
 -depends=(readline libreadline.so glibc ncurses)
-+backup=(${pacman_root#/}/etc/bash.bash{rc,_logout})
++backup=(${pacman_root#/}/etc/bash.bash{rc,_logout,_profile})
 +depends=(readline glibc ncurses)
-+pkgrel+=".1"
++pkgrel+=".2"
 @@ -20 +19,0 @@
 -install=bash.install
 @@ -22,5 +21,3 @@
@@ -35,7 +35,7 @@
 -               -DSYS_BASHRC=\'\"/etc/bash.bashrc\"\'
 -               -DSYS_BASH_LOGOUT=\'\"/etc/bash.bash_logout\"\'
 +               -DSYS_BASHRC=\'\"${pacman_root}/etc/bash.bashrc\"\'
-+               -DSYS_PROFILE=\'\"${pacman_root}/etc/bash.profile\"\'
++               -DSYS_PROFILE=\'\"${pacman_root}/etc/bash.bash_profile\"\'
 +               -DSYS_BASH_LOGOUT=\'\"${pacman_root}/etc/bash.bash_logout\"\'
 @@ -57 +61 @@
 -    --prefix=/usr \
