@@ -114,6 +114,7 @@ warn_library_rpath() {
 	local ret=0
 
 	find "$pkgdir" -type f -print0 | {
+		local _ret=0
 		while IFS= read -r -d '' file; do
 			tmp=$(file "${file}")
 			case "$tmp" in
@@ -129,14 +130,16 @@ warn_library_rpath() {
 		if [ ${#_PROBLEM_FILES[@]} -gt 0 ]; then
 			error 'Package contains broken dylib paths:'
 			printf '%s\n' "${_PROBLEM_FILES[@]#"$pkgdir/"}" >&2
-			ret=1
+			_ret=1
 		fi
 
 		if [ ${#_RPATH_FILES[@]} -gt 0 ]; then
 			error 'Package contains dylibs with @rpath:'
 			printf '%s\n' "${_RPATH_FILES[@]#"$pkgdir/"}" >&2
 		fi
-	}
+
+		return $_ret
+	} || ret=1
 
 	return $ret
 }
