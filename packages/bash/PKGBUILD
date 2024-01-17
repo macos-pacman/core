@@ -9,13 +9,13 @@ _basever=5.2
 _patchlevel=026
 pkgver=${_basever}.${_patchlevel}
 pkgrel=2
+pkgrel+=".5"
 pkgdesc='The GNU Bourne Again shell'
 arch=('x86_64' 'arm64')
 license=('GPL-3.0-or-later')
 url='https://www.gnu.org/software/bash/bash.html'
-backup=(${pacman_root#/}/etc/bash.bash{rc,_logout,_profile})
+backup=(${pacman_root#/}/etc/bash.bash{rc,_logout} ${pacman_root#/}/etc/profile)
 depends=(readline glibc ncurses)
-pkgrel+=".2"
 optdepends=('bash-completion: for tab completion')
 provides=('sh')
 source=(https://ftp.gnu.org/gnu/bash/bash-$_basever.tar.gz{,.sig}
@@ -51,9 +51,10 @@ build() {
   cd $pkgname-$_basever
 
   _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"${pacman_root}/usr/bin/:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin\"\'
-               -DSTANDARD_UTILS_PATH=\'\"/usr/bin\"\'
+               -DSTANDARD_UTILS_PATH=\'\"${pacman_root}/usr/bin:/bin:/usr/bin:/usr/sbin\"\'
+               -DDEFAULT_LOADABLE_BUILTINS_PATH=\'\"${pacman_root}/usr/lib/bash:/usr/local/lib/bash:/usr/lib/bash:.\"\'
+               -DSYS_PROFILE=\'\"${pacman_root}/etc/profile\"\'
                -DSYS_BASHRC=\'\"${pacman_root}/etc/bash.bashrc\"\'
-               -DSYS_PROFILE=\'\"${pacman_root}/etc/bash.bash_profile\"\'
                -DSYS_BASH_LOGOUT=\'\"${pacman_root}/etc/bash.bash_logout\"\'
                -DNON_INTERACTIVE_LOGIN_SHELLS)
   export CFLAGS="${CFLAGS} ${_bashconfig[@]}"
@@ -87,17 +88,21 @@ package() {
     fix_rpath "${pacman_root}" "${pkgdir}" "${_l}"
   done
 
+  cd $pkgname-$_basever
+
   # system-wide configuration files
   install -Dm644 system.bashrc "$pkgdir/${pacman_root}/etc/bash.bashrc"
   install -Dm644 system.bash_logout "$pkgdir/${pacman_root}/etc/bash.bash_logout"
-  install -Dm644 system.bash_profile "$pkgdir/${pacman_root}/etc/bash.bash_profile"
+
+  mkdir -p $pkgdir/${pacman_root}/etc/profile.d
+  install -Dm644 system.bash_profile "$pkgdir/${pacman_root}/etc/profile"
 }
 
 sha256sums=('a139c166df7ff4471c5e0733051642ee5556c1cc8a4a78f145583c5c81ab32fb'
             'SKIP'
             'd73d271a0123f5a05422b3acd9f45efd76c36f9be3e4eaeac9207c8084ae7be7'
             '025bccfb374a3edce0ff8154d990689f30976b78f7a932dc9a6fcef81821811e'
-            'a6890bbac5676050841121f8a3baeba5ed4c675f2f75e34243f0977a413ffb79'
+            'afd32d365f026519e7a1c35682aaa5c6d5b306ae4149ce4b95bfc5512dbd504c'
 
             'f42f2fee923bc2209f406a1892772121c467f44533bedfe00a176139da5d310a'
             'SKIP'

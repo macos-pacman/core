@@ -1,13 +1,48 @@
-#
-# /etc/bash.profile
-#
+# %%PACMAN_ROOT%%/etc/profile
 
-# this always goes into path
-export PATH="%%PACMAN_ROOT%%/usr/bin:$PATH"
+# Append "$1" to $PATH when not already in.
+# This function API is accessible to scripts in /etc/profile.d
+append_path () {
+    case ":$PATH:" in
+        *:"$1":*)
+            ;;
+        *)
+            PATH="${PATH:+$PATH:}$1"
+    esac
+}
+
+# Append our default paths
+append_path '%%PACMAN_ROOT%%/usr/bin'
+
+# Force PATH to be in the environment
+export PATH
+
+# Load profiles from /etc/profile.d
+if test -d %%PACMAN_ROOT%%/etc/profile.d/; then
+        for profile in %%PACMAN_ROOT%%/etc/profile.d/*.sh; do
+                test -r "$profile" && . "$profile"
+        done
+        unset profile
+fi
+
+# Unload our profile API functions
+unset -f append_path
+
+# Source global bash config, when interactive but not posix or sh mode
+if test "$BASH" &&\
+   test "$PS1" &&\
+   test -z "$POSIXLY_CORRECT" &&\
+   test "${0#-}" != sh &&\
+   test -r %%PACMAN_ROOT%%/etc/bash.bashrc
+then
+        . %%PACMAN_ROOT%%/etc/bash.bashrc
+fi
+
 export TERMINFO_DIRS="$TERMINFO_DIRS:%%PACMAN_ROOT%%/usr/share/terminfo"
 
 export MANPATH="%%PACMAN_ROOT%%/usr/share/man:${MANPATH}"
 export XDG_DATA_DIRS="%%PACMAN_ROOT%%/usr/share:${XDG_DATA_DIRS}"
 export XDG_CONFIG_DIRS="%%PACMAN_ROOT%%/etc/xdg:${XDG_CONFIG_DIRS}"
 
-source "%%PACMAN_ROOT%%/etc/bash.bashrc"
+# Termcap is outdated, old, and crusty, kill it.
+unset TERMCAP
