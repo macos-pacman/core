@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Path
+Target = %%PACMAN_ROOT_REL%%/usr/share/ca-certificates/trust-source/*
+
+[Action]
+Description = Rebuilding certificate stores...
+When = PostTransaction
+Exec = %%PACMAN_ROOT%%/usr/bin/update-ca-trust

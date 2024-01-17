@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# see https://gitlab.archlinux.org/archlinux/packaging/packages/ca-certificates/-/blob/main/update-ca-trust
+
+# Prevent p11-kit from reading user configuration files.
+export P11_KIT_NO_USER_CONFIG=1
+
+extract() {
+  trust extract --overwrite "$@"
+}
+
+## Java bundle
+mkdir -p $(pacman-root-dir)/etc/ssl/certs/java
+extract --format=java-cacerts --filter=ca-anchors --purpose=server-auth $(pacman-root-dir)/etc/ssl/certs/java/cacerts
+
+# Now find and remove all broken symlinks
+find -L $(pacman-root-dir)/etc/ssl/certs -maxdepth 1 -type l -delete
