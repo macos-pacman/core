@@ -1,0 +1,29 @@
+# Maintainer: Jelle van der Waa <jelle@archlinux.org>
+
+pkgname=python-pytest-pacman
+pkgver=0.1.1
+pkgrel=1
+pkgdesc="pacman db pytest fixture"
+arch=('any')
+license=('MIT')
+url="https://gitlab.archlinux.org/archlinux/pytest-pacman"
+depends=(python python-pytest python-setuptools)
+makedepends=(python-build python-installer python-wheel python-flit-core git)
+source=(git+https://gitlab.archlinux.org/archlinux/pytest-pacman.git?signed#tag=v${pkgver})
+validpgpkeys=("E499C79F53C96A54E572FEE1C06086337C50773E")
+sha512sums=('SKIP')
+
+build() {
+  cd pytest-pacman
+
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd pytest-pacman
+
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 LICENSE "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE"
+}
