@@ -19,6 +19,9 @@ _canonicalise_path() {
 	python -c "import pathlib; print(pathlib.Path('$1').resolve())"
 }
 
+_filter_bullshit() {
+    grep -v 'warning: changes being made to the file will invalidate the code signature in: ' < /dev/stdin || :
+}
 
 _get_all_rpath_cmds() {
 	if [ $# -lt 1 ]; then
@@ -108,7 +111,7 @@ _add_rpath_to_thing() {
 
 	# doesn't exist, have to add.
 	msg2 'adding %s to rpath for %s' "${_new_rpath}" "${_file}"
-	install_name_tool -add_rpath "${_new_rpath}" "${_file}"
+	install_name_tool -add_rpath "${_new_rpath}" "${_file}" |& _filter_bullshit
 }
 
 
@@ -150,7 +153,7 @@ replace_lib_paths_with_rpath() {
 
 		if [ "${_dylib_id}" != "${_fixed_id}" ]; then
 			msg2 "changing install_id of dylib '%s'" ${_file}
-			install_name_tool -id "${_fixed_id}" "${_file}"
+			install_name_tool -id "${_fixed_id}" "${_file}" |& _filter_bullshit
 		fi
 	fi
 
@@ -189,7 +192,7 @@ replace_lib_paths_with_rpath() {
 				_rpath=$(echo "${_rpath}" | tr -s '/')
 
 				msg2 'changing rpath for %s (%s -> %s)' $(echo "${_file}" | tr -s '/') "${_lib}" "${_rpath}"
-				install_name_tool -change "${_lib}" "${_rpath}" "${_file}"
+				install_name_tool -change "${_lib}" "${_rpath}" "${_file}" |& _filter_bullshit
 
 				# add the rpath (if we need to)
 				_add_rpath_to_thing "${_rpath_root}" "${_file}"
@@ -285,7 +288,7 @@ fix_rpath() {
 		# the id of the dylib should be '/opt/pacman/${_file_path}'
 		if [ "${_dylib_id}" != "${_file_path}" ]; then
 			msg2 "fixing install_id of dylib '%s'" ${_file_path}
-			install_name_tool -id "${_file_path}" "${_file}"
+			install_name_tool -id "${_file_path}" "${_file}" |& _filter_bullshit
 		fi
 	fi
 
@@ -361,7 +364,7 @@ fix_rpath() {
 				_base=$(basename "/${_rpath}/${_fixed}")
 
 				_fixed="${_dir}/${_base}"
-				install_name_tool -change "${_change_target}" $(echo "${_fixed}" | tr -s '/') "${_file}"
+				install_name_tool -change "${_change_target}" $(echo "${_fixed}" | tr -s '/') "${_file}" |& _filter_bullshit
 				;;
 
 			# absolute path that contains pkgdir -- definitely fix
@@ -369,7 +372,7 @@ fix_rpath() {
 				msg2 "fixing reference to \$pkgdir '%s' in %s" "${_change_target}" "${_file_path#${_pkgdir}/}"
 
 				_fixed="${_change_target#${_pkgdir}}"
-				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
 				;;
 
 			# same, but contains srcdir
@@ -380,7 +383,7 @@ fix_rpath() {
 				warning "using default prefix of ${_pm_root}/usr/lib/"
 
 				_fixed="${_pm_root}/usr/lib/${_lib_name}"
-				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
 				;;
 
 
@@ -400,7 +403,7 @@ fix_rpath() {
 				msg2 "fixing relative path '%s' in %s" "${_change_target}" "${_file_path#${_pkgdir}/}"
 
 				_fixed="${_pm_root}/usr/lib/${_change_target}"
-				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
 				;;
 		esac
 	done
