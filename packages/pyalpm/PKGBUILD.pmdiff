@@ -1,0 +1,8 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7 +7 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -27 +27 @@
+-  PYTHONPATH="$PWD/build/lib.linux-$CARCH-cpython-311" pytest
++  PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)" pytest
