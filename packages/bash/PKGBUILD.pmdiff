@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -11,0 +12 @@
-+pkgrel+=".5"
++pkgrel+=".6"
 @@ -13 +14 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
@@ -87,5 +87,5 @@
 -            '51ceca7cd615ff4e2f8f3373a46ac7bfd453be70bbaddc074cb17f6db1ac7370'
 +            'd73d271a0123f5a05422b3acd9f45efd76c36f9be3e4eaeac9207c8084ae7be7'
 @@ -91,0 +105,2 @@
-+            'afd32d365f026519e7a1c35682aaa5c6d5b306ae4149ce4b95bfc5512dbd504c'
++            '391b2998aeeb3c84b0c1bb2cadd8ef2c505bfcef6d48f9c7f210384b5cbc5643'
 +

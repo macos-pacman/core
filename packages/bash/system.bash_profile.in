@@ -4,15 +4,21 @@
 # This function API is accessible to scripts in /etc/profile.d
 append_path () {
     case ":$PATH:" in
-        *:"$1":*)
-            ;;
-        *)
-            PATH="${PATH:+$PATH:}$1"
+        *:"$1":*) ;;
+        *)        PATH="${PATH:+$PATH:}$1" ;;
     esac
 }
 
-# Append our default paths
-append_path '%%PACMAN_ROOT%%/usr/bin'
+# same as above, but prepending.
+prepend_path () {
+    case ":$PATH:" in
+        *:"$1":*) ;;
+        *)        PATH="${1:+$1:}${PATH}" ;;
+    esac
+}
+
+# This definitely must go in, and right at the front.
+prepend_path '%%PACMAN_ROOT%%/usr/bin'
 
 # Force PATH to be in the environment
 export PATH

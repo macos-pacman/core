@@ -9,7 +9,7 @@ _basever=5.2
 _patchlevel=026
 pkgver=${_basever}.${_patchlevel}
 pkgrel=2
-pkgrel+=".5"
+pkgrel+=".6"
 pkgdesc='The GNU Bourne Again shell'
 arch=('x86_64' 'arm64')
 license=('GPL-3.0-or-later')
@@ -102,7 +102,7 @@ sha256sums=('a139c166df7ff4471c5e0733051642ee5556c1cc8a4a78f145583c5c81ab32fb'
             'SKIP'
             'd73d271a0123f5a05422b3acd9f45efd76c36f9be3e4eaeac9207c8084ae7be7'
             '025bccfb374a3edce0ff8154d990689f30976b78f7a932dc9a6fcef81821811e'
-            'afd32d365f026519e7a1c35682aaa5c6d5b306ae4149ce4b95bfc5512dbd504c'
+            '391b2998aeeb3c84b0c1bb2cadd8ef2c505bfcef6d48f9c7f210384b5cbc5643'
 
             'f42f2fee923bc2209f406a1892772121c467f44533bedfe00a176139da5d310a'
             'SKIP'
