@@ -1,0 +1,52 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+pkgname=java17-bootstrap-jdk
+pkgver=17.0.2
+pkgrel=2
+pkgdesc="OpenJDK Java ${pkgver%%.*} official archived GA release"
+arch=('x86_64' 'arm64')
+url='https://jdk.java.net/archive/'
+license=('custom')
+makedepends=()
+options=(!lto)
+install=install.sh
+provides=("java-environment=${pkgver%%.*}")
+
+case "${CARCH}" in
+  x86_64)
+    source=(https://download.java.net/java/GA/jdk${pkgver}/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-${pkgver}_macos-x64_bin.tar.gz)
+    sha256sums=('b85c4aaf7b141825ad3a0ea34b965e45c15d5963677e9b27235aa05f65c6df06')
+    ;;
+  arm64)
+    source=(https://download.java.net/java/GA/jdk${pkgver}/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-${pkgver}_macos-aarch64_bin.tar.gz)
+    sha256sums=('602d7de72526368bb3f80d95c4427696ea639d2e0cc40455f53ff0bbb18c27c8')
+    ;;
+esac
+
+package() {
+  cd jdk-${pkgver}.jdk/Contents/Home
+
+  local _jdkname="java-17-bootstrap"
+  local _jdkpath=${pacman_root}/usr/lib/jvm/${_jdkname}
+  install -d $pkgdir/${_jdkpath}
+  cp -a bin $pkgdir/${_jdkpath}
+  cp -a lib $pkgdir/${_jdkpath}
+  cp -a conf $pkgdir/${_jdkpath}
+  cp -a jmods $pkgdir/${_jdkpath}
+  cp -a include $pkgdir/${_jdkpath}
+
+  install -d $pkgdir/${pacman_root}/usr/share/licenses/${pkgname}
+  cp -a legal/* $pkgdir/${pacman_root}/usr/share/licenses/${pkgname}/
+
+  # fix code signatures of everybody too
+  local _f; for _f in $(find ${pkgdir}/${_jdkpath}/bin -type f); do
+    fix_rpath "$_f"
+    codesign --force -s - "${_f}"
+  done
+
+  local _f; for _f in $(find ${pkgdir}/${_jdkpath}/lib -iname "*.dylib" -type f); do
+    (install_name_tool -change @rpath/libjvm.dylib ${_jdkpath}/lib/server/libjvm.dylib ${_f} 2>&1 | _filter_bullshit) || :
+    fix_rpath "$_f"
+    codesign --force -s - "${_f}"
+  done
+}
