@@ -2,7 +2,7 @@
 
 pkgname=antlr4
 _shortname=${pkgname:0:-1}
-pkgver=4.13.1
+pkgver=4.11.1
 pkgrel=1
 pkgrel+=""
 pkgdesc='Parser generator for reading, processing, executing, or translating structured text or binary files'
@@ -16,7 +16,7 @@ source=(https://www.antlr.org/download/${_shortname}-${pkgver}-complete.jar
         bin_antlr4
         bin_grun)
 noextract=("${_shortname}-${pkgver}-complete.jar")
-sha256sums=('bc13a9c57a8dd7d5196888211e5ede657cb64a3ce968608697e4f668251a8487'
+sha256sums=('62975e192b4af2622b72b5f0131553ee3cbce97f76dc2a41632dcc55e25473e1'
             '3db1fb3ee79a4b4f9918fc4d0f6133bf18a3cf787f126cd22f8aa9b862281c0c'
             '0e2548c1832eee7350602b0d8df3367142883c6b1452fd163e4556cf1bb4a03a'
             '7e1f9c5c96183e96220beac1e037bd4908519c82b9d6a5ff0e5b832282fd2893')
