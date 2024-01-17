@@ -1,0 +1,17 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=""
+@@ -8 +9 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -18,2 +19 @@
+-  export CFLAGS+=' -ffat-lto-objects'
+-  export CXXFLAGS+=' -ffat-lto-objects'
++  [ -d build ] && rm -r build
+@@ -25 +25 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+@@ -35 +35 @@
+-  install -Dm644 "${srcdir}"/LICENSE.txt "${pkgdir}/usr/share/licenses/${pkgname}"/LICENSE
++  install -Dm644 "${srcdir}"/LICENSE.txt "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"/LICENSE
