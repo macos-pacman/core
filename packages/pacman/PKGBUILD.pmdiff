@@ -3,7 +3,7 @@
 @@ -0,0 +1 @@
 +# vim: set ts=2 sw=2 et:
 @@ -6,0 +8 @@
-+pkgrel+=".3"
++pkgrel+=".5"
 @@ -8 +10 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
@@ -23,7 +23,7 @@
 +_root=${pacman_root#/}
 +backup=(${_root}/etc/pacman.conf
 +        ${_root}/etc/makepkg.conf)
-@@ -29,2 +32,21 @@
+@@ -29,2 +32,22 @@
 -        pacman.conf
 -        makepkg.conf)
 +        'macos-bsd-touch-date.patch'
@@ -44,10 +44,11 @@
 +        'macos-bsd-cp.patch'
 +        'macos-no-chroot.patch'
 +        'pacman-support-oci.patch'
++        'makepkg-check-only-option.patch'
 +        'pacman.conf'
 +        'makepkg.conf')
 +
-@@ -33,4 +55,4 @@
+@@ -33,4 +56,4 @@
 -            '6fed94326b9ecfbb438ab17a4576b5e9d52ecc0f4574f29d46adfde3886dee03'
 -            'd2bc104788290e3de829a232590b66ad745cf5b4762a01acc1191ebf70fef114'
 -            'f3d4f39ef24e312f610cbb3439fb02bc6b8829e37bcf1a50ae50cd0a69bde5d0'
@@ -56,7 +57,7 @@
 +            'd2bc104788290e3de829a232590b66ad745cf5b4762a01acc1191ebf70fef114'  # ...
 +            'f3d4f39ef24e312f610cbb3439fb02bc6b8829e37bcf1a50ae50cd0a69bde5d0'  # ...
 +            'd87d0c9957c613fda272553bee58140349d151ae399f346ddaf6d75ee5916312'  # ...
-@@ -39,2 +61,21 @@
+@@ -39,2 +62,22 @@
 -            '656c4d4cb8cb12adbf178fc8cb2fd25f8c285d6572bbdbb24d865d00e0d5a85a'
 -            'b46bca4d3f8b41138923b7a1d7ada272b56ad8b89d0d6ce09145638bdf15185d')
 +            'f2b0e859b49696cae08538cf0783d7b53d9e8eaa8bfe15aad0e2621e7c11dfdb'  # macos-bsd-touch-date.patch
@@ -77,20 +78,21 @@
 +            'fbd50755b9fd9ae11874fd83c94f5f922655e6256b527e4ba61be0e2c6157967'  # macos-bsd-cp.patch
 +            '79e2b649ae4a62528ab55f032395e2b113eb0ac3895c5e3d6fc1fc8825b6acd3'  # macos-no-chroot.patch
 +            '7370ff221767ac9df2d56184f9f66151de92fd59ba2864e209311d7c54df282e'  # pacman-support-oci.patch
++            '7b04556e9db4814efc8df6cfddc72479a56d4884e4cf30d8f25d70fae47ed14a'  # makepkg-check-only-option.patch
 +            'b11689f2502a881ab908d64a8c30d442e6713b2a27a78ce3d7ed692390246ef8'  # pacman.conf
 +            'b3aa595f3c22813075ba15161a3df9b87f4477455913e8b290323a038d29e5c7'  # makepkg.conf
 +)
-@@ -43,0 +85,6 @@
+@@ -43,0 +87,6 @@
 +
 +  # patch is dumb
 +  cp ../fix_rpath.sh.in scripts/libmakepkg/util/
 +  cp ../mac_checksums.sh.in scripts/libmakepkg/util/
 +  cp ../check_rpath.sh.in scripts/libmakepkg/lint_package/
 +
-@@ -50 +97 @@
+@@ -50 +99 @@
 -    [[ $src = *.patch ]] || continue
 +    [[ $src = *.patch ]] && [ $src != "no-fakeroot.patch" ] || continue
-@@ -59,6 +106,8 @@
+@@ -59,6 +108,8 @@
 -  meson --prefix=/usr \
 -        --buildtype=plain \
 -        -Ddoc=enabled \
@@ -105,17 +107,17 @@
 +        --prefer-static \
 +        -Di18n=false \
 +        -Dscriptlet-shell=${pacman_root}/usr/bin/bash \
-@@ -73 +122,2 @@
+@@ -73 +124,2 @@
 -  meson test -C build
 +  # nope
 +  MESON_TESTTHREADS=1 meson test -C build --print-errorlogs || :
-@@ -82,3 +132,3 @@
+@@ -82,3 +134,3 @@
 -  install -dm755 "$pkgdir/etc"
 -  install -m644 "$srcdir/pacman.conf" "$pkgdir/etc"
 -  install -m644 "$srcdir/makepkg.conf" "$pkgdir/etc"
 +  install -dm755 "$pkgdir/${pacman_root}/etc"
 +  install -m644 "$srcdir/pacman.conf" "$pkgdir/${pacman_root}/etc"
 +  install -m644 "$srcdir/makepkg.conf" "$pkgdir/${pacman_root}/etc"
-@@ -86,2 +135,0 @@
+@@ -86,2 +137,0 @@
 -
 -# vim: set ts=2 sw=2 et:

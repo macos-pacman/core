@@ -1,0 +1,51 @@
+--- a/scripts/makepkg.sh.in	2024-01-17 16:09:10.128926323 -0500
++++ b/scripts/makepkg.sh.in	2024-01-17 16:18:20.900879149 -0500
+@@ -79,6 +79,7 @@
+ SPLITPKG=0
+ SOURCEONLY=0
+ VERIFYSOURCE=0
++CHECK_ONLY=0
+ 
+ if [[ -n $SOURCE_DATE_EPOCH ]]; then
+ 	REPRODUCIBLE=1
+@@ -1002,6 +1003,7 @@
+ 	printf -- "$(gettext "  --skipinteg      Do not perform any verification checks on source files")\n"
+ 	printf -- "$(gettext "  --skippgpcheck   Do not verify source files with PGP signatures")\n"
+ 	printf -- "$(gettext "  --verifysource   Download source files (if needed) and perform integrity checks")\n"
++	printf -- "$(printf  "  --only-check     Only run the check() function in the %s, and nothing else" "$BUILDSCRIPT")\n"
+ 	echo
+ 	printf -- "$(gettext "These options can be passed to %s:")\n" "pacman"
+ 	echo
+@@ -1044,7 +1046,7 @@
+           'help' 'holdver' 'ignorearch' 'install' 'key:' 'log' 'noarchive' 'nobuild'
+           'nocolor' 'nocheck' 'nodeps' 'noextract' 'noprepare' 'nosign' 'packagelist'
+           'printsrcinfo' 'repackage' 'rmdeps' 'sign' 'skipchecksums' 'skipinteg'
+-          'skippgpcheck' 'source' 'syncdeps' 'verifysource' 'version')
++          'skippgpcheck' 'source' 'syncdeps' 'verifysource' 'version' 'only-check')
+ 
+ # Pacman Options
+ OPT_LONG+=('asdeps' 'noconfirm' 'needed' 'noprogressbar')
+@@ -1098,6 +1100,7 @@
+ 		-s|--syncdeps)    DEP_BIN=1 ;;
+ 		-S|--source)      BUILDPKG=0 SOURCEONLY=1 ;;
+ 		--verifysource)   BUILDPKG=0 VERIFYSOURCE=1 ;;
++		--only-check)     CHECK_ONLY=1 BUILDPKG=0 RUN_CHECK='y' NOARCHIVE=1 NOEXTRACT=1 ;;
+ 
+ 		-h|--help)        usage; exit $E_OK ;;
+ 		-V|--version)     version; exit $E_OK ;;
+@@ -1344,6 +1347,15 @@
+ 	exit $E_OK
+ fi
+ 
++if (( CHECK_ONLY )); then
++	cd_safe "$startdir"
++	prepare_buildenv
++
++	(( CHECKFUNC )) && run_check
++	cd_safe "$startdir"
++	exit $E_OK
++fi
++
+ msg "$(gettext "Making package: %s")" "$pkgbase $basever ($(date +%c))"
+ 
+ # if we are creating a source-only package, go no further
