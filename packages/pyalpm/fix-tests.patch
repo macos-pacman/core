@@ -1,0 +1,23 @@
+--- a/test/test_pycman.py	2024-01-17 18:20:49.038684929 -0500
++++ b/test/test_pycman.py	2024-01-17 18:22:12.602444102 -0500
+@@ -1,3 +1,4 @@
++import os
+ import pytest
+ 
+ from pycman.config import init_with_config, init_with_config_and_options, InvalidSyntax
+@@ -33,7 +34,7 @@
+     configfile.write(CONFIG.format(rootdir=rootdir, dbpath=dbpath))
+     handle = init_with_config(str(configfile))
+ 
+-    assert handle.dbpath == dbpath + '/'
++    assert os.path.realpath(handle.dbpath) == os.path.realpath(dbpath + '/')
+     assert handle.root == rootdir
+ 
+ 
+@@ -52,5 +53,5 @@
+     options = MockConfig()
+     handle = init_with_config_and_options(options)
+ 
+-    assert handle.dbpath == options.dbpath + '/'
++    assert os.path.realpath(handle.dbpath) == os.path.realpath(options.dbpath + '/')
+     assert handle.root == options.root

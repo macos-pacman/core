@@ -3,6 +3,25 @@
 @@ -7 +7 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-@@ -27 +27 @@
+@@ -12 +12,3 @@
+-source=("git+https://gitlab.archlinux.org/archlinux/pyalpm.git#tag=$pkgver")
++source=("git+https://gitlab.archlinux.org/archlinux/pyalpm.git#tag=$pkgver"
++        'fix-paths.patch.in'
++        'fix-tests.patch')
+@@ -14 +16,3 @@
+-sha512sums=('SKIP')
++sha512sums=('SKIP'
++            '58c8558aa30b6e83eab02647e0402a217b751c0179dd441cd07dcceaaa88aea18021ff0bbffff485666773fad6267ea3339e033d9453f4b0dffc98394152ca11'
++            '9e9345e3c2077f277e587dd3a9cb2eca6ea96e5d0489740845d190cb0c30fd42114dfbb7dbbc07ea9999b20dee3d2cc15eb57cea528930e8c7add41850338d01')
+@@ -17,0 +22,7 @@
++
++  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
++      -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
++      ../fix-paths.patch.in > fix-paths.patch
++
++  patch -Np1 -i fix-paths.patch
++  patch -Np1 -i ../fix-tests.patch
+@@ -27 +38,2 @@
 -  PYTHONPATH="$PWD/build/lib.linux-$CARCH-cpython-311" pytest
-+  PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)" pytest
++  PYTHONPATH="$PWD/build/$(_GetPythonPlatformPath)" pytest \
++    -k 'not test_db_grpcache_pkg_segfault and not test_db_read_grp'

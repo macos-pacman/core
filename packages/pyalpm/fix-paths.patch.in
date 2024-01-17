@@ -1,0 +1,33 @@
+--- a/pycman/config.py	2024-01-17 18:18:24.037120808 -0500
++++ b/pycman/config.py	2024-01-17 18:19:02.046547965 -0500
+@@ -171,9 +171,9 @@
+ 		self.options = {}
+ 		self.repos = collections.OrderedDict()
+ 		self.options["RootDir"] = "/"
+-		self.options["DBPath"] = "/var/lib/pacman"
+-		self.options["GPGDir"] = "/etc/pacman.d/gnupg/"
+-		self.options["LogFile"] = "/var/log/pacman.log"
++		self.options["DBPath"] = "%%PACMAN_ROOT%%/var/lib/pacman"
++		self.options["GPGDir"] = "%%PACMAN_ROOT%%/etc/pacman.d/gnupg/"
++		self.options["LogFile"] = "%%PACMAN_ROOT%%/var/log/pacman.log"
+ 		self.options["Architecture"] = os.uname()[-1]
+ 		if conf is not None:
+ 			self.load_from_file(conf)
+@@ -195,7 +195,7 @@
+ 					if key == 'Server':
+ 						servers.append(value)
+ 		if "CacheDir" not in self.options:
+-			self.options["CacheDir"] = ["/var/cache/pacman/pkg"]
++			self.options["CacheDir"] = ["%%PACMAN_ROOT%%/var/cache/pacman/pkg"]
+ 
+ 	def load_from_options(self, options):
+ 		global _logmask
+@@ -296,7 +296,7 @@
+ 	if options.config is not None:
+ 		config_file = options.config
+ 	else:
+-		config_file = "/etc/pacman.conf"
++		config_file = "%%PACMAN_ROOT%%/etc/pacman.conf"
+ 
+ 	conf = PacmanConfig(conf=config_file, options=options)
+ 	return conf.initialize_alpm()
