@@ -1,0 +1,5 @@
+--- bin_grun
++++ bin_grun
+@@ -2 +2 @@
+-java -cp .:/usr/share/java/antlr-complete.jar org.antlr.v4.gui.TestRig "$@"
++java -cp .:$(pacman-root-dir)/usr/share/java/antlr-complete.jar org.antlr.v4.gui.TestRig "$@"

@@ -1,0 +1,2 @@
+#!/bin/sh
+java -jar $(pacman-root-dir)/usr/share/java/antlr-complete.jar "$@"
