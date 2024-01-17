@@ -1,9 +1,16 @@
 {
   "upstream_commit": "d8363c59ece54a076c69c6c1586136a71620dda1",
-  "diff_files": [],
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "bin_archlinux-java.pmdiff",
+    "install_java-runtime-common.sh.pmdiff",
+    "profile_jre.sh.pmdiff",
+    "test_archlinux-java.pmdiff"
+  ],
   "clean_files": [],
   "ignore_files": [
     ".SRCINFO",
-    "profile_jre.csh"
+    "profile_jre.csh",
+    ".SRCINFO"
   ]
 }

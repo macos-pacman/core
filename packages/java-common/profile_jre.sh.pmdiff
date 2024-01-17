@@ -1,0 +1,5 @@
+--- profile_jre.sh
++++ profile_jre.sh
+@@ -3 +3 @@
+-append_path '/usr/lib/jvm/default/bin'
++append_path $(pacman-root-dir)'/usr/lib/jvm/default/bin'

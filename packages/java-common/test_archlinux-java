@@ -20,7 +20,7 @@ check_root() {
 
 
 get_rand_str() {
-  echo $(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
+  echo $(cat /dev/urandom | LC_ALL=C tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
 }
 
 setUp() {

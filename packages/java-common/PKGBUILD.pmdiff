@@ -1,0 +1,49 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -15,2 +15 @@
+-source=(profile_jre.csh
+-        profile_jre.sh
++source=(profile_jre.sh
+@@ -20,4 +19,3 @@
+-sha256sums=('9d25638cafc2fabd1ba6f2f26aa01233eccf3d31db003d956b571f0ab655dd23'
+-            'f11ac56c635e545e73db994b905b646c15ccba6781411d79878c4edd7c77ccd9'
+-            '5101f9d3d42cd545843a537826451c1b2e0bf2b16aba4e36ac797d9ace16dc63'
+-            'f4c3fc55568fbbd298c1bf617bdd7f45db600b47c9991b072e409876e8cdd341'
++sha256sums=('c1a430947e0ab1fa8787fa32a525ad6a8231d3a567ff1063acbdb9e0a3015732'
++            '4bb47e2121d8b41608ddc851a4d6f4da8e207f8bb689149bee263b230f9d3582'
++            'a0669bfc1f551a76e95a361311aeadb8e9708f39d9c0ef77f6784f49794f7ee6'
+@@ -27,2 +25,2 @@
+-  ln -s shunit2-${_shunitver} shunit2
+-  ./test_archlinux-java
++  ln -sf shunit2-${_shunitver} shunit2
++  bash ./test_archlinux-java
+@@ -33,2 +31 @@
+-  backup=(etc/profile.d/jre.sh
+-          etc/profile.d/jre.csh)
++  backup=(${pacman_root#/}/etc/profile.d/jre.sh)
+@@ -38,3 +35,3 @@
+-  install -d -m 755 "${pkgdir}/usr/lib/jvm/"
+-  ln -s /dev/null "${pkgdir}/usr/lib/jvm/default"
+-  ln -s /dev/null "${pkgdir}/usr/lib/jvm/default-runtime"
++  install -d -m 755 "${pkgdir}/${pacman_root}/usr/lib/jvm/"
++  ln -s /dev/null "${pkgdir}/${pacman_root}/usr/lib/jvm/default"
++  ln -s /dev/null "${pkgdir}/${pacman_root}/usr/lib/jvm/default-runtime"
+@@ -42,3 +39,4 @@
+-  install -D -m 644 profile_jre.sh  "${pkgdir}/etc/profile.d/jre.sh"
+-  install -D -m 644 profile_jre.csh "${pkgdir}/etc/profile.d/jre.csh"
+-  install -D -m 755 bin_archlinux-java "${pkgdir}/usr/bin/archlinux-java"
++  install -D -m 644 profile_jre.sh  "${pkgdir}/${pacman_root}/etc/profile.d/jre.sh"
++  install -D -m 755 bin_archlinux-java "${pkgdir}/${pacman_root}/usr/bin/archlinux-java"
++
++  install -d -m 755 "${pkgdir}/${pacman_root}/usr/bin/"
+@@ -46 +43,0 @@
+-  install -d -m 755 "${pkgdir}/usr/bin/"
+@@ -52 +49 @@
+-    ln -s /usr/lib/jvm/default-runtime/bin/${b} "${pkgdir}/usr/bin/${b}"
++    ln -s ${pacman_root}/usr/lib/jvm/default-runtime/bin/${b} "${pkgdir}/${pacman_root}/usr/bin/${b}"
+@@ -59 +56 @@
+-  install -d "${pkgdir}/usr/bin"
++  install -d "${pkgdir}/${pacman_root}/usr/bin"
+@@ -67 +64 @@
+-    ln -s /usr/lib/jvm/default/bin/${b} "${pkgdir}/usr/bin/${b}"
++    ln -s ${pacman_root}/usr/lib/jvm/default/bin/${b} "${pkgdir}/${pacman_root}/usr/bin/${b}"

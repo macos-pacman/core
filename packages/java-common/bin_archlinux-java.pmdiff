@@ -1,0 +1,16 @@
+--- bin_archlinux-java
++++ bin_archlinux-java
+@@ -8 +8,5 @@
+-JVM_DIR=/usr/lib/jvm
++readlink_e() {
++  python -c "import os; print(os.path.realpath('${1}')) if os.path.exists('${1}') else None"
++}
++
++JVM_DIR=$(readlink_e $(pacman-root-dir)/usr/lib/jvm)
+@@ -36 +40 @@
+-  path=$(readlink -e ${DEFAULT_PATH})
++  path=$(readlink_e ${DEFAULT_PATH})
+@@ -38 +42,2 @@
+-    echo ${path/${JVM_DIR}\/}
++    local asdf=$(readlink_e ${JVM_DIR})
++    echo ${path/${asdf}\/}

@@ -5,7 +5,11 @@
 #
 # Author: Guillaume ALAUX <guillaume@archlinux.org>
 
-JVM_DIR=$(pacman-root-dir)/usr/lib/jvm
+readlink_e() {
+  python -c "import os; print(os.path.realpath('${1}')) if os.path.exists('${1}') else None"
+}
+
+JVM_DIR=$(readlink_e $(pacman-root-dir)/usr/lib/jvm)
 DEFAULT_NAME=default
 DEFAULT_PATH=${JVM_DIR}/${DEFAULT_NAME}
 DEFAULT_NAME_JRE=default-runtime
@@ -33,9 +37,10 @@ check_param_count() {
 # Second level functions
 
 get_default_java() {
-  path=$(readlink -e ${DEFAULT_PATH})
+  path=$(readlink_e ${DEFAULT_PATH})
   if [ "x${path}" != "x/dev/null" ]; then
-    echo ${path/${JVM_DIR}\/}
+    local asdf=$(readlink_e ${JVM_DIR})
+    echo ${path/${asdf}\/}
   else
     echo ""
   fi

@@ -17,13 +17,13 @@ source=(profile_jre.sh
         test_archlinux-java
         https://github.com/kward/shunit2/archive/v${_shunitver}/shunit2-${_shunitver}.tar.gz)
 sha256sums=('c1a430947e0ab1fa8787fa32a525ad6a8231d3a567ff1063acbdb9e0a3015732'
-            '8284af33ab134c1102605781df2362027b327dcc58d8e86df869f8f44506d7c6'
-            'f4c3fc55568fbbd298c1bf617bdd7f45db600b47c9991b072e409876e8cdd341'
+            '4bb47e2121d8b41608ddc851a4d6f4da8e207f8bb689149bee263b230f9d3582'
+            'a0669bfc1f551a76e95a361311aeadb8e9708f39d9c0ef77f6784f49794f7ee6'
             '41a103aa984bfdeea3fec426edb0b3dda19153a5ce448d4b4bbe52a85c4d7fee')
 
 check() {
-  ln -s shunit2-${_shunitver} shunit2
-  ./test_archlinux-java
+  ln -sf shunit2-${_shunitver} shunit2
+  bash ./test_archlinux-java
 }
 
 package_java-runtime-common() {
@@ -53,7 +53,7 @@ package_java-runtime-common() {
 package_java-environment-common() {
   pkgdesc='Common files for Java Development Kits'
 
-  install -d "${pkgdir}/usr/bin"
+  install -d "${pkgdir}/${pacman_root}/usr/bin"
   # Official list of supplementary binaries that Java environment packages MUST provide
   # This list is based on Arch Linux' default Java implementation: "OpenJDK 7 Icedtea"
   for b in \

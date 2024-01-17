@@ -1,0 +1,10 @@
+--- install_java-runtime-common.sh
++++ install_java-runtime-common.sh
+@@ -2,2 +2,2 @@
+-  if grep -q '^export _JAVA_AWT_WM_NONREPARENTING=1' /etc/profile.d/jre.sh > /dev/null 2>&1; then
+-    echo "Variable '_JAVA_AWT_WM_NONREPARENTING' should not be set in /etc/profile.d/jre.sh any more"
++  if grep -q '^export _JAVA_AWT_WM_NONREPARENTING=1' $(pacman-root-dir)/etc/profile.d/jre.sh > /dev/null 2>&1; then
++    echo "Variable '_JAVA_AWT_WM_NONREPARENTING' should not be set in $(pacman-root-dir)/etc/profile.d/jre.sh any more"
+@@ -10 +10 @@
+-  echo 'you need to re-login or source /etc/profile.d/jre.sh'
++  echo 'you need to re-login or source '$(pacman-root-dir)/etc/profile.d/jre.sh
