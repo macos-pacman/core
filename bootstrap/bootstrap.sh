@@ -44,7 +44,7 @@ msg "Adding /opt/pacman/usr/bin/bash to /etc/shells"
 echo "/opt/pacman/usr/bin/bash" | sudo tee -a /etc/shells
 
 msg "Changing user's login shell"
-chsh -s /opt/pacman/usr/bin/bash
+sudo chsh -s /opt/pacman/usr/bin/bash $(whoami)
 
 # relaunch a shell, and do the rest
 cat <<'EOF' | /opt/pacman/usr/bin/bash -
