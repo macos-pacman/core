@@ -35,7 +35,7 @@ curl -fSL --progress-bar https://github.com/macos-pacman/core/releases/download/
 	> bootstrap.tar.xz
 
 msg "Setting up directories (will request root)"
-sudo mkdir /opt/pacman
+sudo mkdir -p /opt/pacman
 
 msg "Unpacking archive"
 sudo tar xpf bootstrap.tar.xz -C /
