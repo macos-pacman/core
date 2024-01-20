@@ -1,0 +1,18 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -10 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -21 +21 @@
+-  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
++  cargo fetch --locked --target "${CARCH/arm64/aarch64}-apple-darwin"
+@@ -36 +36 @@
+-  install -Dt "$pkgdir"/usr/bin target/release/$pkgname
++  install -Dt "$pkgdir"/${pacman_root}/usr/bin target/release/$pkgname
+@@ -42,3 +42,3 @@
+-  install -Dm644 man/page "$pkgdir/usr/share/man/man1/$pkgname.1"
+-  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+-  install -Dm644 resources/icons/vscode/vscode.ttf "$pkgdir/usr/share/fonts/TTF/vscode.ttf"
++  install -Dm644 man/page "$pkgdir/${pacman_root}/usr/share/man/man1/$pkgname.1"
++  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
++  install -Dm644 resources/icons/vscode/vscode.ttf "$pkgdir/${pacman_root}/usr/share/fonts/TTF/vscode.ttf"

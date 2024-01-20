@@ -13,9 +13,11 @@ makedepends=('cmake' 'ninja' 'zlib' 'zstd' 'libffi' 'libedit' 'ncurses'
 checkdepends=('python-psutil')
 options=('staticlibs' '!lto') # https://github.com/llvm/llvm-project/issues/57740
 _source_base=https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver
-source=($_source_base/llvm-project-$pkgver.src.tar.xz{,.sig})
+source=($_source_base/llvm-project-$pkgver.src.tar.xz{,.sig}
+        'sysroot-fix.patch')
 sha256sums=('8b5fcb24b4128cf04df1b0b9410ce8b1a729cb3c544e6da885d234280dedeac6'
-            'SKIP')
+            'SKIP'
+            '0346407ec68a1376232d5ad72196cffbcb1d7b547acc688dc9724687b3859dda')
 validpgpkeys=('474E22316ABF4785A88C6E8EA2C794A986419D8A') # Tom Stellard <tstellar@redhat.com>
 
 # Utilizing LLVM_DISTRIBUTION_COMPONENTS to avoid
@@ -50,6 +52,8 @@ prepare() {
   cd llvm-project-$pkgver.src
   [[ -d build ]] && rm -rf build
 
+  patch -Np1 -i ../sysroot-fix.patch
+
   mkdir build
 }
 
@@ -61,7 +65,7 @@ build() {
   CXXFLAGS=${CXXFLAGS/-g /-g1 }
 
   local cmake_args=(
-    -G "Unix Makefiles"
+    -G Ninja
     -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr/lib/llvm15
     -DCMAKE_SKIP_RPATH=OFF
@@ -76,14 +80,13 @@ build() {
     -DLLVM_LINK_LLVM_DYLIB=ON
   )
 
-#  cmake ../llvm "${cmake_args[@]}"
-#  local distribution_components=$(_get_distribution_components | gpaste -sd\;)
-#  test -n "$distribution_components"
-#  cmake_args+=(-DLLVM_DISTRIBUTION_COMPONENTS="$distribution_components")
+  cmake ../llvm "${cmake_args[@]}"
+  local distribution_components=$(_get_distribution_components | gpaste -sd\;)
+  test -n "$distribution_components"
+  cmake_args+=(-DLLVM_DISTRIBUTION_COMPONENTS="$distribution_components")
 
   cmake ../llvm "${cmake_args[@]}"
-  make
-  # ninja
+  ninja
 }
 
 check() {
