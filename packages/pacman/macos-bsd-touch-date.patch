@@ -23,7 +23,7 @@ index fe1a0ed8..dd51aec6 100644
  	REPRODUCIBLE=1
  else
  	SOURCE_DATE_EPOCH=$(date +%s)
-+	SOURCE_DATE_EPOCH_FOR_TOUCH=$(date -u +'%FT%T')
++	SOURCE_DATE_EPOCH_FOR_TOUCH=$(date +'%FT%T')
  fi
 +export SOURCE_DATE_EPOCH_FOR_TOUCH
  export SOURCE_DATE_EPOCH
