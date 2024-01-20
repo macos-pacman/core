@@ -9,6 +9,17 @@ if(NOT CMAKE_INSTALL_PREFIX)
 	set(CMAKE_INSTALL_PREFIX "%%PACMAN_ROOT%%/usr")
 endif()
 
+# set the default compiler to llvm-project compilers, if they exist.
+if((NOT CMAKE_C_COMPILER) AND (NOT CMAKE_CXX_COMPILER) AND (EXISTS "%%PACMAN_ROOT%%/usr/bin/clang"))
+	set(CMAKE_C_COMPILER "%%PACMAN_ROOT%%/usr/bin/clang")
+	set(CMAKE_CXX_COMPILER "%%PACMAN_ROOT%%/usr/bin/clang++")
+endif()
+
+if((NOT CMAKE_OBJC_COMPILER) AND (NOT CMAKE_OBJCXX_COMPILER) AND (EXISTS "%%PACMAN_ROOT%%/usr/bin/clang"))
+	set(CMAKE_OBJC_COMPILER "%%PACMAN_ROOT%%/usr/bin/clang")
+	set(CMAKE_OBJCXX_COMPILER "%%PACMAN_ROOT%%/usr/bin/clang++")
+endif()
+
 # llvm fucks us up
 if(NOT CMAKE_AR)
 	set(CMAKE_AR "/usr/bin/ar")

@@ -7,6 +7,7 @@ pkgver=3.27.4
 pkgrel=3
 pkgdesc='A cross-platform open-source make system'
 arch=('x86_64' 'arm64')
+pkgrel+=".1"
 url="https://www.cmake.org/"
 license=('custom')
 depends=('curl' 'libarchive' 'jsoncpp' 'libjsoncpp.dylib' 'libuv' 'rhash' 'cppdap' 'libiconv')
@@ -17,7 +18,7 @@ source=("https://www.cmake.org/files/v${pkgver%.*}/${pkgname}-${pkgver}.tar.gz"
         "default.cmake.in")
 sha512sums=('fc04b041f5c73b0a969ba09251e00e20f33e7a76460630d60e95ce08086c6b41b82315bd8782c19070b5f12a4290858825687f816b69ad5df8101053b4a2b48a'
             'd34e4c271c7ce55dddb87cfc6ca918d2b970253ace26584b1942933d3adc0ccb4092792aca6c8d59b33bb9111df169715bb91fe3ed1b802b7589c9ce95a66bb5'
-            '66be2aad1e83555e4e185734b12c7a9396b579a5815896a764f5188bd91fcc8144f13e37410d7817094c9211c37dbf36eca764c155f4a97811677ccf2209b4ab')
+            '76d1fd0dbf7c680c5b571e40ecc8a0665fb7851b811fd6853e2176180aacb6baa91d98a12480e9a968dfa11fb6ad7e7f980302fe05d13c89eda8084837869994')
 
 prepare() {
   cd ${pkgname}-${pkgver}
