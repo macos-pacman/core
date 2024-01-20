@@ -1,0 +1,59 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9 +9,2 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
++pkgrel+=".1"
+@@ -12,7 +13,3 @@
+-depends=('curl' 'libarchive' 'hicolor-icon-theme' 'jsoncpp' 'libjsoncpp.so' 'libuv' 'rhash' 'cppdap')
+-makedepends=('qt6-base' 'python-sphinx' 'emacs' 'nlohmann-json')
+-optdepends=(
+-  'make: for unix Makefile generator'
+-  'ninja: for ninja generator'
+-  'qt6-base: cmake-gui'
+-)
++depends=('curl' 'libarchive' 'jsoncpp' 'libjsoncpp.dylib' 'libuv' 'rhash' 'cppdap' 'libiconv')
++makedepends=('python-sphinx')
++optdepends=('qt6-base: cmake-gui')
+@@ -20,5 +17,5 @@
+-        "https://www.cmake.org/files/v${pkgver%.*}/${pkgname}-${pkgver}-SHA-256.txt"{,.asc})
+-sha512sums=('62693c423dd46d252d046662ac34cf9c927b7ec23c213c6b5cd1683636b8bbb5326698af1e7f851f3c01fe3f14dd769b9a8bd405f8f9e73e6d8defae7517cbcb'
+-            'd23085b03c33c9ca205b55d8049eb2dd331e1ef4b393d2cd707759ec7b162f79e3a7a84add6231d0ddd144c410fc3e013664946088e809ce7a508bfdb1909392'
+-            'SKIP')
+-validpgpkeys=(CBA23971357C2E6590D9EFD3EC8FEF3A7BFB4EDA) # Brad King <brad.king@kitware.com>
++        "toolchain.patch"
++        "default.cmake.in")
++sha512sums=('fc04b041f5c73b0a969ba09251e00e20f33e7a76460630d60e95ce08086c6b41b82315bd8782c19070b5f12a4290858825687f816b69ad5df8101053b4a2b48a'
++            'd34e4c271c7ce55dddb87cfc6ca918d2b970253ace26584b1942933d3adc0ccb4092792aca6c8d59b33bb9111df169715bb91fe3ed1b802b7589c9ce95a66bb5'
++            '76d1fd0dbf7c680c5b571e40ecc8a0665fb7851b811fd6853e2176180aacb6baa91d98a12480e9a968dfa11fb6ad7e7f980302fe05d13c89eda8084837869994')
+@@ -27,2 +24,4 @@
+-  # upstream does not provide signed tarballs, only signed checksums
+-  sha256sum -c --ignore-missing "${pkgname}-${pkgver}-SHA-256.txt"
++  cd ${pkgname}-${pkgver}
++  patch -Np1 -i ../toolchain.patch
++
++  sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../default.cmake.in > default.cmake
+@@ -33 +32 @@
+-  ./bootstrap --prefix=/usr \
++  ./bootstrap --prefix=${pacman_root}/usr \
+@@ -36,0 +36 @@
++    --system-libs \
+@@ -39,3 +39,7 @@
+-    --system-libs \
+-    --qt-gui \
+-    --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN)
++    --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN) \
++    -- \
++    -DCMAKE_BUILD_TYPE:STRING=Release \
++    -DCMAKE_TOOLCHAIN_FILE="" \
++    -DCMAKE_RANLIB="/usr/bin/ranlib" \
++    -DCMAKE_AR="/usr/bin/ar"
++
+@@ -49,3 +53,4 @@
+-  rm -r "$pkgdir"/usr/share/doc/cmake/html/_sources
+-  emacs -batch -f batch-byte-compile "${pkgdir}"/usr/share/emacs/site-lisp/cmake-mode.el
+-  install -Dm644 Copyright.txt "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE
++  rm -r "$pkgdir"/${pacman_root}/usr/share/doc/cmake/html/_sources
++
++  install -Dm644 Copyright.txt "${pkgdir}/${pacman_root}"/usr/share/licenses/${pkgname}/LICENSE
++  install -Dm644 default.cmake "${pkgdir}/${pacman_root}/usr/share/cmake/"
