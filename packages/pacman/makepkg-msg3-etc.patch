@@ -1,0 +1,48 @@
+--- a/scripts/libmakepkg/util/message.sh.in	2022-10-02 22:52:04.000000000 -0400
++++ b/scripts/libmakepkg/util/message.sh.in	2024-01-20 19:25:16.498621980 -0500
+@@ -32,6 +32,7 @@
+ 		GREEN="${BOLD}$(tput setaf 2)"
+ 		RED="${BOLD}$(tput setaf 1)"
+ 		YELLOW="${BOLD}$(tput setaf 3)"
++		PINK="${BOLD}$(tput setaf 5)"
+ 	else
+ 		ALL_OFF="\e[0m"
+ 		BOLD="\e[1m"
+@@ -39,8 +40,9 @@
+ 		GREEN="${BOLD}\e[32m"
+ 		RED="${BOLD}\e[31m"
+ 		YELLOW="${BOLD}\e[33m"
++		PINK="${BOLD}\e[35m"
+ 	fi
+-	readonly ALL_OFF BOLD BLUE GREEN RED YELLOW
++	readonly ALL_OFF BOLD BLUE GREEN RED YELLOW PINK
+ }
+ 
+ # plainerr/plainerr are primarily used to continue a previous message on a new
+@@ -69,6 +71,12 @@
+ 	printf "${BLUE}  ->${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
+ }
+ 
++msg3() {
++	(( QUIET )) && return
++	local mesg=$1; shift
++	printf "${PINK}    +${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
++}
++
+ ask() {
+ 	local mesg=$1; shift
+ 	printf "${BLUE}::${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}" "$@"
+@@ -83,3 +91,13 @@
+ 	local mesg=$1; shift
+ 	printf "${RED}==> $(gettext "ERROR:")${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
+ }
++
++warning2() {
++	local mesg=$1; shift
++	printf "${YELLOW}  -> $(gettext "WARNING:")${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
++}
++
++error2() {
++	local mesg=$1; shift
++	printf "${RED}  -> $(gettext "ERROR:")${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
++}
