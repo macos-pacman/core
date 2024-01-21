@@ -20,6 +20,10 @@ if((NOT CMAKE_OBJC_COMPILER) AND (NOT CMAKE_OBJCXX_COMPILER) AND (EXISTS "%%PACM
 	set(CMAKE_OBJCXX_COMPILER "%%PACMAN_ROOT%%/usr/bin/clang++")
 endif()
 
+if((NOT CMAKE_LIBTOOL) AND (EXISTS "%%PACMAN_ROOT%%/usr/bin/llvm-libtool-darwin"))
+    set(CMAKE_LIBTOOL "%%PACMAN_ROOT%%/usr/bin/llvm-libtool-darwin")
+endif()
+
 # llvm fucks us up
 if(NOT CMAKE_AR)
 	set(CMAKE_AR "/usr/bin/ar")

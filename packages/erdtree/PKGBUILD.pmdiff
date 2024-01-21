@@ -1,0 +1,28 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7 +7 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -26 +27 @@
+-  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
++  cargo fetch --locked --target "${CARCH/arm64/aarch64}-apple-darwin"
+@@ -52 +53 @@
+-  install -vDm755 -t "$pkgdir/usr/bin" target/release/erd
++  install -vDm755 -t "$pkgdir/${pacman_root}/usr/bin" target/release/erd
+@@ -55,2 +56,2 @@
+-  install -vDm644 -t "$pkgdir/usr/share/doc/$pkgname" README.md
+-  cp -vr assets "$pkgdir/usr/share/doc/$pkgname"
++  install -vDm644 -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname" README.md
++  cp -vr assets "$pkgdir/${pacman_root}/usr/share/doc/$pkgname"
+@@ -60,3 +61,3 @@
+-  install -vDm644 bash-completion "$pkgdir/usr/share/bash-completion/completions/erd"
+-  install -vDm644 fish-completion "$pkgdir/usr/share/fish/vendor_completions.d/erd.fish"
+-  install -vDm644 zsh-completion "$pkgdir/usr/share/zsh/site-functions/_erd"
++  install -vDm644 bash-completion "$pkgdir/${pacman_root}/usr/share/bash-completion/completions/erd"
++  install -vDm644 fish-completion "$pkgdir/${pacman_root}/usr/share/fish/vendor_completions.d/erd.fish"
++  install -vDm644 zsh-completion "$pkgdir/${pacman_root}/usr/share/zsh/site-functions/_erd"
+@@ -66 +67 @@
+-  install -vDm644 -t "$pkgdir/usr/share/licenses/$pkgname" LICENSE
++  install -vDm644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" LICENSE
