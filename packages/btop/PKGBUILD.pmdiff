@@ -1,0 +1,12 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7 +7 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -12 +12,0 @@
+-optdepends=('rocm-smi-lib: AMD GPU support')
+@@ -24 +24 @@
+-	make DESTDIR="$pkgdir" PREFIX=/usr install
++	make DESTDIR="$pkgdir" PREFIX=${pacman_root}/usr install
