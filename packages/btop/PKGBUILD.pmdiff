@@ -4,9 +4,21 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
 @@ -9,0 +10 @@
-+pkgrel+=".1"
++pkgrel+=".5"
 @@ -12 +12,0 @@
 -optdepends=('rocm-smi-lib: AMD GPU support')
-@@ -24 +24 @@
+@@ -14,2 +14,9 @@
+-source=("$url/archive/v$pkgver/$_archive.tar.gz")
+-sha256sums=('375e078ce2091969f0cd14030620bd1a94987451cf7a73859127a786006a32cf')
++source=("$url/archive/v$pkgver/$_archive.tar.gz"
++        '719.patch::https://patch-diff.githubusercontent.com/raw/aristocratos/btop/pull/719.patch?full_index=1')
++sha256sums=('375e078ce2091969f0cd14030620bd1a94987451cf7a73859127a786006a32cf'
++            'c180f8994c38d023c35529f6f65d620106a3087f27c3d19169c7534439e29681')
++
++prepare() {
++  cd "$_archive"
++  patch -Np1 -i ../719.patch
++}
+@@ -24 +31 @@
 -	make DESTDIR="$pkgdir" PREFIX=/usr install
 +	make DESTDIR="$pkgdir" PREFIX=${pacman_root}/usr install

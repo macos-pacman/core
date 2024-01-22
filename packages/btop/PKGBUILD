@@ -7,12 +7,19 @@ pkgdesc='A monitor of system resources, bpytop ported to C++'
 arch=('x86_64' 'arm64')
 url="https://github.com/aristocratos/$pkgname"
 license=(Apache)
-pkgrel+=".1"
+pkgrel+=".5"
 depends=(gcc-libs
          glibc)
 _archive="$pkgname-$pkgver"
-source=("$url/archive/v$pkgver/$_archive.tar.gz")
-sha256sums=('375e078ce2091969f0cd14030620bd1a94987451cf7a73859127a786006a32cf')
+source=("$url/archive/v$pkgver/$_archive.tar.gz"
+        '719.patch::https://patch-diff.githubusercontent.com/raw/aristocratos/btop/pull/719.patch?full_index=1')
+sha256sums=('375e078ce2091969f0cd14030620bd1a94987451cf7a73859127a786006a32cf'
+            'c180f8994c38d023c35529f6f65d620106a3087f27c3d19169c7534439e29681')
+
+prepare() {
+  cd "$_archive"
+  patch -Np1 -i ../719.patch
+}
 
 build() {
 	cd "$_archive"
