@@ -476,7 +476,6 @@ fix_rpath_v2() {
 	local _pacman_root="${pacman_root}"
 	local _search_prefix=""
 
-	local _have_fixes=0
 	local _input_files=()
 
 	while [ $# -gt 0 ]; do
@@ -505,6 +504,8 @@ fix_rpath_v2() {
 	done
 
 	local _file; for _file in "${_input_files[@]}"; do
+		local _have_fixes=0
+
 		if [ ! -e "${_file}" ]; then
 			error 'File %s does not exist' "${_file}"
 			return 1
@@ -522,10 +523,10 @@ fix_rpath_v2() {
 		# ignore non-interesting files
 		local _file_type=$(file "${_file}")
 		case "${_file_type}" in
-	        *"executable"* | *"shared library"* | *"bundle"*) ;;
-	        *)
-	        	msg2 'Skipping non-library, non-executable file %s' "${_file}"
-	        	continue ;;
+			*"executable"* | *"shared library"* | *"bundle"*) ;;
+			*)
+				msg2 'Skipping non-library, non-executable file %s' "${_file}"
+				continue ;;
 		esac
 
 		# check whether we need to change the id of the shared library

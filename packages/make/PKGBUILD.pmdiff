@@ -1,0 +1,26 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9 +9,2 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
++pkgrel+=".2"
+@@ -13 +14,2 @@
+-source=("https://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.lz"{,.sig})
++source=("https://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.lz"{,.sig}
++        'fix-glob-stupidity.patch')
+@@ -15 +17,2 @@
+-            'SKIP')
++            'SKIP'
++            '56deeb0db339644ed3fa56ee3ae6317bb90e77ed902263338b2174af55ea19ea')
+@@ -17,0 +21,5 @@
++prepare() {
++  cd "${pkgname}-${pkgver}"
++  patch -Np1 -i ../fix-glob-stupidity.patch
++}
++
+@@ -20 +28,4 @@
+-	./configure --prefix=/usr
++	./configure \
++	  --prefix=${pacman_root}/usr \
++	  --program-prefix=g \
++	  --with-guile

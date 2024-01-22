@@ -1,0 +1,284 @@
+diff --git a/lib/glob.c b/lib/glob.c
+index 271a2d1..3363232 100644
+--- a/lib/glob.c
++++ b/lib/glob.c
+@@ -206,7 +206,7 @@ const char *next_brace_sub (const char *begin);
+ static int glob_in_dir (const char *pattern, const char *directory,
+ 			int flags,
+ 			int (*errfunc) (const char *, int),
+-			glob_t *pglob);
++			gnu_glob_t *pglob);
+ static int prefix_array (const char *prefix, char **array, size_t n);
+ static int collated_compare (const void *, const void *);
+ 
+@@ -267,8 +267,8 @@ next_brace_sub (const char *begin)
+    If memory cannot be allocated for PGLOB, GLOB_NOSPACE is returned.
+    Otherwise, `glob' returns zero.  */
+ int
+-glob (const char *pattern, int flags,
+-      int (*errfunc) (const char *, int), glob_t *pglob)
++gnu_glob (const char *pattern, int flags,
++      int (*errfunc) (const char *, int), gnu_glob_t *pglob)
+ {
+   const char *filename;
+   const char *dirname;
+@@ -307,7 +307,7 @@ glob (const char *pattern, int flags,
+ 	  if (onealt == NULL)
+ 	    {
+ 	      if (!(flags & GLOB_APPEND))
+-		globfree (pglob);
++		gnu_globfree (pglob);
+ 	      return GLOB_NOSPACE;
+ 	    }
+ #endif
+@@ -329,7 +329,7 @@ glob (const char *pattern, int flags,
+ #ifndef __GNUC__
+ 	      free (onealt);
+ #endif
+-	      return glob (pattern, flags & ~GLOB_BRACE, errfunc, pglob);
++	      return gnu_glob (pattern, flags & ~GLOB_BRACE, errfunc, pglob);
+ 	    }
+ 
+ 	  /* Now find the end of the whole brace expression.  */
+@@ -343,7 +343,7 @@ glob (const char *pattern, int flags,
+ #ifndef __GNUC__
+ 		  free (onealt);
+ #endif
+-		  return glob (pattern, flags & ~GLOB_BRACE, errfunc, pglob);
++		  return gnu_glob (pattern, flags & ~GLOB_BRACE, errfunc, pglob);
+ 		}
+ 	    }
+ 	  /* Please note that we now can be sure the brace expression
+@@ -378,7 +378,7 @@ glob (const char *pattern, int flags,
+ 	      memcpy (&alt_start[next - p], rest, rest_len);
+ #endif
+ 
+-	      result = glob (onealt,
++	      result = gnu_glob (onealt,
+ 			     ((flags & ~(GLOB_NOCHECK|GLOB_NOMAGIC))
+ 			      | GLOB_APPEND), errfunc, pglob);
+ 
+@@ -389,7 +389,7 @@ glob (const char *pattern, int flags,
+ 		  free (onealt);
+ #endif
+ 		  if (!(flags & GLOB_APPEND))
+-		    globfree (pglob);
++		    gnu_globfree (pglob);
+ 		  return result;
+ 		}
+ 
+@@ -502,7 +502,7 @@ glob (const char *pattern, int flags,
+ 	  && dirlen > 1)
+ 	/* "pattern/".  Expand "pattern", appending slashes.  */
+ 	{
+-	  int val = glob (dirname, flags | GLOB_MARK, errfunc, pglob);
++	  int val = gnu_glob (dirname, flags | GLOB_MARK, errfunc, pglob);
+ 	  if (val == 0)
+ 	    pglob->gl_flags = ((pglob->gl_flags & ~GLOB_MARK)
+ 			       | (flags & GLOB_MARK));
+@@ -764,10 +764,10 @@ glob (const char *pattern, int flags,
+       /* The directory name contains metacharacters, so we
+ 	 have to glob for the directory, and then glob for
+ 	 the pattern in each directory found.  */
+-      glob_t dirs;
++      gnu_glob_t dirs;
+       size_t i;
+ 
+-      status = glob (dirname,
++      status = gnu_glob (dirname,
+ 		     ((flags & (GLOB_ERR | GLOB_NOCHECK | GLOB_NOESCAPE))
+ 		      | GLOB_NOSORT | GLOB_ONLYDIR),
+ 		     errfunc, &dirs);
+@@ -788,8 +788,8 @@ glob (const char *pattern, int flags,
+ 
+ 	    if (interrupt_state)
+ 	      {
+-		globfree (&dirs);
+-		globfree (&files);
++		gnu_globfree (&dirs);
++		gnu_globfree (&files);
+ 		return GLOB_ABORTED;
+ 	      }
+ 	  }
+@@ -806,8 +806,8 @@ glob (const char *pattern, int flags,
+ 
+ 	  if (status != 0)
+ 	    {
+-	      globfree (&dirs);
+-	      globfree (pglob);
++	      gnu_globfree (&dirs);
++	      gnu_globfree (pglob);
+ 	      return status;
+ 	    }
+ 
+@@ -816,8 +816,8 @@ glob (const char *pattern, int flags,
+ 			    &pglob->gl_pathv[old_pathc],
+ 			    pglob->gl_pathc - old_pathc))
+ 	    {
+-	      globfree (&dirs);
+-	      globfree (pglob);
++	      gnu_globfree (&dirs);
++	      gnu_globfree (pglob);
+ 	      return GLOB_NOSPACE;
+ 	    }
+ 	}
+@@ -847,7 +847,7 @@ glob (const char *pattern, int flags,
+ 				     sizeof (char *));
+ 	      if (pglob->gl_pathv == NULL)
+ 		{
+-		  globfree (&dirs);
++		  gnu_globfree (&dirs);
+ 		  return GLOB_NOSPACE;
+ 		}
+ 
+@@ -871,8 +871,8 @@ glob (const char *pattern, int flags,
+ 							     + filename_len);
+ 		  if (pglob->gl_pathv[pglob->gl_pathc] == NULL)
+ 		    {
+-		      globfree (&dirs);
+-		      globfree (pglob);
++		      gnu_globfree (&dirs);
++		      gnu_globfree (pglob);
+ 		      return GLOB_NOSPACE;
+ 		    }
+ 
+@@ -904,7 +904,7 @@ glob (const char *pattern, int flags,
+ 	    return GLOB_NOMATCH;
+ 	}
+ 
+-      globfree (&dirs);
++      gnu_globfree (&dirs);
+     }
+   else
+     {
+@@ -924,7 +924,7 @@ glob (const char *pattern, int flags,
+ 			    &pglob->gl_pathv[ignore],
+ 			    pglob->gl_pathc - ignore))
+ 	    {
+-	      globfree (pglob);
++	      gnu_globfree (pglob);
+ 	      return GLOB_NOSPACE;
+ 	    }
+ 	}
+@@ -945,7 +945,7 @@ glob (const char *pattern, int flags,
+ 	    char *new = realloc (pglob->gl_pathv[i], len);
+  	    if (new == NULL)
+ 	      {
+-		globfree (pglob);
++		gnu_globfree (pglob);
+ 		return GLOB_NOSPACE;
+ 	      }
+ 	    strcpy (&new[len - 2], "/");
+@@ -972,7 +972,7 @@ glob (const char *pattern, int flags,
+ 
+ /* Free storage allocated in PGLOB by a previous `glob' call.  */
+ void
+-globfree (glob_t *pglob)
++gnu_globfree (gnu_glob_t *pglob)
+ {
+   if (pglob->gl_pathv != NULL)
+     {
+@@ -1110,7 +1110,7 @@ __glob_pattern_p (const char *pattern, int quote)
+    The GLOB_APPEND flag is assumed to be set (always appends).  */
+ static int
+ glob_in_dir (const char *pattern, const char *directory, int flags,
+-	     int (*errfunc) (const char *, int), glob_t *pglob)
++	     int (*errfunc) (const char *, int), gnu_glob_t *pglob)
+ {
+   void *stream = NULL;
+ 
+diff --git a/lib/glob.in.h b/lib/glob.in.h
+index 5633d8b..c8a01ed 100644
+--- a/lib/glob.in.h
++++ b/lib/glob.in.h
+@@ -88,7 +88,7 @@ typedef struct
+ #else
+     int (*gl_stat) (const char *, struct stat *);
+ #endif
+-  } glob_t;
++  } gnu_glob_t;
+ 
+ #ifdef _LARGEFILE64_SOURCE
+ struct stat64;
+@@ -131,18 +131,18 @@ extern void globfree64 (glob64_t *pglob);
+    If memory cannot be allocated for PGLOB, GLOB_NOSPACE is returned.
+    Otherwise, `glob' returns zero.  */
+ #if _FILE_OFFSET_BITS != 64 || __GNUC__ < 2
+-extern int glob (const char *pattern, int flags,
++extern int gnu_glob (const char *pattern, int flags,
+ 		 int (*errfunc) (const char *, int),
+-		 glob_t *pglob);
++		 gnu_glob_t *pglob);
+ 
+ /* Free storage allocated in PGLOB by a previous `glob' call.  */
+-extern void globfree (glob_t *pglob);
++extern void gnu_globfree (gnu_glob_t *pglob);
+ #else
+-extern int glob (const char *pattern, int flags,
++extern int gnu_glob (const char *pattern, int flags,
+ 		 int (*errfunc) (const char *, int),
+-		 glob_t *pglob) __asm__ ("glob64");
++		 gnu_glob_t *pglob) __asm__ ("glob64");
+ 
+-extern void globfree (glob_t *pglob) __asm__ ("globfree64");
++extern void gnu_globfree (gnu_glob_t *pglob) __asm__ ("globfree64");
+ #endif
+ 
+ 
+diff --git a/src/dir.c b/src/dir.c
+index 3e94b98..bd4327c 100644
+--- a/src/dir.c
++++ b/src/dir.c
+@@ -1356,7 +1356,7 @@ local_lstat (const char *path, struct stat *buf)
+ #endif
+ 
+ void
+-dir_setup_glob (glob_t *gl)
++dir_setup_glob (gnu_glob_t *gl)
+ {
+   gl->gl_offs = 0;
+   gl->gl_opendir = open_dirstream;
+diff --git a/src/makeint.h b/src/makeint.h
+index db89631..28fc247 100644
+--- a/src/makeint.h
++++ b/src/makeint.h
+@@ -629,7 +629,7 @@ int file_impossible_p (const char *);
+ void file_impossible (const char *);
+ const char *dir_name (const char *);
+ void print_dir_data_base (void);
+-void dir_setup_glob (glob_t *);
++void dir_setup_glob (gnu_glob_t *);
+ void hash_init_directories (void);
+ 
+ void define_default_variables (void);
+diff --git a/src/read.c b/src/read.c
+index b0fc1e1..1382c51 100644
+--- a/src/read.c
++++ b/src/read.c
+@@ -3205,7 +3205,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
+                     } while(0)
+ 
+   char *p;
+-  glob_t gl;
++  gnu_glob_t gl;
+   char *tp;
+   int findmap = stopmap|MAP_VMSCOMMA|MAP_NUL;
+   int found_wait = 0;
+@@ -3469,7 +3469,7 @@ parse_file_seq (char **stringp, size_t size, int stopmap,
+           nlist = &name;
+         }
+       else
+-        switch (glob (name, GLOB_ALTDIRFUNC, NULL, &gl))
++        switch (gnu_glob (name, GLOB_ALTDIRFUNC, NULL, &gl))
+           {
+           case GLOB_NOSPACE:
+             out_of_memory ();
+@@ -3535,7 +3535,7 @@ parse_file_seq (char **stringp, size_t s
+           NEWELT (concat (2, prefix, nlist[i]));
+
+       if (globme)
+-        globfree (&gl);
++        gnu_globfree (&gl);
+
+ #ifndef NO_ARCHIVES
+       free (arname);
