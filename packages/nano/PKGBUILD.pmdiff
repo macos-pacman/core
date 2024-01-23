@@ -1,0 +1,30 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8 +8 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -9,0 +10 @@
++pkgrel+=".2"
+@@ -12,2 +13,3 @@
+-backup=('etc/nanorc')
+-source=(https://www.nano-editor.org/dist/v7/${pkgname}-${pkgver}.tar.xz{,.asc})
++backup=(${pacman_root#/}/'etc/nanorc')
++source=(https://www.nano-editor.org/dist/v7/${pkgname}-${pkgver}.tar.xz{,.asc}
++        "pkgbuild.nanorc")
+@@ -15 +17,2 @@
+-            'SKIP')
++            'SKIP'
++            'fed5887af67d120f0e90912df87f05015591b853ceeb3d72c8444a9706904873')
+@@ -19 +22 @@
+-validpgpkeys=('168E6F4297BFD7A79AFD4496514BBE2EB8E1961F') # "Benno Schulenberg <bensberg@telfort.nl>" 
++validpgpkeys=('168E6F4297BFD7A79AFD4496514BBE2EB8E1961F') # "Benno Schulenberg <bensberg@telfort.nl>"
+@@ -23,2 +26,2 @@
+-  ./configure --prefix=/usr \
+-    --sysconfdir=/etc \
++  ./configure --prefix=${pacman_root}/usr \
++    --sysconfdir=${pacman_root}/etc \
+@@ -34 +37,3 @@
+-  install -DTm644 "${srcdir}"/${pkgname}-${pkgver}/doc/sample.nanorc "${pkgdir}"/etc/nanorc
++
++  install -DTm644 ${srcdir}/pkgbuild.nanorc ${pkgdir}/${pacman_root}/usr/share/nano/pkgbuild.nanorc
++  install -DTm644 "${srcdir}"/${pkgname}-${pkgver}/doc/sample.nanorc "${pkgdir}/${pacman_root}"/etc/nanorc
