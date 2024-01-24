@@ -1,0 +1,28 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".2"
+@@ -13 +14 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -50,2 +51,6 @@
+-    DEST_HOME=/usr \
+-    DEST_MAN=/usr/share/man
++    DEST_HOME=${pacman_root}/usr \
++    DEST_MAN=${pacman_root}/usr/share/man
++
++  local _f; for _f in $(find "${pkgdir}/${pacman_root}/usr/lib/p7zip" -iname "*.so"); do
++    fix_rpath_v2 "$_f"
++  done
+@@ -54 +59 @@
+-  rm -r "$pkgdir/usr/share/doc/p7zip/DOC/MANUAL/fm"
++  rm -r "$pkgdir/${pacman_root}/usr/share/doc/p7zip/DOC/MANUAL/fm"
+@@ -56,4 +61,4 @@
+-  install -d "${pkgdir}"/usr/share/licenses/p7zip
+-  ln -s -t "$pkgdir/usr/share/licenses/p7zip/" \
+-    /usr/share/doc/p7zip/DOC/License.txt \
+-    /usr/share/doc/p7zip/DOC/unRarLicense.txt
++  install -d "${pkgdir}"/${pacman_root}/usr/share/licenses/p7zip
++  ln -s \
++    ${pacman_root}/usr/share/doc/p7zip/DOC/*License*.txt \
++    "$pkgdir/${pacman_root}/usr/share/licenses/p7zip/"

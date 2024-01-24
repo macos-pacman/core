@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "1e233154b0bbbdc06b09b41b63ee2c5032cb959f",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "do-not-gzip-man-pages.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
