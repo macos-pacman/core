@@ -1,0 +1,9 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9 +9,2 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
++pkgrel+=".1"
+@@ -18 +19 @@
+-  ./configure --prefix=/usr
++  ./configure --prefix=${pacman_root}/usr
