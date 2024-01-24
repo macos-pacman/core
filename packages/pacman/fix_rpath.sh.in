@@ -145,7 +145,7 @@ replace_lib_paths_with_rpath() {
 	# check whether we need to change the id of the shared library
 	if [ "${_file##*.}" = "dylib" ] || [[ "${_file_type}" = *"shared library"* ]] || [[ "${_file_type}" = *"Mach-O"*"bundle" ]]; then
 		local _dylib_id
-		_dylib_id=$(otool -D "${_file}" | awk 'NR==2')
+		_dylib_id=$(otool -arch "${CARCH}" -D "${_file}" | awk 'NR==2')
 
 		# here, the id of the dylib should be just its own name
 		local _fixed_id
@@ -158,7 +158,7 @@ replace_lib_paths_with_rpath() {
 	fi
 
 	local _used_libs
-	IFS=$'\n' read -r -d '' -a _used_libs < <(otool -L "${_file}") || true
+	IFS=$'\n' read -r -d '' -a _used_libs < <(otool -arch "${CARCH}" -L "${_file}") || true
 
 	# yeet the first line (since it's the library itself)
 	_used_libs=("${_used_libs[@]:1}")
@@ -215,6 +215,289 @@ replace_lib_paths_with_rpath() {
 
 
 
+
+
+_get_fallback_replacement_for_library() {
+	if [ $# -lt 5 ]; then
+		error 'usage: <_file> <_lib_name> <_rpath_tail> <_search_prefix> <_pacman_root> <_pkgdir>'
+		return 1
+	fi
+
+	local _file="$1"
+	local _lib_name="$2"
+	local _rpath_tail="$3"
+	local _search_prefix="$4"
+	local _pacman_root="$5"
+	local _pkgdir="$6"
+
+	# first, check whether the library exists *next to* the current file we are looking at
+	local _containing_path="$(_canonicalise_path "${_file}")/.."
+
+	if [ -e "${_containing_path}/${_rpath_tail}" ]; then
+		_replacement="${_containing_path}/${_rpath_tail}"
+	elif [ -e "${_containing_path}/${_lib_name}" ]; then
+		_replacement="${_containing_path}/${_lib_name}"
+	else
+		# otherwise, use the the default prefix (or /pm/usr/lib if not given)
+		local _check_prefix=${_search_prefix:-"${_pacman_root}/usr/lib"}
+		if [ ! -e "${_check_prefix}/${_lib_name}" ] && [ ! -e "${_pkgdir}/${_check_prefix}/${_lib_name}" ]; then
+			warning2 "File %s: could not resolve %s: assuming it lives in %s"   "${_file}" "${_lib_name}" "${_check_prefix}"
+		fi
+		_replacement="${_check_prefix}/${_lib_name}"
+	fi
+
+	echo "${_replacement}"
+}
+
+
+fix_rpath_v2() {
+	if [ $# -lt 1 ]; then
+		error 'usage: fix_rpath_v2 <filename> [opts]'
+		return 1
+	fi
+
+	# make the opts local to us, then die on unbound variables
+	local -
+	set -u
+
+	# makepkg uses QUIET but doesn't bind it ._.
+	local _must_unset_quiet=0
+	if [ -z "${QUIET+__kekw__}" ]; then
+		QUIET=0
+		_must_unset_quiet=1
+	fi
+
+	trap "(( _must_unset_quiet )) && unset QUIET;" RETURN
+
+	local _srcdir="${srcdir}"
+	local _pkgdir="${pkgdir}"
+
+	local _pacman_root="${pacman_root}"
+	local _search_prefix=""
+
+	local _input_files=()
+
+	while [ $# -gt 0 ]; do
+		local _arg="$1"
+		case "$1" in
+			--search-prefix)
+				[ $# -ge 1 ] || { error "Missing value for '--search-prefix' argument"; return 1; }
+				_search_prefix="$2"
+				shift ;;
+			--search-prefix=*)
+				_search_prefix="${_arg##--search-prefix=}" ;;
+			--pacman-root)
+				[ $# -ge 1 ] || { error "Missing value for '--pacman-root' argument"; return 1; }
+				_pacman_root="$2" ;;
+			--pacman-root=*)
+				_pacman_root="${_arg##--pacman-root=}" ;;
+			--pkgdir)
+				[ $# -ge 1 ] || { error "Missing value for '--pkgdir' argument"; return 1; }
+				_pkgdir="$2" ;;
+			--pkgdir=*)
+				_pkgdir="${_arg##--pkgdir=}" ;;
+			*)
+				_input_files+=("$_arg") ;;
+		esac
+		shift
+	done
+
+	local _file; for _file in "${_input_files[@]}"; do
+		local _have_fixes=0
+
+		# msg "looking at '%s'" ${_file}
+
+		# skip broken symlinks (cos sometimes those exist in $pkgdir for final installation)
+		if [ -L "${_file}" ] && [ ! -e $(readlink -f "${_file}") ]; then
+			continue
+		elif [ ! -e "${_file}" ]; then
+			error 'File %s does not exist' "${_file}"
+			return 1
+		fi
+
+		local _final_file_path
+		_final_file_path=$(readlink -f "${_file}")
+		_final_file_path="${_final_file_path#${_pkgdir}}"
+
+		# ignore non-interesting files
+		local _file_type=$(file "${_file}")
+		case "${_file_type}" in
+			*"executable"* | *"shared library"* | *"bundle"*) ;;
+			*)
+				msg2 'Skipping non-library, non-executable file %s' "${_file}"
+				continue ;;
+		esac
+
+		# check whether we need to change the id of the shared library
+		if [ "${_file##*.}" = "dylib" ] || [[ "${_file_type}" = *"shared library"* ]] || [[ "${_file_type}" = *"Mach-O"*"bundle"* ]]; then
+			local _dylib_id=$(otool -arch "${CARCH}" -D "${_file}" | awk 'NR==2')
+
+			# the id of the dylib should be '/opt/pacman/${_final_file_path}'
+			if [ "${_dylib_id}" != "${_final_file_path}" ]; then
+				(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
+
+				msg3 "Replacing install_id"
+				install_name_tool -id "${_final_file_path}" "${_file}" |& _filter_bullshit
+			fi
+		fi
+
+		local _used_libs
+		IFS=$'\n' read -r -d '' -a _used_libs < <(otool -arch "${CARCH}" -L "${_file}") || true
+
+		# yeet the first line (since it's the library itself)
+		_used_libs=("${_used_libs[@]:1}")
+
+		local _lib; for _lib in "${_used_libs[@]}"; do
+			_lib=$(echo "${_lib}" | awk '{$1=$1};1')
+
+			local _lib_name=$(basename $(echo "${_lib}" | awk '{print $1}'))
+			local _change_target=$(echo "${_lib}" | awk '{print $1}')
+
+			# canonicalise it as well, so we get sane comparisons
+			case "${_lib}" in
+				"@rpath"*) ;;
+				"/"*) _lib=$(_canonicalise_path $(dirname $(echo "${_lib}" | awk '{print $1}')))/"${_lib_name}" ;;
+			esac
+
+			# this is the meat of the fixer
+			case "${_lib}" in
+				# rpath -- fix this. the idea is to replace @rpath with a concrete path to the file.
+				# the output from `otool -L` is something like:
+				#     @rpath/../libKEKW.dylib          -> this is the "change target"
+				# and we want to turn that into:
+				#     /pm/usr/lib/libKEKW.dylib
+				#
+				# following these steps:
+				# 1. get all the LC_RPATH link commands in the current file
+				# 2. for each LC_RPATH:
+				#    a. check if "$pkgdir/$LC_RPATH/libKEKW.dylib" or "$LC_RPATH/libKEKW.dylib" exist
+				#    b. if so, replace "$_change_target" with "$LC_RPATH/libKEKW.dylib", and break.
+				# 3. if (2) did not find a replacement:
+				#    a. check whether "$(dirname ${_file})/libKEKW.dylib" exists; if so, use that as the replacement.
+				#    b. check whether "$_search_prefix/libKEKW.dylib" exists; if so, use that.
+				#       note: the $_search_prefix variable defaults to /pm/usr/lib if not set
+				"@rpath"*"${_lib_name}"* | "@executable_path"*"${_lib_name}"* | "@loader_path"*"${_lib_name}"*)
+					local _rpath_list
+					IFS=$'\n' read -r -d '' -a _rpath_list < <(_get_all_rpath_cmds "${_file}") || true
+
+					# replace all 3 possibilities
+					local _rpath_tail
+					_rpath_tail="${_change_target#'@rpath/'}"
+					_rpath_tail="${_rpath_tail#'@loader_path/'}"
+					_rpath_tail="${_rpath_tail#'@executable_path/'}"
+
+					# if we matched with @executable_path or @loader_path, then substitute add that to the list
+					# of paths to try (prepending)
+					case "${_lib}" in
+						"@executable_path"* | "@loader_path"*)
+							_rpath_list=("$(dirname $_final_file_path)" "${_rpath_list[@]}") ;;
+					esac
+
+
+					local _replacement=""
+					local _rp; for _rp in "${_rpath_list[@]}"; do
+						# if it's in the srcdir, then ignore it
+						case "${_rp}" in
+							"${_srcdir}"*) continue ;;
+							*) ;;
+						esac
+
+						if [ -e "${_rp}/${_rpath_tail}" ] || [ -e "${_pkgdir}/${_rp}/${_rpath_tail}" ]; then
+							# if it exists in the real root, or exists in the pkgdir that will be installed
+							_replacement="${_rp}/${_rpath_tail}"
+							break
+						fi
+					done
+
+					if [ -z "${_replacement}" ]; then
+						_replacement=$(_get_fallback_replacement_for_library \
+							"${_file}" "${_lib_name}" "${_rpath_tail}" "${_search_prefix}" "${_pacman_root}" "${_pkgdir}")
+					fi
+
+					# now clean up the replacement.
+					_replacement="${_replacement#"${_pkgdir}/"}"                        # remove $pkgdir/
+					local _dir=$(_canonicalise_path $(dirname "${_replacement}"))       # avoid canonicalising any symlinks in the filename
+					local _base=$(basename "${_replacement}")                           # keep the filename the same
+
+					local _final=$(echo "${_dir}/${_base}" | tr -s '/')
+
+					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
+					msg3 "Replacing '%s' -> '%s'" "${_change_target}" "${_final}"
+
+					install_name_tool -change "${_change_target}" "${_final}" "${_file}" |& _filter_bullshit
+					;;
+
+				# absolute path that contains pkgdir -- definitely fix
+				"${_pkgdir}"*)
+					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
+					# msg3 "orig: '${_lib}'"
+					msg3 "Removing reference to \$pkgdir in '\$pkgdir/%s'" "${_change_target#${_pkgdir}/}"
+
+					local _fixed="${_change_target#${_pkgdir}}"
+					# install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
+					;;
+
+				# same, but contains srcdir
+				"${_srcdir}"*)
+					# the resolution for this is actually quite similar to the case of it being an @rpath --
+					# just without the initial loop going through $LC_RPATHs.
+					local _replacement=$(_get_fallback_replacement_for_library \
+						"${_file}" "${_lib_name}" "" "${_search_prefix}" "${_pacman_root}" "${_pkgdir}")
+
+					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
+					msg3 "Removing reference to \$srcdir; replacing '\$srcdir/%s' -> '%s'" "${_change_target#${_srcdir}/}" "${_replacement}"
+
+					install_name_tool -change "${_change_target}" "${_replacement}" "${_file}" |& _filter_bullshit
+					;;
+
+
+				# absolute path that starts at root and is sane -- do nothing
+				"${_pacman_root}/usr/lib"* | "/System/Library/"* | "/Library/"* | "/usr/lib/"*)
+					;;
+
+				"${_pacman_root}/opt/"*)
+					# stuff living in opt is fine also.
+					;;
+
+				# other absolute path -- warn, but don't do anything
+				"/"*)
+					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
+					warning2 "Object '%s' contains reference to strange absolute path '%s'" \
+						"${_file}" "${_lib}"
+					;;
+
+				# relative path -- fix.
+				*)
+					# just prepend $pacman_root/usr/lib to it.
+					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
+					msg3 "Replacing relative path '%s'" "${_change_target}"
+
+					local _fixed="${_pacman_root}/usr/lib/${_change_target}"
+					install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
+					;;
+			esac
+		done
+	done
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# V1 -- DEPRECATED
+
+
 __warned_for_deprecation="0"
 fix_rpath() {
 	if [ ${__warned_for_deprecation} = "0" ]; then
@@ -263,7 +546,7 @@ fix_rpath() {
 	fi
 
 	# skip broken symlinks (cos sometimes those exist in $pkgdir for final installation)
-	if [ -h "${_file}" ] && [ ! -e $(readlink -f "${_file}") ]; then
+	if [ -L "${_file}" ] && [ ! -e $(readlink -f "${_file}") ]; then
 		return
 	fi
 
@@ -288,7 +571,7 @@ fix_rpath() {
 	# check whether we need to change the id of the shared library
 	if [ "${_file##*.}" = "dylib" ] || [[ "${_file_type}" = *"shared library"* ]] || [[ "${_file_type}" = *"Mach-O"*"bundle"* ]]; then
 		local _dylib_id
-		_dylib_id=$(otool -D "${_file}" | awk 'NR==2')
+		_dylib_id=$(otool -arch "${CARCH}" -D "${_file}" | awk 'NR==2')
 
 		# the id of the dylib should be '/opt/pacman/${_file_path}'
 		if [ "${_dylib_id}" != "${_file_path}" ]; then
@@ -298,7 +581,7 @@ fix_rpath() {
 	fi
 
 	local _used_libs
-	IFS=$'\n' read -r -d '' -a _used_libs < <(otool -L "${_file}") || true
+	IFS=$'\n' read -r -d '' -a _used_libs < <(otool -arch "${CARCH}" -L "${_file}") || true
 
 	# yeet the first line (since it's the library itself)
 	_used_libs=("${_used_libs[@]:1}")
@@ -416,255 +699,3 @@ fix_rpath() {
 
 
 
-
-
-_get_fallback_replacement_for_library() {
-	if [ $# -lt 5 ]; then
-		error 'usage: <_file> <_lib_name> <_rpath_tail> <_search_prefix> <_pacman_root> <_pkgdir>'
-		return 1
-	fi
-
-	local _file="$1"
-	local _lib_name="$2"
-	local _rpath_tail="$3"
-	local _search_prefix="$4"
-	local _pacman_root="$5"
-	local _pkgdir="$6"
-
-	# first, check whether the library exists *next to* the current file we are looking at
-	local _containing_path="$(_canonicalise_path "${_file}")/.."
-
-	if [ -e "${_containing_path}/${_rpath_tail}" ]; then
-		_replacement="${_containing_path}/${_rpath_tail}"
-	elif [ -e "${_containing_path}/${_lib_name}" ]; then
-		_replacement="${_containing_path}/${_lib_name}"
-	else
-		# otherwise, use the the default prefix (or /pm/usr/lib if not given)
-		local _check_prefix=${_search_prefix:-"${_pacman_root}/usr/lib"}
-		if [ ! -e "${_check_prefix}/${_lib_name}" ] && [ ! -e "${_pkgdir}/${_check_prefix}/${_lib_name}" ]; then
-			warning2 "File %s: could not resolve %s: assuming it lives in %s"   "${_file}" "${_lib_name}" "${_check_prefix}"
-		fi
-		_replacement="${_check_prefix}/${_lib_name}"
-	fi
-
-	echo "${_replacement}"
-}
-
-
-fix_rpath_v2() {
-	if [ $# -lt 1 ]; then
-		error 'usage: fix_rpath_v2 <filename> [opts]'
-		return 1
-	fi
-
-	# make the opts local to us, then die on unbound variables
-	local -
-	set -u
-
-	# makepkg uses QUIET but doesn't bind it ._.
-	local _must_unset_quiet=0
-	if [ -z "${QUIET+__kekw__}" ]; then
-		QUIET=0
-		_must_unset_quiet=1
-	fi
-
-	trap "(( _must_unset_quiet )) && unset QUIET;" RETURN
-
-	local _srcdir="${srcdir}"
-	local _pkgdir="${pkgdir}"
-
-	local _pacman_root="${pacman_root}"
-	local _search_prefix=""
-
-	local _input_files=()
-
-	while [ $# -gt 0 ]; do
-		local _arg="$1"
-		case "$1" in
-			--search-prefix)
-				[ $# -ge 1 ] || { error "Missing value for '--search-prefix' argument"; return 1; }
-				_search_prefix="$2"
-				shift ;;
-			--search-prefix=*)
-				_search_prefix="${_arg##--search-prefix=}" ;;
-			--pacman-root)
-				[ $# -ge 1 ] || { error "Missing value for '--pacman-root' argument"; return 1; }
-				_pacman_root="$2" ;;
-			--pacman-root=*)
-				_pacman_root="${_arg##--pacman-root=}" ;;
-			--pkgdir)
-				[ $# -ge 1 ] || { error "Missing value for '--pkgdir' argument"; return 1; }
-				_pkgdir="$2" ;;
-			--pkgdir=*)
-				_pkgdir="${_arg##--pkgdir=}" ;;
-			*)
-				_input_files+=("$_arg") ;;
-		esac
-		shift
-	done
-
-	local _file; for _file in "${_input_files[@]}"; do
-		local _have_fixes=0
-
-		if [ ! -e "${_file}" ]; then
-			error 'File %s does not exist' "${_file}"
-			return 1
-		fi
-
-		local _final_file_path
-		_final_file_path=$(readlink -f "${_file}")
-		_final_file_path="${_final_file_path#${_pkgdir}}"
-
-		# skip broken symlinks (cos sometimes those exist in $pkgdir for final installation)
-		if [ -h "${_file}" ] && [ ! -e $(readlink -f "${_file}") ]; then
-			return
-		fi
-
-		# ignore non-interesting files
-		local _file_type=$(file "${_file}")
-		case "${_file_type}" in
-			*"executable"* | *"shared library"* | *"bundle"*) ;;
-			*)
-				msg2 'Skipping non-library, non-executable file %s' "${_file}"
-				continue ;;
-		esac
-
-		# check whether we need to change the id of the shared library
-		if [ "${_file##*.}" = "dylib" ] || [[ "${_file_type}" = *"shared library"* ]] || [[ "${_file_type}" = *"Mach-O"*"bundle"* ]]; then
-			local _dylib_id=$(otool -D "${_file}" | awk 'NR==2')
-
-			# the id of the dylib should be '/opt/pacman/${_final_file_path}'
-			if [ "${_dylib_id}" != "${_final_file_path}" ]; then
-				(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
-
-				msg3 "Fixing install_id"
-				install_name_tool -id "${_final_file_path}" "${_file}" |& _filter_bullshit
-			fi
-		fi
-
-		local _used_libs
-		IFS=$'\n' read -r -d '' -a _used_libs < <(otool -L "${_file}") || true
-
-		# yeet the first line (since it's the library itself)
-		_used_libs=("${_used_libs[@]:1}")
-
-		local _lib; for _lib in "${_used_libs[@]}"; do
-			_lib=$(echo "${_lib}" | awk '{$1=$1};1')
-
-			local _lib_name=$(basename $(echo "${_lib}" | awk '{print $1}'))
-			local _change_target=$(echo "${_lib}" | awk '{print $1}')
-
-			# canonicalise it as well, so we get sane comparisons
-			case "${_lib}" in
-				"@rpath"*) ;;
-				"/"*) _lib=$(_canonicalise_path $(dirname $(echo "${_lib}" | awk '{print $1}')))/"${_lib_name}" ;;
-			esac
-
-			# this is the meat of the fixer
-			case "${_lib}" in
-				# rpath -- fix this. the idea is to replace @rpath with a concrete path to the file.
-				# the output from `otool -L` is something like:
-				#     @rpath/../libKEKW.dylib          -> this is the "change target"
-				# and we want to turn that into:
-				#     /pm/usr/lib/libKEKW.dylib
-				#
-				# following these steps:
-				# 1. get all the LC_RPATH link commands in the current file
-				# 2. for each LC_RPATH:
-				#    a. check if "$pkgdir/$LC_RPATH/libKEKW.dylib" or "$LC_RPATH/libKEKW.dylib" exist
-				#    b. if so, replace "$_change_target" with "$LC_RPATH/libKEKW.dylib", and break.
-				# 3. if (2) did not find a replacement:
-				#    a. check whether "$(dirname ${_file})/libKEKW.dylib" exists; if so, use that as the replacement.
-				#    b. check whether "$_search_prefix/libKEKW.dylib" exists; if so, use that.
-				#       note: the $_search_prefix variable defaults to /pm/usr/lib if not set
-				"@rpath"*"${_lib_name}"* | "@executable_path"*"${_lib_name}"* | "@loader_path"*"${_lib_name}"*)
-					local _rpath_list
-					IFS=$'\n' read -r -d '' -a _rpath_list < <(_get_all_rpath_cmds "${_file}") || true
-
-					# replace all 3 possibilities
-					local _rpath_tail
-					_rpath_tail="${_change_target#'@rpath/'}"
-					_rpath_tail="${_rpath_tail#'@loader_path/'}"
-					_rpath_tail="${_rpath_tail#'@executable_path/'}"
-
-					local _replacement=""
-					local _rp; for _rp in "${_rpath_list[@]}"; do
-						# if it's in the srcdir, then ignore it
-						case "${_rp}" in
-							"${_srcdir}"*) continue ;;
-							*) ;;
-						esac
-
-						# if it exists in the real root, or exists in the pkgdir that will be installed
-						if [ -e "${_rp}/${_rpath_tail}" ] || [ -e "${_pkgdir}/${_rp}/${_rpath_tail}" ]; then
-							# this one exists; use it.
-							_replacement="${_rp}/${_rpath_tail}"
-							break
-						fi
-					done
-
-					if [ -z "${_replacement}" ]; then
-						_replacement=$(_get_fallback_replacement_for_library \
-							"${_file}" "${_lib_name}" "${_rpath_tail}" "${_search_prefix}" "${_pacman_root}" "${_pkgdir}")
-					fi
-
-					# now clean up the replacement.
-					_replacement="${_replacement#"${_pkgdir}/"}"                        # remove $pkgdir/
-					local _dir=$(_canonicalise_path $(dirname "${_replacement}"))       # avoid canonicalising any symlinks in the filename
-					local _base=$(basename "${_replacement}")                           # keep the filename the same
-
-					local _final=$(echo "${_dir}/${_base}" | tr -s '/')
-
-					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
-					msg3 "Replacing '%s' -> '%s'" "${_change_target}" "${_final}"
-
-					install_name_tool -change "${_change_target}" "${_final}" "${_file}" |& _filter_bullshit
-					;;
-
-				# absolute path that contains pkgdir -- definitely fix
-				"${_pkgdir}"*)
-					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
-					msg3 "Removing reference to \$pkgdir in '\$pkgdir/%s'" "${_change_target#${_pkgdir}/}"
-
-					local _fixed="${_change_target#${_pkgdir}}"
-					install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
-					;;
-
-				# same, but contains srcdir
-				"${_srcdir}"*)
-					# the resolution for this is actually quite similar to the case of it being an @rpath --
-					# just without the initial loop going through $LC_RPATHs.
-					local _replacement=$(_get_fallback_replacement_for_library \
-						"${_file}" "${_lib_name}" "" "${_search_prefix}" "${_pacman_root}" "${_pkgdir}")
-
-					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
-					msg3 "Removing reference to \$srcdir; replacing '\$srcdir/%s' -> '%s'" "${_change_target#${_srcdir}/}" "${_replacement}"
-
-					install_name_tool -change "${_change_target}" "${_replacement}" "${_file}" |& _filter_bullshit
-					;;
-
-
-				# absolute path that starts at root and is sane -- do nothing
-				"${_pacman_root}/usr/lib"* | "/System/Library/"* | "/Library/"* | "/usr/lib/"*)
-					;;
-
-				# other absolute path -- warn, but don't do anything
-				"/"*)
-					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
-					warning2 "Object '%s' contains reference to strange absolute path '%s'" \
-						"${_file}" "${_lib}"
-					;;
-
-				# relative path -- fix.
-				*)
-					# just prepend $pacman_root/usr/lib to it.
-					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
-					msg3 "Replacing relative path '%s'" "${_change_target}"
-
-					local _fixed="${_pacman_root}/usr/lib/${_change_target}"
-					install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
-					;;
-			esac
-		done
-	done
-}

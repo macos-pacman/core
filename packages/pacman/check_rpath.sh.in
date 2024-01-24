@@ -21,14 +21,6 @@ strip_libname() {
 _RPATH_FILES=()
 _PROBLEM_FILES=()
 
-_read_pkginfo() {
-	if [ ! -e "${1}/.PKGINFO" ]; then
-		error "Did not find .PKGINFO for ${1}"
-	fi
-
-	cat "${1}/.PKGINFO"
-}
-
 _find_referenced_file() {
 	if [ -e "${1}" ] || [ -e "${pkgdir}/${1}" ]; then
 		return 0
@@ -48,51 +40,69 @@ _find_referenced_file() {
 }
 
 check_file() {
-	local libs arg="$1"
-	IFS=$'\n' read -r -d '' -a libs <<< "${arg}"
+	local lines
+	IFS=$'\n' read -r -d '' -a lines <<< "$1"
 
-	local file=${libs[0]%:*}
-	local libs=("${libs[@]:1}")
+	# this chops off the trailing ':'
+	local file=${lines[0]%:*}
 
-	local lib broken_libs rpath_libs
+	# even for fat files, the filename must be the same among all architectures
+	# so we can just use the first one as the name.
+	# check for that ' (architecture '
+	if (echo "${file}" | grep -P -q ' \(architecture '); then
+		# cursed contraption: basically remove the entire architecture part from the end.
+		file="${file/% (architecture *)/}"
+	fi
+
 	broken_libs=()
 	rpath_libs=()
 
-	for lib in "${libs[@]}"; do
-		local _tmp
-		_tmp=$(strip_libname "${lib}")
-		case "${_tmp}" in
+	# otool will only print the 'architecture' thing if there's more than one architecture in the file
+	# (i think...). so, if we see this, then there must be another architecture somewhere.
+	# use the other algorithm if so.
+	local _match=0
 
-			# note: we do this "does it exist" check only for things under our root dir, because
-			# of the whole dyld cache thing that means dylibs don't actually exist on-disk.
-			"/usr/lib/"* | "/System/Library/"* | "/Library/"*)
-				;;
+	local _i; for (( _i = 0; _i < ${#lines[@]}; _i++ )); do
+		# echo "line: "${lines[_i]}": match = $_match"
+		case "${lines[_i]}" in
+			$'\t'*)
+				if (( $_match )); then
+					# check it
+					local _libname=$(strip_libname "${lines[_i]}")
+					case "${_libname}" in
+						# note: we do this "does it exist" check only for things under our root dir, because
+						# of the whole dyld cache thing that means dylibs don't actually exist on-disk.
+						"/usr/lib/"* | "/System/Library/"* | "/Library/"*) ;;
 
-			"$(pacman-root-dir)/usr/lib/"*)
-				# if it doesn't exist, complain. note that we should check under ${pkgdir} since
-				# we (likely) will be looking at dylibs referencing stuff from the currently-being-packaged
-				# $pkgdir tree (and not under '/')
-				if ! _find_referenced_file "${_tmp}"; then
-					error "Library/executable '${file#"$pkgdir/"}' -- missing dylib ${_tmp}"
-					broken_libs+=("${lib}")
+						# if it doesn't exist, complain. note that we should check under ${pkgdir} since
+						# we (likely) will be looking at dylibs referencing stuff from the currently-being-packaged
+						# $pkgdir tree (and not under '/')
+						"$(pacman-root-dir)/"*)
+							if ! _find_referenced_file "${_libname}"; then
+								error "Library/executable '${file#"$pkgdir/"}' -- missing dylib ${_libname}"
+								broken_libs+=("${lines[_i]}")
+							fi ;;
+
+						"@rpath"*) rpath_libs+=("${lines[_i]}")  ;;
+						*)         broken_libs+=("${lines[_i]}") ;;
+					esac
 				fi ;;
-
-			"@rpath"*)
-				rpath_libs+=("${lib}")
-				;;
-
 			*)
-				broken_libs+=("${lib}")
-				;;
+				# see if the architecture is correct. note: ${CARCH} defined in makepkg.conf
+				local _arch=$(echo "${lines[_i]}" | grep -Po ' \(architecture \K(.+)(?=\))')
+				if [ -z ${_arch} ] || [ "${_arch}" = "${CARCH}" ]; then
+					_match=1
+				else
+					_match=0
+				fi ;;
 		esac
 	done
 
-	local warn_rpath
-	warn_rpath=""
+	local warn_rpath=0
 
 	if [ "${#rpath_libs[@]}" -gt 0 ]; then
 		if otool -l "${file}" | grep -q 'LC_RPATH'; then
-			warn_rpath="yes"
+			warn_rpath=1
 		else
 			broken_libs+=("${rpath_libs[@]}")
 		fi
@@ -100,9 +110,9 @@ check_file() {
 
 
 	if [ "${#broken_libs[@]}" -gt 0 ]; then
-		_PROBLEM_FILES+=(${file})
-	elif [ "${warn_rpath}" = "yes" ]; then
-		_RPATH_FILES+=(${file})
+		_PROBLEM_FILES+=("${file}")
+	elif (( $warn_rpath )); then
+		_RPATH_FILES+=("${file}")
 	fi
 }
 
@@ -121,6 +131,12 @@ warn_library_rpath() {
 				*"executable"* | *"shared library"* | *"bundle"*) ;;
 				*) continue ;;
 			esac
+			# if it's a symlink and points to a nonexistent file, ignore it.
+			if [ -L "${_file}" ] && [ ! -e $(readlink -f "${_file}") ]; then
+				echo "ignoring ${_file}"
+				continue
+			fi
+
 			tmp=$(otool -L "${file}")
 			case "$tmp" in
 				"Archive : "* | *"is not an object file"*) ;;
