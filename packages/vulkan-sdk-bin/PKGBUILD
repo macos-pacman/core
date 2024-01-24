@@ -1,0 +1,62 @@
+# Maintainer: zhiayang <zhiayang@nowhere>
+
+pkgname=vulkan-sdk-bin
+pkgver=1.3.275.0
+pkgrel=1
+pkgdesc="Vulkan Development SDK (binary release from LunarG)"
+arch=('x86_64' 'arm64')
+pkgrel+=".7"
+url="https://www.khronos.org/vulkan/"
+license=('APACHE')
+provides=("vulkan-hpp=${pkgver}")
+groups=(vulkan-devel)
+source=("https://sdk.lunarg.com/sdk/download/${pkgver}/mac/vulkansdk-macos-${pkgver}.dmg")
+sha256sums=('30304b8ae47f2a7cbacab470e70fe1346235f319784550551866c1879d775695')
+
+prepare() {
+  trap "[ -d '${srcdir}/dmg' ] && hdiutil detach -force '${srcdir}/dmg'" RETURN
+  [ -d "${srcdir}/dmg" ] && hdiutil detach -force "${srcdir}/dmg"
+
+  # copy the things out, because i think DMGs are a pain
+  hdiutil attach -mountpoint "$srcdir/dmg" "vulkansdk-macos-${pkgver}.dmg"
+
+  mkdir -p "${srcdir}/sdk"
+  cp -a "${srcdir}/dmg/InstallVulkan.app" "${srcdir}/sdk/"
+}
+
+package() {
+  local _install_path="$pkgdir/${pacman_root}/opt/VulkanSDK/${pkgver}"
+
+  cd "${srcdir}/sdk/InstallVulkan.app"
+  ./Contents/MacOS/InstallVulkan \
+    --root "${_install_path}" \
+    --accept-licenses \
+    --default-answer \
+    --confirm-command install \
+    copy_only=1 # do not install things to /usr/local
+
+  rm -f "${_install_path}/InstallationLog.txt"
+
+  sed -ie "/This script is now using/d" "${_install_path}/setup-env.sh"
+
+  # make a thing to source that guy
+  mkdir -p "${pkgdir}/${pacman_root}/etc/profile.d/"
+
+  # note: don't use the one with pkgdir in front...
+  echo "source ${pacman_root}/opt/VulkanSDK/${pkgver}/setup-env.sh" >> "${pkgdir}/${pacman_root}/etc/profile.d/vulkan-sdk.sh"
+
+  shopt -s nullglob
+  local _f; for _f in $(find "${_install_path}/macOS/bin" -type f); do
+    fix_rpath_v2 "${_f}"
+  done
+
+  for _f in $(find "${_install_path}/macOS/lib" -iname "*.dylib"); do
+    fix_rpath_v2 "${_f}"
+  done
+
+  for _f in $(find "${_install_path}/Applications/" -iname "*.app" -type d); do
+    fix_rpath_v2 "${_f}/Contents/MacOS/"/* "${_f}/Contents/Frameworks/"/*
+  done
+
+  fix_rpath_v2 "${_install_path}/macOS/Frameworks/vulkan.framework/Versions/A/vulkan"
+}
