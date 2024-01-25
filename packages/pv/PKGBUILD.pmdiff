@@ -1,0 +1,12 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -10 +10,2 @@
+-arch=(x86_64)
++pkgrel+=".1"
++arch=('x86_64' 'arm64')
+@@ -27 +28 @@
+-	./configure --prefix=/usr
++	./configure --prefix=${pacman_root}/usr
+@@ -34 +35 @@
+-	install -Dm0644 -t "$pkgdir/usr/share/licenses/$pkgname/" docs/COPYING
++	install -Dm0644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/" docs/COPYING
