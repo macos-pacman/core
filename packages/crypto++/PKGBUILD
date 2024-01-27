@@ -9,6 +9,7 @@
 pkgname=crypto++
 pkgver=8.7.0
 pkgrel=1
+pkgrel+=".1"
 pkgdesc='A free C++ class library of cryptographic schemes'
 arch=('x86_64' 'arm64')
 url=https://www.cryptopp.com/
@@ -45,7 +46,7 @@ package() {
   # because cryptest.exe is linked statically.
   rm -rf "${pkgdir}"/${pacman_root}/usr/{bin,share/cryptopp}
 
-  fix_rpath "${pkgdir}/${pacman_root}/usr/lib/libcryptopp.dylib"
+  fix_rpath_v2 "${pkgdir}/${pacman_root}/usr/lib/libcryptopp.dylib"
 }
 
 # vim: ts=2 sw=2 et:

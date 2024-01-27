@@ -7,9 +7,6 @@
   ],
   "clean_files": [],
   "ignore_files": [
-    ".SRCINFO",
-    ".SRCINFO",
-    ".SRCINFO",
     ".SRCINFO"
   ]
 }

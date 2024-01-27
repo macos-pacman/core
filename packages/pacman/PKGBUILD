@@ -5,7 +5,7 @@
 pkgname=pacman
 pkgver=6.0.2
 pkgrel=8
-pkgrel+=".18"
+pkgrel+=".28"
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64' 'arm64')
 url="https://www.archlinux.org/pacman/"
@@ -47,6 +47,7 @@ source=(https://sources.archlinux.org/other/pacman/$pkgname-$pkgver.tar.xz{,.sig
         'macos-bsd-cp.patch'
         'macos-no-chroot.patch'
         'pacman-support-oci.patch'
+        'pacman-support-oci-fix.patch'
         'makepkg-check-only-option.patch'
         'makepkg-msg3-etc.patch'
         'pacman.conf'
@@ -78,6 +79,7 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             'fbd50755b9fd9ae11874fd83c94f5f922655e6256b527e4ba61be0e2c6157967'  # macos-bsd-cp.patch
             '79e2b649ae4a62528ab55f032395e2b113eb0ac3895c5e3d6fc1fc8825b6acd3'  # macos-no-chroot.patch
             '7370ff221767ac9df2d56184f9f66151de92fd59ba2864e209311d7c54df282e'  # pacman-support-oci.patch
+            'f6db1199753fb09b9d6bbffee67865c65f171dfe61835b0b2ac06e933eac7402'  # pacman-support-oci-fix.patch
             '7b04556e9db4814efc8df6cfddc72479a56d4884e4cf30d8f25d70fae47ed14a'  # makepkg-check-only-option.patch
             'ba2ff8714768ddd5870a4e8c16f647f490a2bb7db03e7ca41650b504ffadf3bb'  # makepkg-msg3-etc.patch
             'b11689f2502a881ab908d64a8c30d442e6713b2a27a78ce3d7ed692390246ef8'  # pacman.conf
