@@ -1,23 +1,36 @@
 pkgname=wezterm-git
-pkgver=20231214.re3cd2e9
-pkgrel=2
+pkgver=20240203.200655.2ce302c8
+pkgrel=1
 pkgdesc="A GPU-accelerated cross-platform terminal emulator and multiplexer"
 arch=('x86_64' 'arm64')
 url="https://wezfurlong.org/wezterm/"
 license=('MIT')
 depends=('fontconfig' 'freetype2' 'harfbuzz' 'openssl' 'libssh2')
 makedepends=('rust' 'cargo' 'git' 'cargo-nextest')
+pkgrel+=".2"
 source=("wezterm::git+https://github.com/wez/wezterm.git"
         'https://patch-diff.githubusercontent.com/raw/wez/wezterm/pull/3579.diff' # upstream doesn't even want to comment on this PR
         'alt-click-mouse.patch'   # not even gonna bother to PR this. author seems like they don't care about this feature.
         'fix-search-close.patch'  # same, why the fuck am i even using this terminal emulator
         'search-from-current-viewport.patch'
+        'stop-resetting-the-selection-when-contents-change.patch'
 )
 sha512sums=('SKIP'
             '29ff217648db78ea4faf0708f76de5d38d7789eccd136a61c5d1c9213d626a642fd2058411d12da3d707f52da6c558dc71a0bf60827294e76570b08fbbd1fe05'
             'd3475c13598b76a79966c1a0b426f31befdd0029715ff1db39ac3a89f5dac00c00e237ac5f05e9b5d72c68a3aadc71c4cde1f34cdb374f5d0812c113667b8911'
             '2c612c24dce2e63942185cf8615d0d3bd9b85fffc9ae61ee7931a082d0f5da5141ab8cf7f1643c9c1537d783d561b6384b47526491686c5605d5c7986c6f6020'
-            'e5026f63005ad0aa1af65b2d777c9c6e0836f1274611a43cff0b229821974bc1de7f734beb27315be5b0443b6b5447bbd2a49fc96503b2e74248a65bf01b6f3d')
+            'e5026f63005ad0aa1af65b2d777c9c6e0836f1274611a43cff0b229821974bc1de7f734beb27315be5b0443b6b5447bbd2a49fc96503b2e74248a65bf01b6f3d'
+            'a4160761b10ba5655ba7a454d1b5bfaaca9fcbb8e10777a42547dcf715094f81871f901c690402a4ce4b24fa73277e424fcc3067558adab9217a5405e8f8f986')
+
+prepare() {
+  cd "$srcdir/wezterm"
+  cargo fetch --locked --target "${CARCH/arm64/aarch64}-apple-darwin"
+}
+
+pkgver() {
+  cd "$srcdir/wezterm" || exit 1
+  git -c "core.abbrev=8" show -s "--format=%cd-%h" "--date=format:%Y%m%d-%H%M%S" | tr - .
+}
 
 build() {
   cd wezterm
@@ -25,6 +38,7 @@ build() {
   git apply --3way -Np1 ../alt-click-mouse.patch
   git apply --3way -Np1 ../fix-search-close.patch
   git apply --3way -Np1 ../search-from-current-viewport.patch
+  git apply --3way -Np1 ../stop-resetting-the-selection-when-contents-change.patch
 
   cargo build --release --locked --target-dir target
 }

@@ -1,0 +1,47 @@
+diff --git a/wezterm-gui/src/termwindow/mod.rs b/wezterm-gui/src/termwindow/mod.rs
+index 2c0cd8bf7..9163508ff 100644
+--- a/wezterm-gui/src/termwindow/mod.rs
++++ b/wezterm-gui/src/termwindow/mod.rs
+@@ -450,6 +450,8 @@ pub struct TermWindow {
+     gl: Option<Rc<glium::backend::Context>>,
+     webgpu: Option<Rc<WebGpuState>>,
+     config_subscription: Option<config::ConfigSubscription>,
++
++    was_alt_screen_active_last_time_i_checked: Option<bool>,
+ }
+ 
+ impl TermWindow {
+@@ -772,6 +774,7 @@ impl TermWindow {
+             key_table_state: KeyTableState::default(),
+             modal: RefCell::new(None),
+             opengl_info: None,
++            was_alt_screen_active_last_time_i_checked: None,
+         };
+ 
+         let tw = Rc::new(RefCell::new(myself));
+diff --git a/wezterm-gui/src/termwindow/render/pane.rs b/wezterm-gui/src/termwindow/render/pane.rs
+index a2160fa7a..8510f6710 100644
+--- a/wezterm-gui/src/termwindow/render/pane.rs
++++ b/wezterm-gui/src/termwindow/render/pane.rs
+@@ -38,7 +38,20 @@ impl crate::TermWindow {
+             return self.paint_pane_box_model(pos);
+         }
+ 
+-        self.check_for_dirty_lines_and_invalidate_selection(&pos.pane);
++        let is_alt_screen = pos.pane.is_alt_screen_active();
++        match self.was_alt_screen_active_last_time_i_checked {
++            Some(issit) => {
++                if issit != is_alt_screen {
++                    self.check_for_dirty_lines_and_invalidate_selection(&pos.pane);
++                }
++            }
++            None => {
++                self.check_for_dirty_lines_and_invalidate_selection(&pos.pane);
++            }
++        }
++
++        self.was_alt_screen_active_last_time_i_checked = Some(is_alt_screen);
++
+         /*
+         let zone = {
+             let dims = pos.pane.get_dimensions();
