@@ -1,0 +1,24 @@
+diff --git a/termwiz/src/input.rs b/termwiz/src/input.rs
+index 6d52625e4..1645e0324 100644
+--- a/termwiz/src/input.rs
++++ b/termwiz/src/input.rs
+@@ -235,6 +235,7 @@ impl KeyCode {
+         matches!(
+             self,
+             Self::Hyper
++                | Self::CapsLock
+                 | Self::Super
+                 | Self::Meta
+                 | Self::Shift
+diff --git a/wezterm-input-types/src/lib.rs b/wezterm-input-types/src/lib.rs
+index b3298bad6..8de1ab52d 100644
+--- a/wezterm-input-types/src/lib.rs
++++ b/wezterm-input-types/src/lib.rs
+@@ -861,6 +861,7 @@ impl PhysKeyCode {
+     pub fn is_modifier(&self) -> bool {
+         match self {
+             Self::LeftShift
++            | Self::CapsLock
+             | Self::LeftControl
+             | Self::LeftWindows
+             | Self::LeftAlt
