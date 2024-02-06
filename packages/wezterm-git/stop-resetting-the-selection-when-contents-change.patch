@@ -1,46 +1,108 @@
+diff --git a/wezterm-gui/src/termwindow/keyevent.rs b/wezterm-gui/src/termwindow/keyevent.rs
+index 93fd60b92..b1c8a9e00 100644
+--- a/wezterm-gui/src/termwindow/keyevent.rs
++++ b/wezterm-gui/src/termwindow/keyevent.rs
+@@ -248,6 +248,7 @@ impl super::TermWindow {
+         is_down: bool,
+         key_event: Option<&KeyEvent>,
+     ) -> bool {
++        self.input_seqno = pane.get_current_seqno();
+         if is_down && !leader_active {
+             // Check to see if this key-press is the leader activating
+             if let Some(duration) = self.input_map.is_leader(&keycode, raw_modifiers) {
 diff --git a/wezterm-gui/src/termwindow/mod.rs b/wezterm-gui/src/termwindow/mod.rs
-index 2c0cd8bf7..9163508ff 100644
+index bd5d23adb..2e50fb7fb 100644
 --- a/wezterm-gui/src/termwindow/mod.rs
 +++ b/wezterm-gui/src/termwindow/mod.rs
-@@ -450,6 +450,8 @@ pub struct TermWindow {
+@@ -61,7 +61,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
+ use std::sync::{Arc, Mutex};
+ use std::time::{Duration, Instant};
+ use termwiz::hyperlink::Hyperlink;
+-use termwiz::surface::SequenceNo;
++use termwiz::surface::{SequenceNo, SEQ_ZERO};
+ use wezterm_dynamic::Value;
+ use wezterm_font::FontConfiguration;
+ use wezterm_term::color::ColorPalette;
+@@ -452,6 +452,11 @@ pub struct TermWindow {
      gl: Option<Rc<glium::backend::Context>>,
      webgpu: Option<Rc<WebGpuState>>,
      config_subscription: Option<config::ConfigSubscription>,
 +
++    input_seqno: SequenceNo,
++    input_seqno_since_last_paint: SequenceNo,
++    did_schedule_selection_recheck: bool,
 +    was_alt_screen_active_last_time_i_checked: Option<bool>,
  }
  
  impl TermWindow {
-@@ -772,6 +774,7 @@ impl TermWindow {
+@@ -774,6 +779,10 @@ impl TermWindow {
              key_table_state: KeyTableState::default(),
              modal: RefCell::new(None),
              opengl_info: None,
++            input_seqno: SEQ_ZERO,
++            input_seqno_since_last_paint: SEQ_ZERO,
++            did_schedule_selection_recheck: false,
 +            was_alt_screen_active_last_time_i_checked: None,
          };
  
          let tw = Rc::new(RefCell::new(myself));
+@@ -2716,6 +2725,11 @@ impl TermWindow {
+                 pane.erase_scrollback(*erase_mode);
+                 let window = self.window.as_ref().unwrap();
+                 window.invalidate();
++
++                use config::keyassignment::ScrollbackEraseMode::ScrollbackAndViewport;
++                if let ScrollbackAndViewport = erase_mode {
++                    self.clear_selection(pane);
++                }
+             }
+             Search(pattern) => {
+                 if let Some(pane) = self.get_active_pane_or_overlay() {
+diff --git a/wezterm-gui/src/termwindow/mouseevent.rs b/wezterm-gui/src/termwindow/mouseevent.rs
+index 65289d448..a0b51d1d9 100644
+--- a/wezterm-gui/src/termwindow/mouseevent.rs
++++ b/wezterm-gui/src/termwindow/mouseevent.rs
+@@ -1032,6 +1093,10 @@ impl super::TermWindow {
+         if allow_action
+             && !(self.config.swallow_mouse_click_on_pane_focus && is_click_to_focus_pane)
+         {
++            if mouse_event.kind != TMEK::Move {
++                self.input_seqno = pane.get_current_seqno();
++            }
++
+             pane.mouse_event(mouse_event).ok();
+         }
+ 
 diff --git a/wezterm-gui/src/termwindow/render/pane.rs b/wezterm-gui/src/termwindow/render/pane.rs
-index a2160fa7a..8510f6710 100644
+index a2160fa7a..f49fa640e 100644
 --- a/wezterm-gui/src/termwindow/render/pane.rs
 +++ b/wezterm-gui/src/termwindow/render/pane.rs
-@@ -38,7 +38,20 @@ impl crate::TermWindow {
+@@ -38,7 +38,28 @@ impl crate::TermWindow {
              return self.paint_pane_box_model(pos);
          }
  
 -        self.check_for_dirty_lines_and_invalidate_selection(&pos.pane);
 +        let is_alt_screen = pos.pane.is_alt_screen_active();
-+        match self.was_alt_screen_active_last_time_i_checked {
-+            Some(issit) => {
-+                if issit != is_alt_screen {
-+                    self.check_for_dirty_lines_and_invalidate_selection(&pos.pane);
-+                }
-+            }
-+            None => {
-+                self.check_for_dirty_lines_and_invalidate_selection(&pos.pane);
-+            }
++        let should_refresh_selection =
++            (if let Some(issit) = self.was_alt_screen_active_last_time_i_checked {
++                issit != is_alt_screen
++            } else {
++                true
++            }) || (if is_alt_screen && self.input_seqno > self.input_seqno_since_last_paint {
++                self.did_schedule_selection_recheck = true;
++                true
++            } else {
++                self.did_schedule_selection_recheck
++            });
++
++        if should_refresh_selection {
++            self.check_for_dirty_lines_and_invalidate_selection(&pos.pane);
 +        }
 +
 +        self.was_alt_screen_active_last_time_i_checked = Some(is_alt_screen);
++
++        self.did_schedule_selection_recheck = self.input_seqno > self.input_seqno_since_last_paint;
++        self.input_seqno_since_last_paint = self.input_seqno;
 +
          /*
          let zone = {

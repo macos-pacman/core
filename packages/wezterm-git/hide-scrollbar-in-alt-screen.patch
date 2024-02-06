@@ -1,0 +1,35 @@
+diff --git a/config/src/config.rs b/config/src/config.rs
+index 9efe7a791..625e04f7e 100644
+--- a/config/src/config.rs
++++ b/config/src/config.rs
+@@ -654,6 +654,11 @@ pub struct Config {
+     #[dynamic(default = "default_true")]
+     pub use_arrow_mouse_cursor_when_mouse_reporting: bool,
+ 
++    /// If true, hide the scrollbar (without resizing the window)
++    /// if the terminal is in "alternate screen" mode
++    #[dynamic(default)]
++    pub hide_scrollbar_in_alternate_screen: bool,
++
+     /// If non-zero, specifies the period (in seconds) at which various
+     /// statistics are logged.  Note that there is a minimum period of
+     /// 10 seconds.
+diff --git a/wezterm-gui/src/termwindow/render/pane.rs b/wezterm-gui/src/termwindow/render/pane.rs
+index f49fa640e..56867188d 100644
+--- a/wezterm-gui/src/termwindow/render/pane.rs
++++ b/wezterm-gui/src/termwindow/render/pane.rs
+@@ -262,7 +262,13 @@ impl crate::TermWindow {
+             );
+             let abs_thumb_top = thumb_y_offset + info.top;
+             let thumb_size = info.height;
+-            let color = palette.scrollbar_thumb.to_linear();
++            let color = if pos.pane.is_alt_screen_active()
++                && self.config.hide_scrollbar_in_alternate_screen
++            {
++                LinearRgba::default()
++            } else {
++                palette.scrollbar_thumb.to_linear()
++            };
+ 
+             // Adjust the scrollbar thumb position
+             let config = &self.config;
