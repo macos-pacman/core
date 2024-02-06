@@ -12,13 +12,16 @@ depends=(gcc-libs
          glibc)
 _archive="$pkgname-$pkgver"
 source=("$url/archive/v$pkgver/$_archive.tar.gz"
-        '719.patch::https://patch-diff.githubusercontent.com/raw/aristocratos/btop/pull/719.patch?full_index=1')
+        '719.patch::https://patch-diff.githubusercontent.com/raw/aristocratos/btop/pull/719.patch?full_index=1'
+        'macos-memory-fix.patch::https://github.com/aristocratos/btop/commit/4461a431ae7d4608db589b9a1560e43bc6d1e5a2.patch?full_index=1')
 sha256sums=('375e078ce2091969f0cd14030620bd1a94987451cf7a73859127a786006a32cf'
-            'c180f8994c38d023c35529f6f65d620106a3087f27c3d19169c7534439e29681')
+            'c180f8994c38d023c35529f6f65d620106a3087f27c3d19169c7534439e29681'
+            'a39a90e202e3d6c54b2dcf9150e3300e69b778f92e1929e9ad237def146e4c69')
 
 prepare() {
   cd "$_archive"
   patch -Np1 -i ../719.patch
+  patch -Np1 -i ../macos-memory-fix.patch
 }
 
 build() {

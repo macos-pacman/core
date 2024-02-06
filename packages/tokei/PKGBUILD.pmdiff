@@ -1,0 +1,15 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8 +8 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -29 +30 @@
+-  install -Dm755 target/release/tokei "${pkgdir}/usr/bin/tokei"
++  install -Dm755 target/release/tokei "${pkgdir}/${pacman_root}/usr/bin/tokei"
+@@ -31,2 +32,2 @@
+-  install -Dm644 LICENCE-MIT "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE-MIT"
+-  install -Dm644 LICENCE-APACHE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE-APACHE"
++  install -Dm644 LICENCE-MIT "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE-MIT"
++  install -Dm644 LICENCE-APACHE "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE-APACHE"
