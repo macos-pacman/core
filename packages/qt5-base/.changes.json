@@ -1,0 +1,14 @@
+{
+  "upstream_commit": "c8e1c3cefe05ca9139a2baffcaf97f6c9420c01b",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "qmake-cflags.patch",
+    "qmake-config.patch",
+    "work-around-pyside2-brokenness.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
