@@ -36,7 +36,7 @@ color brightred "\$([-@*#?$!0-9]|[[:alpha:]_][[:alnum:]_]*)"
 color brightred "\$\{[#!]?([-@*#?$!]|[0-9]+|[[:alpha:]_][[:alnum:]_]*)(\[([[:blank:]]*[[:alnum:]_]+[[:blank:]]*|@)\])?(([#%/]|:?[-=?+])[^}]*\}|\[|\})"
 
 # special variables
-color bold,mauve   "\$(srcdir|pkgdir|pacman_root|pkgver|pkgname|pkgbase)"
+color bold,mauve   "\$(srcdir|pkgdir|pacman_root|pkgver|pkgname|pkgbase)\>"
 color bold,mauve "\$\{[#!]?(srcdir|pkgdir|pacman_root|pkgver|pkgname|pkgbase)(\[([[:blank:]]*[[:alnum:]_]+[[:blank:]]*|@)\])?(([#%/]|:?[-=?+])[^}]*\}|\[|\})"
 
 # single-quoted strings appear after variables
