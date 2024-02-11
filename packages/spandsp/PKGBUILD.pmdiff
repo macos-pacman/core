@@ -1,0 +1,20 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".4"
+@@ -9 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -19,2 +20,2 @@
+-  ./configure --prefix=/usr --enable-doc
+-  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
++  ./configure --prefix=${pacman_root}/usr --enable-doc
++  # sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+@@ -25,0 +27,2 @@
++
++  export MKDIRPROG="mkdir -p"
+@@ -34,2 +37,2 @@
+-  install -dm755 "$pkgdir/usr/share/doc/$pkgbase"
+-  cp -r doc/api/html "$pkgdir/usr/share/doc/$pkgbase/"
++  install -dm755 "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase"
++  cp -r doc/api/html "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase/"
