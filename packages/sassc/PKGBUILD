@@ -1,0 +1,29 @@
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
+# Contributor: Jerome Leclanche <jerome@leclan.ch>
+# Contributor: Isaac Dupree <antispam@idupree.com>
+
+pkgname=sassc
+pkgver=3.6.2
+pkgrel=4
+pkgrel+=".2"
+pkgdesc='C implementation of Sass CSS preprocessor'
+arch=('x86_64' 'arm64')
+url='https://sass-lang.com'
+license=(MIT)
+depends=(libsass)
+_archive="$pkgname-$pkgver"
+source=("https://github.com/sass/$pkgname/archive/$pkgver/$_archive.tar.gz")
+sha256sums=('608dc9002b45a91d11ed59e352469ecc05e4f58fc1259fc9a9f5b8f0f8348a03')
+
+build() {
+	cd "$_archive"
+	autoreconf -i
+	./configure --prefix=${pacman_root}/usr
+	make
+}
+
+package() {
+	cd "$_archive"
+	make DESTDIR="$pkgdir/" install
+	install -Dm0644 -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/" LICENSE
+}
