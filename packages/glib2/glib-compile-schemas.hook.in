@@ -1,0 +1,12 @@
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = %%PACMAN_ROOT_REL%%/usr/share/glib-2.0/schemas/*.gschema.xml
+Target = %%PACMAN_ROOT_REL%%/usr/share/glib-2.0/schemas/*.gschema.override
+
+[Action]
+Description = Compiling GSettings XML schema files...
+When = PostTransaction
+Exec = %%PACMAN_ROOT%%/usr/bin/glib-compile-schemas %%PACMAN_ROOT%%/usr/share/glib-2.0/schemas

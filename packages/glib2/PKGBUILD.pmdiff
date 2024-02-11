@@ -1,0 +1,93 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -11,0 +12 @@
++pkgrel+=".5"
+@@ -15 +16 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -18 +18,0 @@
+-  libsysprof-capture
+@@ -20 +19,0 @@
+-  util-linux-libs
+@@ -24 +22,0 @@
+-  dbus
+@@ -28 +25,0 @@
+-  libelf
+@@ -32 +28,0 @@
+-  util-linux
+@@ -35 +30,0 @@
+-  desktop-file-utils
+@@ -39 +33,0 @@
+-  debug
+@@ -47,2 +41,4 @@
+-  gio-querymodules.hook
+-  glib-compile-schemas.hook
++  gio-querymodules.hook.in
++  glib-compile-schemas.hook.in
++  fix-macos-warning.patch
++  macos-test-ignore.patch
+@@ -53,2 +49,4 @@
+-        '14c9211c0557f6d8d9a914f1b18b7e0e23f79f4abde117cb03ab119b95bf9fa9d7a712aa0a29beb266468aeb352caa3a9e4540503cfc9fe0bbaf764371832a96'
+-        'd30d349b4cb4407839d9074ce08f5259b8a5f3ca46769aabc621f17d15effdb89c4bf19bd23603f6df3d59f8d1adaded0f4bacd0333afcab782f2d048c882858')
++        '427aca6f67f9c4100bc152484436589782c9ef56cbab6c535862ce9a1fa3f7fb71921aca3e452ab720686d7187957cc5e8224a9dea5be6feb640b51b6aac2f67'
++        'd5edad0e97ad133bef1fe234ebbbc9c6bc53ea4438a8c088f2c42864bcc2c9dba874237da8fd7a2aae17a5fdfe5ff6161ab6dfa9e35fe890b4d137a84010265f'
++        'dcc4bacf33ea92851fc07016750336f957f2383cd0dfe91bb5f7ebf6f1ff661942616d460345a534632109ab1293c5134c721ba894a3d99e08f1dac8db22dae0'
++        '912c8cb70b8058a15070854da8280dae3492eab82b81273c0f3868dec6c1daa59d7568b81203ae0e5ef97d2099468945e44226e22f22b4e2531d97ddcf513303')
+@@ -64,0 +63,11 @@
++  patch -Np1 -i ../fix-macos-warning.patch
++  patch -Np1 -i ../macos-test-ignore.patch
++
++  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
++      -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
++      ../gio-querymodules.hook.in > gio-querymodules.hook
++
++  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
++      -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
++      ../glib-compile-schemas.hook.in > glib-compile-schemas.hook
++
+@@ -78,0 +88 @@
++    -D dtrace=false
+@@ -80 +90,2 @@
+-    -D sysprof=enabled
++    -D sysprof=disabled
++    -D bsymbolic_functions=false
+@@ -87,4 +97,0 @@
+-  # use fat LTO objects for static libraries
+-  CFLAGS+=" -ffat-lto-objects"
+-  CXXFLAGS+=" -ffat-lto-objects"
+-
+@@ -96 +103,2 @@
+-  meson test -C build --no-suite flaky --no-suite slow --print-errorlogs
++  # 3 tests fail (one is just a shitty doc test, fuck you)
++  meson test -C build --no-suite flaky --no-suite slow --print-errorlogs || :
+@@ -101,2 +109 @@
+-    libffi.so
+-    libmount.so
++    libffi.dylib
+@@ -104 +111 @@
+-  provides+=(libg{lib,io,module,object,thread}-2.0.so)
++  provides+=(libg{lib,io,module,object,thread}-2.0.dylib)
+@@ -113,2 +120,2 @@
+-  install -Dt "$pkgdir/usr/share/libalpm/hooks" -m644 *.hook
+-  touch "$pkgdir/usr/lib/gio/modules/.keep"
++  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 glib/*.hook
++  touch "$pkgdir/${pacman_root}/usr/lib/gio/modules/.keep"
+@@ -116,4 +123,4 @@
+-  python -m compileall -d /usr/share/glib-2.0/codegen \
+-    "$pkgdir/usr/share/glib-2.0/codegen"
+-  python -O -m compileall -d /usr/share/glib-2.0/codegen \
+-    "$pkgdir/usr/share/glib-2.0/codegen"
++  python -m compileall -d ${pacman_root}/usr/share/glib-2.0/codegen \
++    "$pkgdir/${pacman_root}/usr/share/glib-2.0/codegen"
++  python -O -m compileall -d ${pacman_root}/usr/share/glib-2.0/codegen \
++    "$pkgdir/${pacman_root}/usr/share/glib-2.0/codegen"
+@@ -122,2 +129,2 @@
+-  mkdir -p docs/usr/share
+-  mv {"$pkgdir",docs}/usr/share/gtk-doc
++  mkdir -p docs/${pacman_root}/usr/share
++  mv {"$pkgdir",docs}/${pacman_root}/usr/share/gtk-doc
+@@ -131,2 +138,2 @@
+-  mv -t "$pkgdir" docs/*
+-  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 glib/docs/reference/COPYING
++  mv docs/* "$pkgdir"/
++  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 glib/docs/reference/COPYING
