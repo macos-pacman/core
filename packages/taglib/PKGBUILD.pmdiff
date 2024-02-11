@@ -1,0 +1,10 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".2"
+@@ -11 +12 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -33 +34 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
