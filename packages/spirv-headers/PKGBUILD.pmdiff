@@ -1,0 +1,10 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8,0 +9 @@
++pkgrel+=".1"
+@@ -20 +21 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
+@@ -26 +27 @@
+-  install -Dm644 SPIRV-Headers-vulkan-sdk-${pkgver}/LICENSE -t "${pkgdir}"/usr/share/licenses/${pkgname}/
++  install -Dm644 SPIRV-Headers-vulkan-sdk-${pkgver}/LICENSE -t "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/
