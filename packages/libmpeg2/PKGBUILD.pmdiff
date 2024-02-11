@@ -1,0 +1,28 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".5"
+@@ -9 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -13,5 +14,11 @@
+-makedepends=('libxv' 'sdl')
+-optdepends=('libxv: mpeg2dec command'
+-            'sdl: mpeg2dec command')
+-source=("https://libmpeg2.sourceforge.io/files/$pkgname-$pkgver.tar.gz")
+-sha256sums=('dee22e893cb5fc2b2b6ebd60b88478ab8556cb3b93f9a0d7ce8f3b61851871d4')
++makedepends=('sdl')
++optdepends=('sdl: mpeg2dec command')
++source=("https://libmpeg2.sourceforge.io/files/$pkgname-$pkgver.tar.gz"
++        'fix-arm-build.patch')
++sha256sums=('dee22e893cb5fc2b2b6ebd60b88478ab8556cb3b93f9a0d7ce8f3b61851871d4'
++            '4c28073128239772c282438e4422de6adf53af79a0f9e9097ac5ef29618a9ab6')
++
++prepare() {
++  cd $pkgname-$pkgver
++  patch -Np1 -i ../fix-arm-build.patch
++}
+@@ -21 +28,2 @@
+-  ./configure --prefix=/usr
++  export CFLAGS="${CFLAGS} -std=gnu89"
++  ./configure --prefix=${pacman_root}/usr

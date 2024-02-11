@@ -1,0 +1,36 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+# Contributor: Andreas Radke <andyrtr@archlinux.org>
+# Contributor: Sarah Hay <sarah@archlinux.org>
+
+pkgname=libmpeg2
+pkgver=0.5.1
+pkgrel=8
+pkgrel+=".5"
+pkgdesc='Library for decoding MPEG-1 and MPEG-2 video streams'
+arch=('x86_64' 'arm64')
+url='https://libmpeg2.sourceforge.io/'
+license=('GPL-2.0-or-later')
+depends=('glibc')
+makedepends=('sdl')
+optdepends=('sdl: mpeg2dec command')
+source=("https://libmpeg2.sourceforge.io/files/$pkgname-$pkgver.tar.gz"
+        'fix-arm-build.patch')
+sha256sums=('dee22e893cb5fc2b2b6ebd60b88478ab8556cb3b93f9a0d7ce8f3b61851871d4'
+            '4c28073128239772c282438e4422de6adf53af79a0f9e9097ac5ef29618a9ab6')
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../fix-arm-build.patch
+}
+
+build() {
+  cd $pkgname-$pkgver
+  export CFLAGS="${CFLAGS} -std=gnu89"
+  ./configure --prefix=${pacman_root}/usr
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+}
