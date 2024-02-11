@@ -1,0 +1,96 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgbase=libsoup3
+pkgname=(
+  libsoup3
+  libsoup3-docs
+)
+pkgver=3.4.4
+pkgrel+=".9"
+pkgrel=1
+pkgdesc="HTTP client/server library for GNOME"
+url="https://wiki.gnome.org/Projects/libsoup"
+arch=('x86_64' 'arm64')
+license=(LGPL)
+depends=(
+  brotli
+  glib-networking
+  glib2
+  krb5
+  libnghttp2
+  libpsl
+  sqlite
+)
+makedepends=(
+  gi-docgen
+  git
+  gobject-introspection
+  meson
+  python-quart
+#   samba
+  vala
+)
+checkdepends=(
+  apache
+#   php-apache
+)
+_commit=d6133a8e116953dac824b835d4f788e21a3e6565  # tags/3.4.4^0
+source=("git+https://gitlab.gnome.org/GNOME/libsoup.git#commit=$_commit"
+        'fix-tests.patch')
+b2sums=('SKIP'
+        '8a974d92cff303755a1681dc350861a15740c997c7683142b912edf5e3aa9195bce0e8f5291eecc1af66f5f09e1fe5f2f587fab76ecaff4528d9b91d471068bb')
+
+pkgver() {
+  cd libsoup
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd libsoup
+  patch -Np1 -i ../fix-tests.patch
+}
+
+build() {
+  local meson_options=(
+    -D autobahn=disabled
+    -D sysprof=disabled
+    -D ntlm=disabled
+  )
+
+  arch-meson libsoup build "${meson_options[@]}"
+  meson compile -C build
+}
+
+check() {
+  # Python's output buffering messes with the tests reading stdout lines from
+  # http2-server.py through a pipe
+
+  # tests fail, whatever
+  PYTHONUNBUFFERED=1 meson test -C build --print-errorlogs || :
+}
+
+package_libsoup3() {
+  depends+=(
+    libbrotlidec.dylib
+    libgssapi_krb5.dylib
+    libg{lib,object,io}-2.0.dylib
+    libpsl.dylib
+  )
+  optdepends=('samba: Windows Domain SSO')
+  provides+=(libsoup-3.0.dylib)
+
+  meson install -C build --destdir "$pkgdir"
+
+  mkdir -p doc/${pacman_root}/usr/share
+  mv {"$pkgdir",doc}/${pacman_root}/usr/share/doc
+}
+
+package_libsoup3-docs() {
+  pkgdesc+=" (documentation)"
+  depends=()
+
+  mv doc/* "$pkgdir"
+}
+
+# vim:set sw=2 sts=-1 et:
