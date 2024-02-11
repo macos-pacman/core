@@ -1,0 +1,20 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -13 +14 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -52,2 +53,2 @@
+-  depends+=(libg{lib,object,io}-2.0.so)
+-  provides+=(libjson-glib-1.0.so)
++  depends+=(libg{lib,object,io}-2.0.dylib)
++  provides+=(libjson-glib-1.0.dylib)
+@@ -57,2 +58,2 @@
+-  mkdir -p doc/usr/share
+-  mv {"$pkgdir",doc}/usr/share/doc
++  mkdir -p doc/${pacman_root}/usr/share
++  mv {"$pkgdir",doc}/${pacman_root}/usr/share/doc
+@@ -60 +61 @@
+-  rm -r "$pkgdir"/usr/{lib,share}/installed-tests
++  rm -r "$pkgdir"/${pacman_root}/usr/{lib,share}/installed-tests
