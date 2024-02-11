@@ -1,0 +1,18 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -2 +2 @@
+- 
++
+@@ -5,0 +6 @@
++pkgrel+=".2"
+@@ -8 +9 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -48,2 +49,2 @@
+-  depends=(libg{lib,object}-2.0.so)
+-  provides=(libgraphene-1.0.so)
++  depends=(libg{lib,object}-2.0.dylib)
++  provides=(libgraphene-1.0.dylib)
+@@ -52 +53 @@
+-  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 graphene/LICENSE.txt
++  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 graphene/LICENSE.txt
