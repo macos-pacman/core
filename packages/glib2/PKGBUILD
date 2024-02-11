@@ -29,11 +29,13 @@ source=(
   "git+https://gitlab.gnome.org/GNOME/gvdb.git"
   0001-glib-compile-schemas-Remove-noisy-deprecation-warning.patch
   macos-test-ignore.patch
+  fix-macos-warning.patch
 )
 b2sums=('SKIP'
         'SKIP'
         'bd7f881ae6054c363783bf45b1add5eef5e8347554e23b9fece526701469d07cdcb9871fa73dee473796a219e8aa513796a96da769949097ea207db038578d07'
-        '912c8cb70b8058a15070854da8280dae3492eab82b81273c0f3868dec6c1daa59d7568b81203ae0e5ef97d2099468945e44226e22f22b4e2531d97ddcf513303')
+        '912c8cb70b8058a15070854da8280dae3492eab82b81273c0f3868dec6c1daa59d7568b81203ae0e5ef97d2099468945e44226e22f22b4e2531d97ddcf513303'
+        'dcc4bacf33ea92851fc07016750336f957f2383cd0dfe91bb5f7ebf6f1ff661942616d460345a534632109ab1293c5134c721ba894a3d99e08f1dac8db22dae0')
 
 
 pkgver() {
@@ -48,6 +50,7 @@ prepare() {
   git apply -3 ../0001-glib-compile-schemas-Remove-noisy-deprecation-warning.patch
 
   patch -Np1 -i ../macos-test-ignore.patch
+  patch -Np1 -i ../fix-macos-warning.patch
 
   git submodule init
   git submodule set-url subprojects/gvdb "$srcdir/gvdb"

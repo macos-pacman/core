@@ -1,0 +1,15 @@
+diff --git a/glib/gmain.c b/glib/gmain.c
+index ec4d24cde..31fe0cdda 100644
+--- a/glib/gmain.c
++++ b/glib/gmain.c
+@@ -4585,7 +4585,9 @@ g_main_context_poll (GMainContext *context,
+       errsv = errno;
+       if (ret < 0 && errsv != EINTR)
+ 	{
+-#ifndef G_OS_WIN32
++	  /* https://gitlab.gnome.org/GNOME/glib/-/issues/2644 */
++	  /* just stop this shit on macos */
++#if !defined(G_OS_WIN32) && !defined(__APPLE__)
+ 	  g_warning ("poll(2) failed due to: %s.",
+ 		     g_strerror (errsv));
+ #else
