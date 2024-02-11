@@ -1,0 +1,7 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -2 +1,0 @@
+-# Maintainer: Fabian Bornschein <fabiscafe@archlinux.org>
+@@ -10,1 +9,1 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
