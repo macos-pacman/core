@@ -24,7 +24,7 @@ _commit=40c448faf7cf32647d457a8bcda171c3d21bef22  # tags/2.78.0^0
 source=("git+https://gitlab.gnome.org/GNOME/glib-networking.git#commit=$_commit"
         'fix-tests.patch')
 b2sums=('SKIP'
-        'SKIP')
+        'c0806946bfb6f1d406a1a110ebe3538ae591159d815fdced77697872676b422294d18bdf3e302ffb579a593d9a95b471c9b8e37aecd4d188d7756a4df09af4c0')
 
 pkgver() {
   cd glib-networking
