@@ -1,0 +1,15 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -10 +11 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -19 +19,0 @@
+-  valgrind
+@@ -21 +21 @@
+-provides=(liborc{,-test}-${pkgver%.*}.so)
++provides=(liborc{,-test}-${pkgver%.*}.dylib)
+@@ -46 +46 @@
+-  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 orc/COPYING
++  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 orc/COPYING
