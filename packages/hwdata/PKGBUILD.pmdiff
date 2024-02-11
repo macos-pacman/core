@@ -1,0 +1,12 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".2"
+@@ -17 +18,6 @@
+-  ./configure --prefix=/usr --disable-blacklist
++
++  # clown can't write a configure script
++  ./configure \
++    --prefix=${pacman_root}/usr \
++    --datarootdir=${pacman_root}/usr/share \
++    --disable-blacklist
