@@ -1,0 +1,32 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -15,0 +16 @@
++pkgrel+=".1"
+@@ -17 +18 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -26 +27 @@
+-            '8930d3829bae4e0cd911bf63728d4d49d736d261af1e2cef912b769e6fa8373f')
++            '785a72531afe9dc17c88eb24a86c7137e15560f1dc4389aa811c5b0f4979029f')
+@@ -37 +37,0 @@
+-  CXXFLAGS+=" -ffat-lto-objects"
+@@ -41,2 +41,2 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
+-    -DCMAKE_BUILD_TYPE=None \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
++    -DCMAKE_BUILD_TYPE=Release \
+@@ -49,2 +49,2 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
+-    -DCMAKE_BUILD_TYPE=None \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
++    -DCMAKE_BUILD_TYPE=Release \
+@@ -66 +66 @@
+-  install -Dm644 LICENSE.txt "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE
++  install -Dm644 LICENSE.txt "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE
+@@ -68,3 +68,3 @@
+-  cd "${pkgdir}"/usr/lib
+-  for lib in *.so; do
+-    ln -sf "${lib}" "${lib}.0"
++  cd "${pkgdir}"/${pacman_root}/usr/lib
++  for lib in *.dylib; do
++    ln -sf "${lib}" "${lib%.dylib}.0.dylib"

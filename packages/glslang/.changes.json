@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "b3f1b0df0b3d278f018e6ce5e4d9b4aeded3f578",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "glslang-11.13.0-cmake_include_dirs.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
