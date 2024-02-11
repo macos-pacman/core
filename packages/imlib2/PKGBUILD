@@ -1,0 +1,51 @@
+# Maintainer: Ronald van Haren <ronald.archlinux.org>
+# Contributor: Arjan Timmerman <arjan.archlinux.org>
+# Contributor: Tom Newsom <Jeepster.gmx.co.uk>
+
+pkgname=imlib2
+pkgver=1.12.2
+pkgrel=1
+pkgrel+=".2"
+pkgdesc='Library that does image file loading and saving as well as rendering, manipulation, arbitrary polygon support'
+url='https://sourceforge.net/projects/enlightenment/'
+arch=('x86_64' 'arm64')
+license=('BSD')
+makedepends=(# Currently highway does provide a static library only, that libjxl links to.
+             # This introduces a build dependency for now...
+             'highway'
+             'libheif' 'libid3tag' 'libjxl' 'librsvg' 'libspectre' 'libwebp' 'openjpeg2')
+depends=('bzip2' 'freetype2' 'giflib' 'libjpeg-turbo' 'libpng' 'libtiff' 'libxext' 'xz')
+optdepends=('libheif: HEIF loader (for AVIF)'
+            'libid3tag: ID3 loader'
+            'libjxl: JXL loader'
+            'librsvg: SVG loader'
+            'libspectre: PS loader'
+            'libwebp: WEBP loader'
+            'openjpeg2: J2K loader')
+source=("https://downloads.sourceforge.net/project/enlightenment/imlib2-src/${pkgver}/${pkgname}-${pkgver}.tar.xz")
+sha256sums=('cc49931a20560968a8648c9ca079085976085ea96d59a01b1e17cb55af0ffe42')
+sha512sums=('3bffb8f0f6b3ec73a81f1d0c6ef3a3443425677cd8a1950422f102b67769c06df54128b21f84bd6c7880120cc5ec6f30d2ab134b3c001ad77f2d39efd749a5b7')
+
+build() {
+  cd "${pkgname}-${pkgver}"
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --sysconfdir=${pacman_root}/etc/imlib2
+  make
+}
+
+
+check() {
+  cd "${pkgname}-${pkgver}"
+  make check
+}
+
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+
+  # Install License
+  install -Dm644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/COPYING"
+}

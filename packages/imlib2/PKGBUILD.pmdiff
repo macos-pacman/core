@@ -1,0 +1,17 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".2"
+@@ -10 +11 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -32,4 +33,2 @@
+-    --prefix=/usr \
+-    --sysconfdir=/etc/imlib2 \
+-    --x-libraries=/usr/lib \
+-    --enable-amd64
++    --prefix=${pacman_root}/usr \
++    --sysconfdir=${pacman_root}/etc/imlib2
+@@ -51 +50 @@
+-  install -Dm644 COPYING "${pkgdir}/usr/share/licenses/${pkgname}/COPYING"
++  install -Dm644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/COPYING"
