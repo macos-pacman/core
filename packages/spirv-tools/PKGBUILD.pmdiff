@@ -1,0 +1,26 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -1 +0,0 @@
+-# Maintainer: Daurnimator <daurnimator@archlinux.org>
+@@ -8,0 +8 @@
++pkgrel+=".1"
+@@ -10 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -15 +15 @@
+-makedepends=('cmake' 'python' 'ninja' 'spirv-headers')
++makedepends=('cmake' 'python' 'git' 'ninja' 'spirv-headers')
+@@ -18,0 +19 @@
++
+@@ -25 +26 @@
+-      -DCMAKE_INSTALL_PREFIX=/usr \
++      -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+@@ -27 +28 @@
+-      -DCMAKE_BUILD_TYPE=None \
++      -DCMAKE_BUILD_TYPE=Release \
+@@ -31 +32 @@
+-      -DSPIRV-Headers_SOURCE_DIR=/usr
++      -DSPIRV-Headers_SOURCE_DIR=${pacman_root}/usr
+@@ -45 +46 @@
+-  install -Dm644 LICENSE "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE
++  install -Dm644 LICENSE "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE
