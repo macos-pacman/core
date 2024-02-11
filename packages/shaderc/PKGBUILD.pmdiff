@@ -1,0 +1,24 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".2"
+@@ -10 +11 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -14 +15 @@
+-provides=('libshaderc_shared.so')
++provides=('libshaderc_shared.dylib')
+@@ -38,2 +39,2 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
+-    -DCMAKE_CXX_FLAGS="$CXXFLAGS -ffat-lto-objects" \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
++    -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+@@ -41 +42 @@
+-    -Dglslang_SOURCE_DIR=/usr/include/glslang
++    -Dglslang_SOURCE_DIR=${pacman_root}/usr/include/glslang
+@@ -56 +57 @@
+-  install -Dm 644 glslc/glslc.1 -t "${pkgdir}/usr/share/man/man1"
++  install -Dm 644 glslc/glslc.1 -t "${pkgdir}/${pacman_root}/usr/share/man/man1"
+@@ -59 +60 @@
+-  rm "${pkgdir}/usr/lib/pkgconfig/shaderc_static.pc"
++  rm "${pkgdir}/${pacman_root}/usr/lib/pkgconfig/shaderc_static.pc"
