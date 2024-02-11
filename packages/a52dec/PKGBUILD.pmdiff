@@ -1,0 +1,14 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".3"
+@@ -11 +12 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -20 +21,2 @@
+-  ./configure --prefix=/usr --enable-shared
++  export CFLAGS="${CFLAGS} -std=gnu89"
++  ./configure --prefix=${pacman_root}/usr --enable-shared
+@@ -27 +29 @@
+-  install -m644 liba52/a52_internal.h "$pkgdir"/usr/include/a52dec/
++  install -m644 liba52/a52_internal.h "$pkgdir"/${pacman_root}/usr/include/a52dec/
