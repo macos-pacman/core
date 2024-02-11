@@ -1,0 +1,7 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -31 +32 @@
+-  install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
++  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
