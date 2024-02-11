@@ -1,0 +1,7 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
+@@ -17 +18 @@
+-  ./configure --prefix=/usr
++  ./configure --prefix=${pacman_root}/usr
