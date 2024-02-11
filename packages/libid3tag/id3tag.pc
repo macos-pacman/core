@@ -1,0 +1,10 @@
+prefix=%%PACMAN_ROOT%%/usr
+exec_prefix=%%PACMAN_ROOT%%/usr/bin
+libdir=%%PACMAN_ROOT%%/usr/lib
+includedir=%%PACMAN_ROOT%%/usr/include
+
+Name: ID3TAG
+Description: libid3tag - ID3 tag manipulation library
+Version: VERSION
+Libs: -L${libdir} -lid3tag -lz
+Cflags:

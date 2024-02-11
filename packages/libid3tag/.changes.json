@@ -1,0 +1,16 @@
+{
+  "upstream_commit": "1397bab0c2379ba7b7e7a3a01ee12cb70e50b424",
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "id3tag.pc.pmdiff"
+  ],
+  "clean_files": [
+    "10_utf16.diff",
+    "11_unknown_encoding.diff",
+    "CVE-2008-2109.patch",
+    "libid3tag-gperf.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

@@ -1,0 +1,32 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".3"
+@@ -9 +10 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -14 +15 @@
+-provides=(libid3tag.so)
++provides=(libid3tag.dylib)
+@@ -24 +25 @@
+-            'f58367ad74a6ec310f757935b57d59beebbd817ee12de9e532e4af31e166d2f1f614eb3f44caa8601dc5102bfde9ddbea4b8b80bbaa1791dcfcb23e1bd2ed1a6'
++            'd447c377257724dccd7ee103f27ec978aaa97fe7dd94453157bf21dd6d4a034e5f200dbe29067344a931e0709fb46691984e6eb9cc8647d72f399e148463c3fb'
+@@ -30 +31 @@
+-        '2aa8d9624ea218ec4644b5ab32ab3b7a53c03c655ed6ff7441ff9db0e436271e51bbc4e2d864f7f21250e595e5784554c12227015952faeebc5eceea52aa52be'
++        'a5094d5071f3d5f0a18a2e5f73b40c273cf0f6523fc18455b04840bc94bd8bb0e2eb79d5d8ea8ee0b491d441704cf154c9e43270f495e69c79adb1dd7cfc13bf'
+@@ -41 +42,3 @@
+-  patch -Np1 -i ../libid3tag-gperf.patch # Fedora patch
++
++  # fucks shit up
++  # patch -Np1 -i ../libid3tag-gperf.patch # Fedora patch
+@@ -51 +54 @@
+-  ./configure --prefix=/usr
++  ./configure --prefix=${pacman_root}/usr
+@@ -54 +57 @@
+-  sed -e "s/VERSION/$pkgver/" ../id3tag.pc > id3tag.pc
++  sed -e "s/VERSION/$pkgver/" -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../id3tag.pc > id3tag.pc
+@@ -60,2 +63,2 @@
+-  install -vDm 644 id3tag.pc -t "$pkgdir/usr/lib/pkgconfig/"
+-  install -vDm 644 {CHANGES,CREDITS,README} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 id3tag.pc -t "$pkgdir/${pacman_root}/usr/lib/pkgconfig/"
++  install -vDm 644 {CHANGES,CREDITS,README} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"

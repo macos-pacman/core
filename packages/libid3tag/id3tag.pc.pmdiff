@@ -1,0 +1,11 @@
+--- id3tag.pc
++++ id3tag.pc
+@@ -1,4 +1,4 @@
+-prefix=/usr
+-exec_prefix=/usr/bin
+-libdir=/usr/lib
+-includedir=/usr/include
++prefix=%%PACMAN_ROOT%%/usr
++exec_prefix=%%PACMAN_ROOT%%/usr/bin
++libdir=%%PACMAN_ROOT%%/usr/lib
++includedir=%%PACMAN_ROOT%%/usr/include
