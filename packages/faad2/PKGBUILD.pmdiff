@@ -1,0 +1,20 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -7 +8 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -14,2 +15,2 @@
+-  libfaad_drm.so
+-  libfaad.so
++  libfaad_drm.dylib
++  libfaad.dylib
+@@ -26,2 +27,2 @@
+-    -D CMAKE_BUILD_TYPE=None
+-    -D CMAKE_INSTALL_PREFIX=/usr
++    -D CMAKE_BUILD_TYPE=Release
++    -D CMAKE_INSTALL_PREFIX=${pacman_root}/usr
+@@ -42 +43 @@
+-  install -vDm 644 $pkgname-$pkgver/{AUTHORS,ChangeLog,README} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 $pkgname-$pkgver/{AUTHORS,ChangeLog,README} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"

@@ -1,0 +1,44 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgname=faad2
+pkgver=2.11.1
+pkgrel=1
+pkgrel+=".1"
+pkgdesc="Freeware Advanced Audio (AAC) Decoder"
+arch=('x86_64' 'arm64')
+url="https://github.com/knik0/faad2"
+license=(GPL-2.0-or-later)
+depends=(glibc)
+makedepends=(cmake)
+provides=(
+  faad
+  libfaad_drm.dylib
+  libfaad.dylib
+)
+source=(
+  $pkgname-$pkgver.tar.gz::$url/archive/$pkgver.tar.gz
+)
+sha512sums=('b8f17680610b2f47344ea52b54412a02810a85eaf9d4c91b97ca09b2c6415c62d4af1b0771bfcacb9dfee400ed34504c0bd3c28369921c0392b3809e7de46ec5')
+b2sums=('f1e58a5618bdd93ee919f2d77dd461972cf4bc930c4a1738a8b4ec949fd2572ce0662a08ea01a4caca0da5fe007ec119d00184cd76e6f9f98c3141d24a589504')
+
+build() {
+  local cmake_options=(
+    -B build
+    -D CMAKE_BUILD_TYPE=Release
+    -D CMAKE_INSTALL_PREFIX=${pacman_root}/usr
+    -S $pkgname-$pkgver
+    -W no-dev
+  )
+
+  cmake "${cmake_options[@]}"
+  cmake --build build --verbose
+}
+
+check() {
+  ctest --test-dir build --output-on-failure
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+  install -vDm 644 $pkgname-$pkgver/{AUTHORS,ChangeLog,README} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+}
