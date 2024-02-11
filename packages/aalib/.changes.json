@@ -1,0 +1,13 @@
+{
+  "upstream_commit": "7d1a916b64a9297952e493ce92ee1086ff610148",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "aalib.m4.patch",
+    "aclocal-fixes.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
