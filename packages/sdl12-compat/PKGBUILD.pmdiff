@@ -1,0 +1,15 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -10 +11 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -21 +22,3 @@
+-  cmake -DCMAKE_INSTALL_PREFIX=/usr ../sdl12-compat-release-${pkgver}
++  cmake -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
++    -DSDL12DEVEL=ON \
++    ../sdl12-compat-release-${pkgver}
+@@ -28 +31 @@
+-  install -Dm644 "${srcdir}/sdl12-compat-release-${pkgver}/LICENSE.txt" "${pkgdir}/usr/share/licenses/$pkgname/LICENSE"
++  install -Dm644 "${srcdir}/sdl12-compat-release-${pkgver}/LICENSE.txt" "${pkgdir}/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
