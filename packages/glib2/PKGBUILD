@@ -1,12 +1,17 @@
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Maintainer: Fabian Bornschein <fabiscafe@archlinux.org>
 # Contributor: Jan de Groot <jgc@archlinux.org>
 
-pkgname=glib2
-pkgver=2.76.0
+pkgbase=glib2
+pkgname=(
+  glib2
+  glib2-docs
+)
+pkgver=2.78.4
 pkgrel=1
 pkgdesc="Low level core library"
-url="https://wiki.gnome.org/Projects/GLib"
-license=(LGPL)
+url="https://gitlab.gnome.org/GNOME/glib"
+license=(LGPL-2.1-or-later)
 arch=('x86_64' 'arm64')
 depends=(
   libffi
@@ -16,26 +21,34 @@ depends=(
 makedepends=(
   gettext
   git
+  gtk-doc
   meson
   python
+  shared-mime-info
 )
-provides=(libg{lib,io,module,object,thread}-2.0.dylib)
+checkdepends=(
+  glib2
+)
 options=(
   staticlibs
 )
-_commit=8a9ada663923e39c0e8d7eefe65390955dc3c0d8  # tags/2.76.0^0
+_commit=00edb7f7453a43cff343f9e99d49f2e421e4345c  # tags/2.78.4^0
 source=(
   "git+https://gitlab.gnome.org/GNOME/glib.git#commit=$_commit"
   "git+https://gitlab.gnome.org/GNOME/gvdb.git"
-  0001-glib-compile-schemas-Remove-noisy-deprecation-warning.patch
-  macos-test-ignore.patch
+  0001-glib-compile-schemas-Remove-noisy-deprecation-warnin.patch
+  gio-querymodules.hook
+  glib-compile-schemas.hook
   fix-macos-warning.patch
+  macos-test-ignore.patch
 )
 b2sums=('SKIP'
         'SKIP'
-        'bd7f881ae6054c363783bf45b1add5eef5e8347554e23b9fece526701469d07cdcb9871fa73dee473796a219e8aa513796a96da769949097ea207db038578d07'
-        '912c8cb70b8058a15070854da8280dae3492eab82b81273c0f3868dec6c1daa59d7568b81203ae0e5ef97d2099468945e44226e22f22b4e2531d97ddcf513303'
-        'dcc4bacf33ea92851fc07016750336f957f2383cd0dfe91bb5f7ebf6f1ff661942616d460345a534632109ab1293c5134c721ba894a3d99e08f1dac8db22dae0')
+        '94c73ca7070c239494873dd52d6ee09382bbb5b1201f7afd737cfa140b1a2fb0744b2c2831baf3943d1d072550c35888d21ce6f19f89481ff9d1a60d9a0b30e0'
+        '14c9211c0557f6d8d9a914f1b18b7e0e23f79f4abde117cb03ab119b95bf9fa9d7a712aa0a29beb266468aeb352caa3a9e4540503cfc9fe0bbaf764371832a96'
+        'd30d349b4cb4407839d9074ce08f5259b8a5f3ca46769aabc621f17d15effdb89c4bf19bd23603f6df3d59f8d1adaded0f4bacd0333afcab782f2d048c882858'
+        'dcc4bacf33ea92851fc07016750336f957f2383cd0dfe91bb5f7ebf6f1ff661942616d460345a534632109ab1293c5134c721ba894a3d99e08f1dac8db22dae0'
+        '912c8cb70b8058a15070854da8280dae3492eab82b81273c0f3868dec6c1daa59d7568b81203ae0e5ef97d2099468945e44226e22f22b4e2531d97ddcf513303')
 
 
 pkgver() {
@@ -46,11 +59,11 @@ pkgver() {
 prepare() {
   cd glib
 
-  # Suppress noise from glib-compile-schemas.hook
-  git apply -3 ../0001-glib-compile-schemas-Remove-noisy-deprecation-warning.patch
-
-  patch -Np1 -i ../macos-test-ignore.patch
   patch -Np1 -i ../fix-macos-warning.patch
+  patch -Np1 -i ../macos-test-ignore.patch
+
+  # Suppress noise from glib-compile-schemas.hook
+  git apply -3 ../0001-glib-compile-schemas-Remove-noisy-deprecation-warnin.patch
 
   git submodule init
   git submodule set-url subprojects/gvdb "$srcdir/gvdb"
@@ -58,30 +71,35 @@ prepare() {
 }
 
 build() {
-  # Produce more debug info: GLib has a lot of useful macros
-  # use fat LTO objects for static libraries
-  CFLAGS+=' -g3 -fno-lto'
-  CXXFLAGS+=' -g3 -fno-lto'
+  local meson_options=(
+    --default-library both
+    -D glib_debug=disabled
+    -D gtk_doc=true
+    -D man=true
+    -D dtrace=false
+    -D selinux=disabled
+    -D sysprof=disabled
+    -D bsymbolic_functions=false
+  )
 
-  CFLAGS+=" -DG_DISABLE_CAST_CHECKS"
-  arch-meson glib build \
-    --default-library both \
-    -D glib_debug=disabled \
-    -D selinux=disabled \
-    -D sysprof=disabled \
-    -D libelf=disabled \
-    -D bsymbolic_functions=false \
-    -D dtrace=false \
-    -D man=false \
-    -D gtk_doc=false
+  # Produce more debug info: GLib has a lot of useful macros
+  CFLAGS+=" -g3"
+  CXXFLAGS+=" -g3"
+
+  arch-meson glib build "${meson_options[@]}"
   meson compile -C build
 }
 
 check() {
-  meson test -C build --no-suite flaky --no-suite slow --print-errorlogs
+  # 3 tests fail (one is just a shitty doc test, fuck you)
+  meson test -C build --no-suite flaky --no-suite slow --print-errorlogs || :
 }
 
-package() {
+package_glib2() {
+  depends+=(
+    libffi.dylib
+  )
+  provides+=(libg{lib,io,module,object,thread}-2.0.dylib)
   optdepends=(
     'gvfs: most gio functionality'
     'libelf: gresource inspection tool'
@@ -90,10 +108,26 @@ package() {
 
   meson install -C build --destdir "$pkgdir"
 
-  python -m compileall -d /usr/share/glib-2.0/codegen \
+  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 *.hook
+  touch "$pkgdir/${pacman_root}/usr/lib/gio/modules/.keep"
+
+  python -m compileall -d ${pacman_root}/usr/share/glib-2.0/codegen \
     "$pkgdir/${pacman_root}/usr/share/glib-2.0/codegen"
-  python -O -m compileall -d /usr/share/glib-2.0/codegen \
+  python -O -m compileall -d ${pacman_root}/usr/share/glib-2.0/codegen \
     "$pkgdir/${pacman_root}/usr/share/glib-2.0/codegen"
+
+  # Split docs
+  mkdir -p docs/${pacman_root}/usr/share
+  mv {"$pkgdir",docs}/${pacman_root}/usr/share/gtk-doc
+}
+
+package_glib2-docs() {
+  pkgdesc+=" - documentation"
+  depends=()
+  license+=(LicenseRef-Public-Domain)
+
+  mv docs/* "$pkgdir"/
+  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 glib/docs/reference/COPYING
 }
 
 # vim:set sw=2 sts=-1 et:

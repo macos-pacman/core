@@ -1,13 +1,7 @@
 {
   "upstream_commit": "0f534edf43b3f0077a85d597193cf60fc791718f",
-  "diff_files": [
-    "PKGBUILD.pmdiff"
-  ],
-  "clean_files": [
-    "0001-glib-compile-schemas-Remove-noisy-deprecation-warnin.patch",
-    "gio-querymodules.hook",
-    "glib-compile-schemas.hook"
-  ],
+  "diff_files": [],
+  "clean_files": [],
   "ignore_files": [
     ".SRCINFO"
   ]

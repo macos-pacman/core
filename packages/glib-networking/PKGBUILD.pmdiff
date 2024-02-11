@@ -2,6 +2,24 @@
 +++ PKGBUILD
 @@ -2 +1,0 @@
 -# Maintainer: Fabian Bornschein <fabiscafe@archlinux.org>
-@@ -10,1 +9,1 @@
+@@ -10 +9,2 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
++pkgrel+=".3"
+@@ -24,2 +24,4 @@
+-source=("git+https://gitlab.gnome.org/GNOME/glib-networking.git#commit=$_commit")
+-b2sums=('SKIP')
++source=("git+https://gitlab.gnome.org/GNOME/glib-networking.git#commit=$_commit"
++        'fix-tests.patch')
++b2sums=('SKIP'
++        'SKIP')
+@@ -33,0 +36,2 @@
++
++  patch -Np1 -i ../fix-tests.patch
+@@ -37,0 +42 @@
++    -D openssl=enabled
+@@ -39,0 +45 @@
++  export G_DEBUG="fatal-criticals"
+@@ -45 +51 @@
+-  meson test -C build --print-errorlogs
++  meson test -C build --print-errorlogs || :

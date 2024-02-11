@@ -1,0 +1,32 @@
+--- a/tls/tests/certificate.c	2024-02-11 02:01:51.361171474 -0500
++++ b/tls/tests/certificate.c	2024-02-11 02:05:21.085492350 -0500
+@@ -923,7 +923,7 @@
+   g_assert_cmpint (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND), ==, 0);
+ 
+ #if defined(BACKEND_IS_GNUTLS) && HAVE_GNUTLS_PKCS11
+-  module_path = g_test_build_filename (G_TEST_BUILT, "mock-pkcs11.so", NULL);
++  module_path = g_test_build_filename (G_TEST_BUILT, "mock-pkcs11.dylib", NULL);
+   g_assert_true (g_file_test (module_path, G_FILE_TEST_EXISTS));
+ 
+   g_assert (gnutls_pkcs11_init (GNUTLS_PKCS11_FLAG_MANUAL, NULL) == GNUTLS_E_SUCCESS);
+--- a/tls/tests/connection.c	2024-02-11 02:01:51.361372057 -0500
++++ b/tls/tests/connection.c	2024-02-11 02:05:54.132285180 -0500
+@@ -3377,7 +3377,7 @@
+   g_assert_true (g_ascii_strcasecmp (G_OBJECT_TYPE_NAME (g_tls_backend_get_default ()), "GTlsBackend" BACKEND) == 0);
+ 
+ #if defined(BACKEND_IS_GNUTLS) && HAVE_GNUTLS_PKCS11
+-  module_path = g_test_build_filename (G_TEST_BUILT, "mock-pkcs11.so", NULL);
++  module_path = g_test_build_filename (G_TEST_BUILT, "mock-pkcs11.dylib", NULL);
+   g_assert_true (g_file_test (module_path, G_FILE_TEST_EXISTS));
+ 
+   /* This just adds extra logging which is useful for debugging */
+--- a/tls/tests/meson.build	2024-02-11 02:14:53.305154952 -0500
++++ b/tls/tests/meson.build	2024-02-11 02:15:06.702873219 -0500
+@@ -13,6 +13,7 @@
+ ]
+ 
+ envs = [
++  'G_DEBUG=fatal-criticals',
+   'G_TEST_SRCDIR=' + meson.current_source_dir(),
+   'G_TEST_BUILDDIR=' + meson.current_build_dir(),
+ ]
