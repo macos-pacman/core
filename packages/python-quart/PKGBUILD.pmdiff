@@ -1,0 +1,7 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -48 +49 @@
+-  install -Dm 644 quart/LICENSE -t "${pkgdir}"/usr/share/licenses/python-quart/
++  install -Dm 644 quart/LICENSE -t "${pkgdir}"/${pacman_root}/usr/share/licenses/python-quart/
