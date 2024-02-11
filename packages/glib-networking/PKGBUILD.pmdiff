@@ -2,10 +2,11 @@
 +++ PKGBUILD
 @@ -2 +1,0 @@
 -# Maintainer: Fabian Bornschein <fabiscafe@archlinux.org>
-@@ -10 +9,2 @@
+@@ -6,0 +6 @@
++pkgrel+=".4"
+@@ -10 +10 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
-+pkgrel+=".3"
 @@ -24,2 +24,4 @@
 -source=("git+https://gitlab.gnome.org/GNOME/glib-networking.git#commit=$_commit")
 -b2sums=('SKIP')

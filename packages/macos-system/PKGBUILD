@@ -1,6 +1,7 @@
 pkgname=(macos-system tzdata macos-accelerate-blas-lapack)
 pkgver=13.3
 pkgrel=18
+pkgrel+=".2"
 pkgdesc='builtin macos packages'
 arch=('x86_64' 'arm64')
 license=(MIT)
