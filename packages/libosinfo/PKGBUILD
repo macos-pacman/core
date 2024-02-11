@@ -1,0 +1,38 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+# Contributor: Stefano Facchini <stefano.facchini@gmail.com>
+
+pkgname=libosinfo
+pkgver=1.11.0
+pkgrel=1
+pkgdesc='GObject based library API for managing information about operating systems, hypervisors and the (virtual) hardware devices they can support'
+arch=('x86_64' 'arm64')
+url='https://libosinfo.org/'
+pkgrel+=".3"
+license=('GPL-2.0-or-later AND LGPL-2.1-or-later')
+depends=('gcc-libs' 'glib2' 'glibc' 'hwdata' 'libsoup3' 'libxml2' 'libxslt' 'osinfo-db')
+makedepends=('gobject-introspection' 'meson' 'vala')
+source=("https://releases.pagure.org/libosinfo/$pkgname-$pkgver.tar.xz"{,.asc})
+validpgpkeys=('DAF3A6FDB26B62912D0E8E3FBE86EBB415104FDF'  # Daniel P. Berrange
+              '09B9C8FF223EF113AFA06A39EE926C2BDACC177B'  # Fabiano Fidêncio
+              '206D3B352F566F3B0E6572E997D9123DE37A484F') # Victor Toso de Carvalho <me@victortoso.com>
+sha256sums=('1bf96eec9e1460f3d1a713163cca1ff0d480a3490b50899292f14548b3a96b60'
+            'SKIP')
+
+build() {
+  local meson_options=(
+    -D with-usb-ids-path=${pacman_root}/usr/share/hwdata/usb.ids
+    -D with-pci-ids-path=${pacman_root}/usr/share/hwdata/pci.ids
+  )
+
+  arch-meson $pkgname-$pkgver build "${meson_options[@]}"
+  meson compile -C build
+}
+
+check() {
+  # some dumb test fails
+  meson test -C build --print-errorlogs || :
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}

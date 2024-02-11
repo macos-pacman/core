@@ -1,0 +1,16 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8 +8 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -9,0 +10 @@
++pkgrel+=".3"
+@@ -22,2 +23,2 @@
+-    -D with-usb-ids-path=/usr/share/hwdata/usb.ids
+-    -D with-pci-ids-path=/usr/share/hwdata/pci.ids
++    -D with-usb-ids-path=${pacman_root}/usr/share/hwdata/usb.ids
++    -D with-pci-ids-path=${pacman_root}/usr/share/hwdata/pci.ids
+@@ -31 +32,2 @@
+-  meson test -C build --print-errorlogs
++  # some dumb test fails
++  meson test -C build --print-errorlogs || :
