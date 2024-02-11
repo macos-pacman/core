@@ -1,0 +1,10 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8,0 +9 @@
++pkgrel+=".1"
+@@ -10 +11 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -29 +30 @@
+-  ./configure --prefix=/usr --disable-static
++  ./configure --prefix=${pacman_root}/usr --disable-static
