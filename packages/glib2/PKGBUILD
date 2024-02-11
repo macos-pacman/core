@@ -9,7 +9,7 @@ pkgname=(
 )
 pkgver=2.78.4
 pkgrel=1
-pkgrel+=".5"
+pkgrel+=".8"
 pkgdesc="Low level core library"
 url="https://gitlab.gnome.org/GNOME/glib"
 license=(LGPL-2.1-or-later)
@@ -38,8 +38,8 @@ source=(
   "git+https://gitlab.gnome.org/GNOME/glib.git#commit=$_commit"
   "git+https://gitlab.gnome.org/GNOME/gvdb.git"
   0001-glib-compile-schemas-Remove-noisy-deprecation-warnin.patch
-  gio-querymodules.hook.in
-  glib-compile-schemas.hook.in
+  gio-querymodules.hook
+  glib-compile-schemas.hook
   fix-macos-warning.patch
   macos-test-ignore.patch
 )
@@ -63,13 +63,14 @@ prepare() {
   patch -Np1 -i ../fix-macos-warning.patch
   patch -Np1 -i ../macos-test-ignore.patch
 
+  mkdir ../hooks
   sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
       -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
-      ../gio-querymodules.hook.in > gio-querymodules.hook
+      ../gio-querymodules.hook > ../hooks/gio-querymodules.hook
 
   sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
       -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
-      ../glib-compile-schemas.hook.in > glib-compile-schemas.hook
+      ../glib-compile-schemas.hook > ../hooks/glib-compile-schemas.hook
 
   # Suppress noise from glib-compile-schemas.hook
   git apply -3 ../0001-glib-compile-schemas-Remove-noisy-deprecation-warnin.patch
@@ -117,7 +118,7 @@ package_glib2() {
 
   meson install -C build --destdir "$pkgdir"
 
-  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 glib/*.hook
+  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 hooks/*.hook
   touch "$pkgdir/${pacman_root}/usr/lib/gio/modules/.keep"
 
   python -m compileall -d ${pacman_root}/usr/share/glib-2.0/codegen \

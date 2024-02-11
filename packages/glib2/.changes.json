@@ -4,13 +4,9 @@
     "PKGBUILD.pmdiff"
   ],
   "clean_files": [
-    "0001-glib-compile-schemas-Remove-noisy-deprecation-warnin.patch",
-    "gio-querymodules.hook",
-    "glib-compile-schemas.hook"
+    "0001-glib-compile-schemas-Remove-noisy-deprecation-warnin.patch"
   ],
   "ignore_files": [
-    ".SRCINFO",
-    "gio-querymodules.hook",
-    "glib-compile-schemas.hook"
+    ".SRCINFO"
   ]
 }
