@@ -1,0 +1,10 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -10 +11 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -20 +21 @@
+-  ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var
++  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc --localstatedir=${pacman_root}/var
