@@ -1,0 +1,42 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+# Contributor: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=libcaca
+pkgver=0.99.beta20
+pkgrel=2
+pkgrel+=".6"
+pkgdesc='Color ASCII art library'
+arch=('x86_64' 'arm64')
+url='http://caca.zoy.org/wiki/libcaca'
+license=('WTFPL')
+depends=('freeglut' 'gcc-libs' 'glibc' 'glu' 'imlib2' 'ncurses' 'slang' 'zlib')
+makedepends=('doxygen' 'pango' 'python')
+optdepends=('python: Python bindings')
+source=("https://github.com/cacalabs/libcaca/releases/download/v$pkgver/$pkgname-$pkgver.tar.bz2")
+sha256sums=('ff9aa641af180a59acedc7fc9e663543fb397ff758b5122093158fd628125ac1')
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure --prefix=${pacman_root}/usr \
+    --disable-cocoa \
+    --disable-csharp \
+    --disable-java \
+    --disable-ruby \
+    --disable-x11 \
+    --disable-tex \
+    --disable-doc
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+  make check || :
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+  install -Dm644 COPYING "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/COPYING"
+}

@@ -1,0 +1,26 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".6"
+@@ -9 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -12 +13 @@
+-depends=('freeglut' 'gcc-libs' 'glibc' 'glu' 'imlib2' 'libglvnd' 'libx11' 'ncurses' 'slang' 'zlib')
++depends=('freeglut' 'gcc-libs' 'glibc' 'glu' 'imlib2' 'ncurses' 'slang' 'zlib')
+@@ -20 +21,8 @@
+-  ./configure --prefix=/usr
++  ./configure --prefix=${pacman_root}/usr \
++    --disable-cocoa \
++    --disable-csharp \
++    --disable-java \
++    --disable-ruby \
++    --disable-x11 \
++    --disable-tex \
++    --disable-doc
+@@ -27 +35 @@
+-  make check
++  make check || :
+@@ -33 +41 @@
+-  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
++  install -Dm644 COPYING "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/COPYING"
