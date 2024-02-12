@@ -1,0 +1,4 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
