@@ -1,0 +1,11 @@
+--- a/encodedv/dvconnect.c	2004-05-30 22:05:23.000000000 -0400
++++ b/encodedv/dvconnect.c	2024-02-12 16:45:57.225483026 -0500
+@@ -857,7 +857,7 @@
+ 
+ int rt_raisepri (int pri)
+ {
+-#ifdef _SC_PRIORITY_SCHEDULING
++#if 0
+ 	struct sched_param scp;
+ 
+ 	/*

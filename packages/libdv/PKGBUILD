@@ -1,0 +1,33 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+# Contributor: Tom Newsom <Jeepster@gmx.co.uk>
+
+pkgname=libdv
+pkgver=1.0.0
+pkgrel=11
+pkgrel+=".3"
+pkgdesc='Decoder library for DV video'
+arch=('x86_64' 'arm64')
+url='https://libdv.sourceforge.net/'
+license=('LGPL-2.1-or-later')
+depends=('glibc' 'popt')
+source=("https://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz"
+        'fix-macos-compile.patch')
+sha256sums=('a305734033a9c25541a59e8dd1c254409953269ea7c710c39e540bd8853389ba'
+            '24a3ce2d973bcedf376114000e381bfc931249565dc53775743d9bbe30526a3d')
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../fix-macos-compile.patch
+}
+
+build() {
+  cd $pkgname-$pkgver
+  ./configure --prefix=${pacman_root}/usr --disable-gtk --disable-sdltest --disable-asm --disable-gtktest
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+}

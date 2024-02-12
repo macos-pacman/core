@@ -1,0 +1,22 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".3"
+@@ -9 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -13,2 +14,9 @@
+-source=("https://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz")
+-sha256sums=('a305734033a9c25541a59e8dd1c254409953269ea7c710c39e540bd8853389ba')
++source=("https://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz"
++        'fix-macos-compile.patch')
++sha256sums=('a305734033a9c25541a59e8dd1c254409953269ea7c710c39e540bd8853389ba'
++            '24a3ce2d973bcedf376114000e381bfc931249565dc53775743d9bbe30526a3d')
++
++prepare() {
++  cd $pkgname-$pkgver
++  patch -Np1 -i ../fix-macos-compile.patch
++}
+@@ -18 +26 @@
+-  ./configure --prefix=/usr --disable-gtk
++  ./configure --prefix=${pacman_root}/usr --disable-gtk --disable-sdltest --disable-asm --disable-gtktest
