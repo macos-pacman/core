@@ -1,0 +1,76 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+pkgbase=zix
+pkgname=(zix{,-docs})
+pkgver=0.4.2
+pkgrel=2
+pkgrel+=".3"
+pkgdesc="A lightweight C99 portability and data structure library"
+arch=('x86_64' 'arm64')
+url="https://gitlab.com/drobilla/zix"
+license=('0BSD OR ISC')
+makedepends=(
+  doxygen
+  glibc
+  meson
+  python-sphinx
+  python-sphinx-lv2-theme
+  python-sphinxygen
+)
+source=(https://download.drobilla.net/$pkgname-$pkgver.tar.xz{,.sig}
+        'fix-macos-fdatasync.patch')
+sha512sums=('b8fb931a3e9ab5a67f6da57a07bf10b91e7f861c8cf39db14c49c083a9983a0971cc6bc6abcb54a83c00471b386e377cb9bb51e2edd945ba07b9ae43a35964cc'
+            'SKIP'
+            '436ac32120b3371601e81d07c091d91dab5fc7ff5b2181cd4171f1c7c345eb28793b94216b25e4323295443aa943a9a9606d229d6782e25eed288c3607b4ae9b')
+b2sums=('46d9e3049632abe8fe60928fa4d27ab5a94e86549dbde999c8215f951fe6f70f29124c89de9639c07a3bfb06da6ce902ea2a59f431ea6015d2c7a38df2f6eff6'
+        'SKIP'
+        '8cc7bc9ceb1b1985ed81d204516caee036d74bc27f97d80cf2963c4d6caf6b8f2f1ab67f92d508b960e0cbeedf889f4289c8876eb29ee4390452787e56425d8e')
+validpgpkeys=('907D226E7E13FA337F014A083672782A9BF368F3') # David Robillard <d@drobilla.net>
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p "$(dirname "$f")" || :
+  done
+}
+
+prepare() {
+  cd $pkgname-$pkgver
+  patch -Np1 -i ../fix-macos-fdatasync.patch
+}
+
+build() {
+  arch-meson $pkgname-$pkgver build
+  meson compile -C build
+}
+
+check() {
+  # ignore entire test suite, because of failing tests:
+  # https://gitlab.com/drobilla/zix/-/issues/2
+  meson test -C build --no-suite 'zix:unit'
+}
+
+package_zix() {
+  depends=(glibc)
+  optdepends=('zix-docs: for developer documentation')
+  provides=(libzix-0.dylib)
+
+  meson install -C build --destdir "$pkgdir"
+  (
+    cd "$pkgdir"
+    _pick $pkgname-docs ${pacman_root#/}/usr/share/doc
+  )
+
+  install -vDm 644 $pkgname-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  install -vDm 644 $pkgname-$pkgver/{NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+}
+
+package_zix-docs() {
+  pkgdesc+=" - documentation"
+
+  mv -v $pkgname/* "$pkgdir"
+  mv -v "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase"{-0,}
+}

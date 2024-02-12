@@ -1,0 +1,11 @@
+--- a/src/posix/filesystem_posix.c	2024-02-12 17:19:12.195539402 -0500
++++ b/src/posix/filesystem_posix.c	2024-02-12 17:19:20.009293250 -0500
+@@ -58,7 +58,7 @@
+ static ZixStatus
+ finish_copy(const int dst_fd, const int src_fd, const ZixStatus status)
+ {
+-  const ZixStatus st0 = zix_posix_status(dst_fd >= 0 ? fdatasync(dst_fd) : 0);
++  const ZixStatus st0 = zix_posix_status(dst_fd >= 0 ? fsync(dst_fd) : 0);
+   const ZixStatus st1 = zix_system_close_fds(dst_fd, src_fd);
+ 
+   return status ? status : st0 ? st0 : st1;

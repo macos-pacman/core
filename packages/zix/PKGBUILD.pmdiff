@@ -1,0 +1,42 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".3"
+@@ -8 +9 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -19 +20,2 @@
+-source=(https://download.drobilla.net/$pkgname-$pkgver.tar.xz{,.sig})
++source=(https://download.drobilla.net/$pkgname-$pkgver.tar.xz{,.sig}
++        'fix-macos-fdatasync.patch')
+@@ -21 +23,2 @@
+-            'SKIP')
++            'SKIP'
++            '436ac32120b3371601e81d07c091d91dab5fc7ff5b2181cd4171f1c7c345eb28793b94216b25e4323295443aa943a9a9606d229d6782e25eed288c3607b4ae9b')
+@@ -23 +26,2 @@
+-        'SKIP')
++        'SKIP'
++        '8cc7bc9ceb1b1985ed81d204516caee036d74bc27f97d80cf2963c4d6caf6b8f2f1ab67f92d508b960e0cbeedf889f4289c8876eb29ee4390452787e56425d8e')
+@@ -32 +36 @@
+-    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
++    rmdir -p "$(dirname "$f")" || :
+@@ -35,0 +40,5 @@
++prepare() {
++  cd $pkgname-$pkgver
++  patch -Np1 -i ../fix-macos-fdatasync.patch
++}
++
+@@ -50 +59 @@
+-  provides=(libzix-0.so)
++  provides=(libzix-0.dylib)
+@@ -55 +64 @@
+-    _pick $pkgname-docs usr/share/doc
++    _pick $pkgname-docs ${pacman_root#/}/usr/share/doc
+@@ -58,2 +67,2 @@
+-  install -vDm 644 $pkgname-$pkgver/LICENSES/* -t "$pkgdir/usr/share/licenses/$pkgname/"
+-  install -vDm 644 $pkgname-$pkgver/{NEWS,README.md} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 $pkgname-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgname-$pkgver/{NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+@@ -66 +75 @@
+-  mv -v "$pkgdir/usr/share/doc/$pkgbase"{-0,}
++  mv -v "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase"{-0,}
