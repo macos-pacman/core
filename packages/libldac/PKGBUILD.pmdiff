@@ -1,0 +1,15 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -8 +9 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -12 +13 @@
+-provides=(libldacBT_{abr,enc}.so)
++provides=(libldacBT_{abr,enc}.dylib)
+@@ -34,2 +35,2 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
+-    -DCMAKE_BUILD_TYPE=None \
++    -DCMAKE_INSTALL_PREFIX="${pacman_root}/usr" \
++    -DCMAKE_BUILD_TYPE=Release \
