@@ -1,0 +1,8 @@
+--- configure.local
++++ configure.local
+@@ -2 +2 @@
+-MANPATH_DEFAULT=/usr/local/share/man:/usr/share/man
++MANPATH_DEFAULT=%%PACMAN_ROOT%%/usr/share/man:%%PACMAN_ROOT%%/usr/local/share/man:/usr/local/share/man:/usr/share/man
+@@ -5 +5 @@
+-PREFIX=/usr
++PREFIX=%%PACMAN_ROOT%%/usr

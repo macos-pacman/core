@@ -1,0 +1,31 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".2"
+@@ -11 +12 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -18,3 +19 @@
+-        'configure.local'
+-        'mandoc.service'
+-        'mandoc.timer')
++        'configure.local')
+@@ -22,3 +21 @@
+-            '383772d5dd7c51319588ac4b63d4e7c452490568f6a3e905d118fdd6c4aa8a68'
+-            '2091411d5f87a3c371a5ba74b4773d1e454046446fa2cb045485979e52419bb6'
+-            '6b8df810386c581800074adb89c17c7e22dc5784e71e6069ebb039183b59df83')
++            '3c777cc1b52a4f8a268e6f96f45081404342577b9427473885f8b7965b933ee5')
+@@ -28 +25 @@
+-    cp ../configure.local .
++    sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../configure.local > configure.local
+@@ -40 +37 @@
+-    ./configure
++    ./configure --prefix=${pacman_root}/usr
+@@ -48,6 +45 @@
+-    install -Dm644 LICENSE "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE
+-
+-    install -Dm644 "${srcdir}"/mandoc.timer "${pkgdir}"/usr/lib/systemd/system/mandoc.timer
+-    install -Dm644 "${srcdir}"/mandoc.service "${pkgdir}"/usr/lib/systemd/system/mandoc.service
+-    install -dm755 "${pkgdir}"/usr/lib/systemd/system/timers.target.wants
+-    ln -s ../mandoc.timer "${pkgdir}"/usr/lib/systemd/system/timers.target.wants/mandoc.timer
++    install -Dm644 LICENSE "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE

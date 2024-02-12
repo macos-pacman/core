@@ -1,0 +1,14 @@
+{
+  "upstream_commit": "22a1ace05eb3ea080a84dc3e1d5763a2c655c8e8",
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "configure.local.pmdiff"
+  ],
+  "clean_files": [
+    "mandoc.service",
+    "mandoc.timer"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
