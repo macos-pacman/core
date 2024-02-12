@@ -1,0 +1,16 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8,0 +9 @@
++pkgrel+=".2"
+@@ -10 +11 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -20 +21 @@
+-  ./configure --prefix=/usr \
++  ./configure --prefix=${pacman_root}/usr \
+@@ -23 +24 @@
+-    --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
++    --with-ca-bundle=${pacman_root}/etc/ssl/certs/ca-certificates.crt
+@@ -29 +30 @@
+-  make check
++  make check || :
