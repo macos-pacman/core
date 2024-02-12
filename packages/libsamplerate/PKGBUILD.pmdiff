@@ -1,0 +1,23 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
+@@ -8 +9 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -12 +13 @@
+-makedepends=(alsa-lib cmake libsndfile opus)
++makedepends=(cmake libsndfile opus)
+@@ -14 +15 @@
+-provides=(libsamplerate.so)
++provides=(libsamplerate.dylib)
+@@ -25,2 +26,2 @@
+-    -D CMAKE_INSTALL_PREFIX=/usr
+-    -D CMAKE_BUILD_TYPE=None
++    -D CMAKE_INSTALL_PREFIX=${pacman_root}/usr
++    -D CMAKE_BUILD_TYPE=Release
+@@ -42,2 +43,2 @@
+-  install -vDm 644 $pkgname-$pkgver/{AUTHORS,NEWS,README.md,ChangeLog} -t "$pkgdir/usr/share/doc/$pkgname/"
+-  install -vDm 644 $pkgname-$pkgver/COPYING -t "$pkgdir/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgname-$pkgver/{AUTHORS,NEWS,README.md,ChangeLog} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
++  install -vDm 644 $pkgname-$pkgver/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
