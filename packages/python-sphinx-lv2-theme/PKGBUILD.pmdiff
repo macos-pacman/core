@@ -1,0 +1,9 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
+@@ -33,2 +34,2 @@
+-  install -vDm 644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname/"
+-  install -vDm 644 {NEWS,README.md} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 LICENSE -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
++  install -vDm 644 {NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
