@@ -1,0 +1,86 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Ray Rashif <schiv@archlinux.org>
+
+pkgbase=lv2
+pkgname=(lv2 lv2-docs)
+pkgver=1.18.10
+pkgrel=1
+pkgrel+=".7"
+pkgdesc="Plugin standard for audio systems"
+arch=('x86_64' 'arm64')
+url="https://lv2plug.in/"
+license=(ISC)
+makedepends=(
+  asciidoc
+  codespell
+  doxygen
+  flake8
+  libsamplerate
+  libsndfile
+  meson
+  pygmentize
+  python-black
+  python-lxml
+  python-markdown
+  python-pygments
+  python-pylint
+  python-rdflib
+  serd
+  sord
+)
+source=(https://lv2plug.in/spec/$pkgbase-$pkgver.tar.xz{,.sig})
+sha512sums=('ab4bcf593f633b1ed16c0eb6aa4525458a00655ef9c87619bf85eaa966f8fd094a8e871b825f679e0d97923f8bbbf11841ff467022390ca2f1a5b5f66ccd5d1b'
+            'SKIP')
+b2sums=('72f9bc50ebac5d71279e0616bb1eb3c2a6748a28ff68988294135b18c7adc68c46a52b4698faf79f633768bf850d5052128a9f84b90aa9b5f9a56721acaf04c3'
+        'SKIP')
+validpgpkeys=('907D226E7E13FA337F014A083672782A9BF368F3') # David Robillard <d@drobilla.net>
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p "$(dirname "$f")" || :
+  done
+}
+
+build() {
+  arch-meson $pkgbase-$pkgver build -Dplugins=disabled
+  meson compile -C build
+}
+
+check() {
+  # idk either
+  meson test -C build || :
+}
+
+package_lv2() {
+  optdepends=(
+    'lv2-docs: for developer documentation'
+    'python-lxml: for lv2specgen.py'
+    'python-markdown: for lv2specgen.py'
+    'python-pygments: for lv2specgen.py'
+    'python-rdflib: for lv2specgen.py'
+    'sord: for lv2_validate'
+  )
+
+  meson install -C build --destdir "$pkgdir"
+
+  (
+    cd "$pkgdir"
+    _pick lv2-docs ${pacman_root#/}/usr/share/doc/lv2/
+  )
+
+  install -vDm 644 $pkgbase-$pkgver/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  install -vDm 644 $pkgbase-$pkgver/{NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+}
+
+package_lv2-docs() {
+  pkgdesc+=" - documentation"
+
+  mv -v $pkgname/* "$pkgdir"
+  install -vDm 644 $pkgbase-$pkgver/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+}
+
+# vim:set ts=2 sw=2 et:

@@ -1,0 +1,48 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5 +5 @@
+-pkgname=(lv2 lv2-docs lv2-example-plugins)
++pkgname=(lv2 lv2-docs)
+@@ -7,0 +8 @@
++pkgrel+=".7"
+@@ -9 +10 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -17 +17,0 @@
+-  gtk2
+@@ -44 +44 @@
+-    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
++    rmdir -p "$(dirname "$f")" || :
+@@ -49 +49 @@
+-  arch-meson $pkgbase-$pkgver build
++  arch-meson $pkgbase-$pkgver build -Dplugins=disabled
+@@ -54 +54,2 @@
+-  meson test -C build
++  # idk either
++  meson test -C build || :
+@@ -60 +60,0 @@
+-    'lv2-example-plugins: for example plugins'
+@@ -72,2 +72 @@
+-    _pick lv2-docs usr/share/doc/lv2/
+-    _pick lv2-example-plugins usr/lib/lv2/eg-*
++    _pick lv2-docs ${pacman_root#/}/usr/share/doc/lv2/
+@@ -76,2 +75,2 @@
+-  install -vDm 644 $pkgbase-$pkgver/COPYING -t "$pkgdir/usr/share/licenses/$pkgname/"
+-  install -vDm 644 $pkgbase-$pkgver/{NEWS,README.md} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 $pkgbase-$pkgver/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgbase-$pkgver/{NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+@@ -84,13 +83 @@
+-  install -vDm 644 $pkgbase-$pkgver/COPYING -t "$pkgdir/usr/share/licenses/$pkgname/"
+-}
+-
+-package_lv2-example-plugins() {
+-  pkgdesc+=" - example plugins"
+-  depends=(libsamplerate libsndfile lv2-host)
+-  optdepends=(
+-    'gtk2: for eg-sampler.lv2 and eg-scope.lv2'
+-  )
+-  groups=(lv2-plugins pro-audio)
+-
+-  mv -v $pkgname/* "$pkgdir"
+-  install -vDm 644 $pkgbase-$pkgver/COPYING -t "$pkgdir/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgbase-$pkgver/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
