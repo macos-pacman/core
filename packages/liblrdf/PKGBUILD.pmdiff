@@ -1,0 +1,17 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".2"
+@@ -8 +9 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -11,2 +12 @@
+-makedepends=('ladspa')
+-provides=('liblrdf.so')
++provides=('liblrdf.dylib')
+@@ -27 +27 @@
+-  ./configure --prefix=/usr
++  ./configure --prefix="${pacman_root}/usr"
+@@ -35 +35 @@
+-    -t "${pkgdir}/usr/share/doc/${pkgname}"
++    -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
