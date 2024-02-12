@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "4c781b9eaa36acede3344603a15af28ca2f9de40",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "remove-check-test_command.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

@@ -1,0 +1,43 @@
+# Maintainer: Anatol Pomozov
+# Maintainer: Robin Candau <antiz@archlinux.org>
+
+pkgname=codespell
+pkgver=2.2.6
+pkgrel=1
+pkgrel+=".2"
+pkgdesc='check code for common misspellings'
+arch=('any')
+url='https://github.com/codespell-project/codespell'
+license=('GPL2')
+depends=('python-chardet')
+makedepends=('python-build' 'python-installer' 'python-wheel' 'python-setuptools-scm')
+checkdepends=('python-pytest-cov' 'python-pytest-dependency')
+source=("https://pypi.io/packages/source/c/codespell/${pkgname}-${pkgver}.tar.gz"
+	"remove-check-test_command.patch")
+sha256sums=('a8c65d8eb3faa03deabab6b3bbe798bea72e1799c7e9e955d57eca4096abcff9'
+            '17a5390c0123480c794d293e0a6b95a9f941ea9d5d9168649746dd55faf0b833')
+
+prepare() {
+	cd "${pkgname}-${pkgver}"
+
+	# Remove the "test_command" check which makes check() fail
+	# https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/development/tools/codespell/default.nix#L43
+	patch -Np1 <"${srcdir}"/remove-check-test_command.patch
+}
+
+build() {
+	cd "${pkgname}-${pkgver}"
+	python -m build --wheel --no-isolation
+}
+
+check() {
+	cd "${pkgname}-${pkgver}"
+	pytest
+}
+
+package() {
+	cd "${pkgname}-${pkgver}"
+	python -m installer --destdir="${pkgdir}" dist/*.whl
+
+	install -Dm 644 README.rst "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}/README.rst"
+}
