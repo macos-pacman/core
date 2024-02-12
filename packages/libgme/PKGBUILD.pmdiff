@@ -1,0 +1,10 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -9 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -19 +20 @@
+-  cmake -S game-music-emu-$pkgver -B build -G Ninja -DCMAKE_INSTALL_PREFIX='/usr' -DCMAKE_BUILD_TYPE=Release
++  cmake -S game-music-emu-$pkgver -B build -G Ninja -DCMAKE_INSTALL_PREFIX="${pacman_root}/usr" -DCMAKE_BUILD_TYPE=Release
