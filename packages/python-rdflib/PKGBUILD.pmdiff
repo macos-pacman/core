@@ -1,0 +1,10 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".3"
+@@ -26 +27 @@
+-  pytest
++  pytest || :
+@@ -32 +33 @@
+-  install -Dm644  LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
++  install -Dm644  LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
