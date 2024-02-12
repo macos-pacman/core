@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "488f7a81f9be1b58a54ea2d8cadb05a772bf2e57",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "raptor-2.0.15-libxml2-2.11.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

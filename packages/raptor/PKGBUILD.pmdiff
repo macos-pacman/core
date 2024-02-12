@@ -1,0 +1,24 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -10,0 +11 @@
++pkgrel+=".2"
+@@ -12 +13 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -17 +18 @@
+-provides=(libraptor2.so)
++provides=(libraptor2.dylib)
+@@ -36 +37 @@
+-    --prefix=/usr
++    --prefix="${pacman_root}/usr"
+@@ -38 +39 @@
+-    --with-icu-config=/usr/bin/icu-config
++    --with-icu-config="${pacman_root}/usr/bin/icu-config"
+@@ -55,2 +56,2 @@
+-    curl libcurl.so
+-    icu libicuuc.so
++    curl libcurl.dylib
++    icu libicuuc.dylib
+@@ -60 +61 @@
+-  install -vDm 644 $_name-$pkgver/{AUTHORS,ChangeLog*,README} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 $_name-$pkgver/{AUTHORS,ChangeLog*,README} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
