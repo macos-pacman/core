@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "eb25529f0d59d9026d5665e3c3f2155d82666998",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "lilvmm.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

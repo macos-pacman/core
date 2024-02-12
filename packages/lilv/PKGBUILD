@@ -1,0 +1,109 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Ray Rashif <schiv@archlinux.org>
+# Contributor: speps <speps at aur dot archlinux dot org>
+
+pkgbase=lilv
+pkgname=(
+  lilv{,-docs}
+  python-lilv
+)
+pkgver=0.24.24
+pkgrel=1
+pkgrel+=".3"
+pkgdesc="A C library interface to the LV2 plug-in standard"
+arch=('x86_64' 'arm64')
+url="https://drobilla.net/software/lilv.html"
+license=(
+  '0BSD OR ISC'
+  ISC
+)
+makedepends=(
+  doxygen
+  libsndfile
+  lv2
+  meson
+  python
+  python-sphinx
+  python-sphinx-lv2-theme
+  python-sphinxygen
+  serd
+  sord
+  sratom
+  swig
+)
+source=(https://download.drobilla.net/$pkgname-$pkgver.tar.xz{,.sig})
+sha512sums=('93a3842a5e000a9c59bf3493c2c10df35a803a7edf6cff09f43e155a7e83d0c7c81bc24a6243828dc141d30187c3f60ef9799f319f72e5b6c3e2d022de757185'
+            'SKIP')
+b2sums=('4228248e8dbee228cee193e259d95b2e66f9f2e3516702dfad0dc126273076230274538c32a857ae9ad8a58545bbf48e7791254441dd4d6e537715de9e5e5be6'
+        'SKIP')
+validpgpkeys=('907D226E7E13FA337F014A083672782A9BF368F3') # David Robillard <d@drobilla.net>
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p "$(dirname "$f")" || :
+  done
+}
+
+build() {
+  arch-meson $pkgname-$pkgver build
+  meson compile -C build
+}
+
+check() {
+  meson test -C build
+}
+
+package_lilv() {
+  depends=(
+    glibc
+    serd libserd-0.dylib
+    sord libsord-0.dylib
+    sratom libsratom-0.dylib
+    lv2
+    zix
+  )
+  optdepends=(
+    'libsndfile: for lv2apply'
+    'lilv-docs: for documentation'
+    'python-lilv: for Python bindings'
+  )
+  provides=(liblilv-0.dylib)
+
+  meson install -C build --destdir "$pkgdir"
+  (
+    cd "$pkgdir"
+    _pick $pkgname-docs ${pacman_root#/}/usr/share/doc
+    _pick python-$pkgbase ${pacman_root#/}/usr/lib/python*
+  )
+
+  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  install -vDm 644 $pkgname-$pkgver/{NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+  # install bash completion to correct directory and remove /etc
+  install -vDm 644 "$pkgdir/${pacman_root}/usr/etc/bash_completion.d/$pkgname" -t "$pkgdir/${pacman_root}/usr/share/bash-completion/completions/"
+  rm -frv "$pkgdir/${pacman_root}/usr/etc"
+}
+
+package_lilv-docs() {
+  pkgdesc+=" - documentation"
+
+  mv -v $pkgname/* "$pkgdir"
+  mv -v "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase"{-0,}
+  find "$pkgdir" -type f -iname "*.buildinfo" -delete
+  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+}
+
+package_python-lilv() {
+  pkgdesc+=" - Python interface"
+  depends=(
+    lilv
+    python
+    python-numpy
+  )
+
+  mv -v $pkgname/* "$pkgdir"
+  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+}

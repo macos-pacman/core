@@ -1,0 +1,44 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -11,0 +12 @@
++pkgrel+=".3"
+@@ -13 +14 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -46 +47 @@
+-    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
++    rmdir -p "$(dirname "$f")" || :
+@@ -62,3 +63,3 @@
+-    serd libserd-0.so
+-    sord libsord-0.so
+-    sratom libsratom-0.so
++    serd libserd-0.dylib
++    sord libsord-0.dylib
++    sratom libsratom-0.dylib
+@@ -73 +74 @@
+-  provides=(liblilv-0.so)
++  provides=(liblilv-0.dylib)
+@@ -78,2 +79,2 @@
+-    _pick $pkgname-docs usr/share/doc
+-    _pick python-$pkgbase usr/lib/python*
++    _pick $pkgname-docs ${pacman_root#/}/usr/share/doc
++    _pick python-$pkgbase ${pacman_root#/}/usr/lib/python*
+@@ -82,2 +83,2 @@
+-  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/usr/share/licenses/$pkgname/"
+-  install -vDm 644 $pkgname-$pkgver/{NEWS,README.md} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgname-$pkgver/{NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+@@ -85,2 +86,2 @@
+-  install -vDm 644 "$pkgdir/etc/bash_completion.d/$pkgname" -t "$pkgdir/usr/share/bash-completion/completions/"
+-  rm -frv "$pkgdir/etc"
++  install -vDm 644 "$pkgdir/${pacman_root}/usr/etc/bash_completion.d/$pkgname" -t "$pkgdir/${pacman_root}/usr/share/bash-completion/completions/"
++  rm -frv "$pkgdir/${pacman_root}/usr/etc"
+@@ -93 +94 @@
+-  mv -v "$pkgdir/usr/share/doc/$pkgbase"{-0,}
++  mv -v "$pkgdir/${pacman_root}/usr/share/doc/$pkgbase"{-0,}
+@@ -95 +96 @@
+-  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+@@ -107 +108 @@
+-  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
