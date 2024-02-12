@@ -1,0 +1,12 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".6"
+@@ -9 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -18 +19,3 @@
+-  ./configure --prefix=/usr
++
++  export CXXFLAGS="${CXXFLAGS} -std=gnu++11"
++  ./configure --prefix=${pacman_root}/usr

@@ -1,0 +1,29 @@
+# Maintainer: Balló György <ballogyor+arch at gmail dot com>
+# Contributor: Roberto Carvajal <roberto@archlinux.org>
+# Contributor: Damir Perisa <damir.perisa@bluewin.ch>
+
+pkgname=mjpegtools
+pkgver=2.2.1
+pkgrel=2
+pkgrel+=".6"
+pkgdesc='Video capture, editing, playback and compression to MPEG of MJPEG video'
+arch=('x86_64' 'arm64')
+url='https://mjpeg.sourceforge.io/'
+license=('GPL-2.0-or-later')
+depends=('bash' 'gcc-libs' 'glibc' 'libdv' 'libjpeg-turbo' 'libpng')
+source=("https://downloads.sourceforge.net/mjpeg/$pkgname-$pkgver.tar.gz")
+sha256sums=('b180536d7d9960b05e0023a197b00dcb100929a49aab71d19d55f4a1b210f49a')
+
+build() {
+  cd $pkgname-$pkgver
+
+  export CXXFLAGS="${CXXFLAGS} -std=gnu++11"
+  ./configure --prefix=${pacman_root}/usr
+  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+  make
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+}
