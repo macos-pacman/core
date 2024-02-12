@@ -1,0 +1,29 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8,0 +9 @@
++pkgrel+=".2"
+@@ -10 +11 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -37 +38 @@
+-    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
++    rmdir -p "$(dirname "$f")" || :
+@@ -53 +54 @@
+-  provides=(libserd-0.so)
++  provides=(libserd-0.dylib)
+@@ -56 +57 @@
+-  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+@@ -60 +61 @@
+-    _pick $pkgname-docs usr/share/doc
++    _pick $pkgname-docs ${pacman_root#/}/usr/share/doc
+@@ -63,2 +64,2 @@
+-  install -vDm 644 $pkgname-$pkgver/COPYING -t "$pkgdir/usr/share/licenses/$pkgname/"
+-  install -vDm 644 $pkgname-$pkgver/{AUTHORS,NEWS,README.md} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 $pkgname-$pkgver/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgname-$pkgver/{AUTHORS,NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+@@ -71,2 +72,2 @@
+-  mv -v "$pkgdir/usr/share/doc/"serd{-0,}
+-  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/usr/share/licenses/$pkgname/"
++  mv -v "$pkgdir/${pacman_root}/usr/share/doc/"serd{-0,}
++  install -vDm 644 $pkgbase-$pkgver/LICENSES/* -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
