@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "ad8ed772161357c0ee801b991befe8c5a1871417",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "0001-Fix-automake-warnings.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
