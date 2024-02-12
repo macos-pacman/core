@@ -1,0 +1,73 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+# Contributor: Ray Rashif <schiv@archlinux.org>
+# Contributor: speps <speps at aur dot archlinux dot org>
+
+pkgbase=sord
+pkgname=(sord sord-docs)
+pkgver=0.16.16
+pkgrel=1
+pkgrel+=".2"
+pkgdesc="A lightweight C library for storing RDF data in memory"
+arch=('x86_64' 'arm64')
+url="https://drobilla.net/software/sord.html"
+license=(ISC)
+makedepends=(
+  doxygen
+  glibc
+  meson
+  pcre2
+  python-sphinx
+  serd
+  zix
+)
+source=(https://download.drobilla.net/$pkgname-$pkgver.tar.xz{,.sig})
+sha512sums=('8728fa01466e8f64c1a70a6d4ce727cdac3aaba78db0163ad511d7e959a260c95ab47405cce24ca0e076fb1f0da761687d788cddef87a96aa813757d10f0bfe0'
+            'SKIP')
+b2sums=('e657f6e4d38df1c254ce6282ae54a6795e29fd60546373a2b4e1560b269658fa69dd93af4d6f75eaa73f9f777a2d82f99f80d34fd65e1001b8231b63af71029f'
+        'SKIP')
+validpgpkeys=('907D226E7E13FA337F014A083672782A9BF368F3') # David Robillard <d@drobilla.net>
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p "$(dirname "$f")" || :
+  done
+}
+
+build() {
+  arch-meson $pkgname-$pkgver build
+  meson compile -C build
+}
+
+check() {
+  meson test -C build
+}
+
+package_sord() {
+  depends=(
+    glibc
+    pcre2
+    serd libserd-0.dylib
+    zix libzix-0.dylib
+  )
+  provides=(libsord-0.dylib)
+  optdepends=('sord-docs: for developer documentation')
+
+  meson install -C build --destdir "$pkgdir"
+  (
+    cd "$pkgdir"
+    _pick $pkgname-docs ${pacman_root#/}/usr/share/doc
+  )
+  install -vDm 644 $pkgname-$pkgver/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  install -vDm 644 $pkgname-$pkgver/{AUTHORS,NEWS,README.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
+}
+
+package_sord-docs() {
+  pkgdesc+=" - documentation"
+
+  mv -v $pkgname/* "$pkgdir"
+  mv -v "$pkgdir/${pacman_root}/usr/share/doc/"sord{-0,}
+}
