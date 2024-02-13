@@ -1,0 +1,9 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -27,2 +28,2 @@
+-  install -Dm644 README.rst "${pkgdir}"/usr/share/doc/${pkgname}/README.rst
+-  install -Dm644 LICENSE "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE
++  install -Dm644 README.rst "${pkgdir}"/${pacman_root}/usr/share/doc/${pkgname}/README.rst
++  install -Dm644 LICENSE "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE

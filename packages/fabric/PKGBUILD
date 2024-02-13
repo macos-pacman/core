@@ -1,0 +1,30 @@
+# Maintainer: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
+# Contributor: Sven-Hendrik Haase <sh@lutzhaase.com>
+# Contributor: Francois Boulogne <fboulogne at april dot org>
+
+pkgname=fabric
+pkgver=3.2.2
+pkgrel=1
+pkgrel+=".1"
+pkgdesc="Python library and command-line tool designed to streamline deploying applications or performing system administration tasks via the SSH protocol"
+url="https://www.fabfile.org/"
+license=('BSD')
+arch=('any')
+depends=('python-paramiko' 'python-invoke' 'python-decorator' 'python-deprecated' 'python-pytest')
+optdepends=('python-patchwork: Common deployment/sysadmin operations')
+makedepends=(python-setuptools python-wheel python-build python-installer)
+source=("https://github.com/fabric/fabric/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha512sums=('469eaf3e17fb1708626ba13e89ede6fac87788f972b2affc60a2f4bc271e9f7de633836ce9597c983a9175296f510e2ddc1177e36ab1e49ca123231ad6ead904')
+
+build() {
+  cd "${srcdir}"/fabric-${pkgver}
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "${srcdir}"/fabric-${pkgver}
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  install -Dm644 README.rst "${pkgdir}"/${pacman_root}/usr/share/doc/${pkgname}/README.rst
+  install -Dm644 LICENSE "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE
+}
