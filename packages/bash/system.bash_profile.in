@@ -19,6 +19,8 @@ prepend_path () {
 
 # This definitely must go in, and right at the front.
 prepend_path '%%PACMAN_ROOT%%/usr/bin'
+append_path '/usr/local/bin'
+append_path '/usr/local/sbin'
 
 # Force PATH to be in the environment
 export PATH

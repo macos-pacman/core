@@ -5,20 +5,12 @@
   ],
   "clean_files": [],
   "ignore_files": [
-    ".SRCINFO",
     "bash.install",
-    "dot.bashrc",
-    "dot.bash_logout",
-    "dot.bash_profile",
-    "system.bashrc",
     "system.bash_logout",
+    "system.bashrc",
+    "dot.bashrc",
     ".SRCINFO",
-    ".SRCINFO",
-    ".SRCINFO",
-    ".SRCINFO",
-    ".SRCINFO",
-    ".SRCINFO",
-    ".SRCINFO",
-    ".SRCINFO"
+    "dot.bash_logout",
+    "dot.bash_profile"
   ]
 }
