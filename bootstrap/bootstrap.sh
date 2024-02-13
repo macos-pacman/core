@@ -34,7 +34,7 @@ msg "Downloading bootstrap archive"
 curl -fSL --progress-bar https://github.com/macos-pacman/core/releases/download/system-bootstrap-$(uname -m)/bootstrap.tar.xz \
 	> bootstrap.tar.xz
 
-msg "Setting up directories (will request root)"
+msg "Setting up directories (might request root password)"
 sudo mkdir -p /opt/pacman
 
 msg "Unpacking archive"
@@ -59,7 +59,7 @@ sudo pacman-key --init
 sudo pacman-key --populate
 
 msg "Synchronising Pacman repositories"
-sudo pacman -Syu --overwrite='/*'
+sudo pacman -Syu --overwrite='/*' $(pactree -uls pacman | sort | paste -sd' ' -)
 
 msg "Done"
 EOF
