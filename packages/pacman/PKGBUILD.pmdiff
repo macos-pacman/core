@@ -3,13 +3,13 @@
 @@ -0,0 +1 @@
 +# vim: set ts=2 sw=2 et:
 @@ -6,0 +8 @@
-+pkgrel+=".28"
++pkgrel+=".30"
 @@ -8 +10 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
 @@ -11 +13 @@
 -depends=('bash' 'glibc' 'libarchive' 'curl' 'gpgme' 'pacman-mirrorlist'
-+depends=('bash' 'glibc' 'libarchive' 'curl' 'gpgme'
++depends=('bash' 'glibc' 'libarchive' 'curl' 'gpgme' 'fakeroot'
 @@ -13,2 +15,2 @@
 -makedepends=('meson' 'asciidoc' 'doxygen')
 -checkdepends=('python' 'fakechroot')
