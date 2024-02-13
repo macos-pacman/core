@@ -1,0 +1,7 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -29 +30 @@
+-  install -Dm644 LICENSE.rst -t "$pkgdir"/usr/share/licenses/$pkgname/
++  install -Dm644 LICENSE.rst -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
