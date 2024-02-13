@@ -34,7 +34,7 @@ msg "Downloading bootstrap archive"
 curl -fSL --progress-bar https://github.com/macos-pacman/core/releases/download/system-bootstrap-$(uname -m)/bootstrap.tar.xz \
 	> bootstrap.tar.xz
 
-msg "sha256: %s" $(shasum -a 256 bootstrap.tar.xz | cut -wf1)
+msg "sha256: $(shasum -a 256 bootstrap.tar.xz | cut -wf1)"
 
 msg "Setting up directories (might request root password)"
 sudo mkdir -p /opt/pacman
