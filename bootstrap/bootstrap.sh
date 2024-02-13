@@ -59,7 +59,7 @@ sudo pacman-key --init
 sudo pacman-key --populate
 
 msg "Synchronising Pacman repositories"
-sudo pacman -Syu
+sudo pacman -Syu --overwrite='/*'
 
 msg "Done"
 EOF
