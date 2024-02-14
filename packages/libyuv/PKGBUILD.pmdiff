@@ -3,17 +3,19 @@
 @@ -4 +4 @@
 -pkgver=r2426+464c51a0
 +pkgver=r2322+3aebf69d
-@@ -7 +7 @@
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -7 +8 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
-@@ -13 +13 @@
+@@ -13 +14 @@
 -_commit=464c51a0353c71f08fe45f683d6a97a638d47833
 +_commit=3aebf69d668177e7ee6dbbe0025e5c3dbb525ff2
-@@ -28 +28,3 @@
+@@ -28 +29,3 @@
 -    -DCMAKE_INSTALL_PREFIX=/usr
 +    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
 +    -DCMAKE_BUILD_TYPE=Release
 +
-@@ -34 +36 @@
+@@ -34 +37 @@
 -  install -Dm644 ${pkgname}/LICENSE -t "${pkgdir}"/usr/share/licenses/${pkgname}/
 +  install -Dm644 ${pkgname}/LICENSE -t "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/
