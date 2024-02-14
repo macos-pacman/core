@@ -33,6 +33,17 @@
  
  		-h|--help)        usage; exit $E_OK ;;
  		-V|--version)     version; exit $E_OK ;;
+@@ -1349,6 +1349,10 @@
+ 	exit $E_OK
+ fi
+ 
++if (( CHECK_ONLY )) && (( ! CHECKFUNC )); then
++	exit $E_OK
++fi
++
+ msg "$(gettext "Making package: %s")" "$pkgbase $basever ($(date +%c))"
+ 
+ # if we are creating a source-only package, go no further
 @@ -1414,6 +1417,15 @@
  	fi
  fi

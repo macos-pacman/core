@@ -5,7 +5,7 @@
 @@ -6 +7,2 @@
 -pkgrel=8
 +pkgrel=9
-+pkgrel+=".32"
++pkgrel+=".35"
 @@ -8 +10 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
@@ -101,7 +101,7 @@
 +            '79e2b649ae4a62528ab55f032395e2b113eb0ac3895c5e3d6fc1fc8825b6acd3'  # macos-no-chroot.patch
 +            '7370ff221767ac9df2d56184f9f66151de92fd59ba2864e209311d7c54df282e'  # pacman-support-oci.patch
 +            'f6db1199753fb09b9d6bbffee67865c65f171dfe61835b0b2ac06e933eac7402'  # pacman-support-oci-fix.patch
-+            '7b04556e9db4814efc8df6cfddc72479a56d4884e4cf30d8f25d70fae47ed14a'  # makepkg-check-only-option.patch
++            '74b676305ad6f8b73cb0920f8dba2b07bdb1a24b70ac9f96b5c1c2de542bf4bc'  # makepkg-check-only-option.patch
 +            'ba2ff8714768ddd5870a4e8c16f647f490a2bb7db03e7ca41650b504ffadf3bb'  # makepkg-msg3-etc.patch
 +            '11040e2bf80a031d51a4c2ec1b3c954b3b788308ce732bedda70ab6923002faf'  # fix-makepkg-profile-path.patch
 +            'b11689f2502a881ab908d64a8c30d442e6713b2a27a78ce3d7ed692390246ef8'  # pacman.conf
