@@ -1,0 +1,8 @@
+--- gdk-pixbuf-query-loaders.hook
++++ gdk-pixbuf-query-loaders.hook
+@@ -6 +6 @@
+-Target = usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/*.so
++Target = %%PACMAN_ROOT_REL%%/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/*.so
+@@ -11 +11 @@
+-Exec = /usr/bin/gdk-pixbuf-query-loaders --update-cache
++Exec = %%PACMAN_ROOT%%/usr/bin/gdk-pixbuf-query-loaders --update-cache
