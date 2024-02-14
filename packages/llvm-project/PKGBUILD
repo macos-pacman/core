@@ -1,6 +1,8 @@
-pkgname=llvm-project
+pkgbase=llvm-project
+pkgname=(llvm-project system-toolchain system-toolchain-libs)
 pkgver=16.0.6
 pkgrel=5
+pkgrel+=".1"
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
@@ -12,70 +14,70 @@ conflicts=('llvm' 'llvm-libs' 'clang' 'libc++' 'compiler-rt' 'lldb' 'lld' 'openm
 provides=(llvm=${pkgver} llvm-libs=${pkgver} clang=${pkgver} libc++=${pkgver} compiler-rt=${pkgver} lldb=${pkgver} lld=${pkgver} 'openmp')
 
 source=(
-	"https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}/llvm-project-${pkgver}.src.tar.xz"
-	'libstdcxx-on-macos.patch'
-	'sysroot-fix.patch'
-	'fix-clangd-paths.patch'
+  "https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}/llvm-project-${pkgver}.src.tar.xz"
+  'libstdcxx-on-macos.patch'
+  'sysroot-fix.patch'
+  'fix-clangd-paths.patch'
 )
 
 sha256sums=(
-	'ce5e71081d17ce9e86d7cbcfa28c4b04b9300f8fb7e78422b1feb6bc52c3028e'
-	'95f3b49c4bf7575b02836d7fd1172dda67bbbf5ed0a5cd1b5cedfccac84a03f6'
-	'0346407ec68a1376232d5ad72196cffbcb1d7b547acc688dc9724687b3859dda'
-	'5fb05e040360dee14ad152ff6faa536d257b05cd68a949df283419fc0adaae8b'
+  'ce5e71081d17ce9e86d7cbcfa28c4b04b9300f8fb7e78422b1feb6bc52c3028e'
+  '95f3b49c4bf7575b02836d7fd1172dda67bbbf5ed0a5cd1b5cedfccac84a03f6'
+  '0346407ec68a1376232d5ad72196cffbcb1d7b547acc688dc9724687b3859dda'
+  '5fb05e040360dee14ad152ff6faa536d257b05cd68a949df283419fc0adaae8b'
 )
 
 prepare() {
-	cd $srcdir/$pkgname-$pkgver.src
-	patch -Np1 -i ../libstdcxx-on-macos.patch
-	patch -Np1 -i ../sysroot-fix.patch
-	patch -Np1 -i ../fix-clangd-paths.patch
+  cd $srcdir/$pkgname-$pkgver.src
+  patch -Np1 -i ../libstdcxx-on-macos.patch
+  patch -Np1 -i ../sysroot-fix.patch
+  patch -Np1 -i ../fix-clangd-paths.patch
 }
 
 build() {
-	cd $srcdir/$pkgname-$pkgver.src
-	export CFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
-	export CXXFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
+  cd $srcdir/$pkgname-$pkgver.src
+  export CFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
+  export CXXFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
 
   rm -rf build-s1 build-s2
 
-	cmake -S llvm -B build-s1 -G Ninja \
-		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
-		-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;pstl;openmp;lldb;lld" \
-		-DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
-		-DLLVM_PARALLEL_LINK_JOBS=1 \
-		-DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind" \
-		-DDEFAULT_SYSROOT=$(xcrun --show-sdk-path) \
-		-DBUILTINS_CMAKE_ARGS=-DCOMPILER_RT_ENABLE_IOS=OFF \
-		-DPGO_INSTRUMENT_LTO=Thin \
-		-DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
-		-C clang/cmake/caches/PGO.cmake
+  cmake -S llvm -B build-s1 -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;pstl;openmp;lldb;lld" \
+    -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
+    -DLLVM_PARALLEL_LINK_JOBS=1 \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind" \
+    -DDEFAULT_SYSROOT=$(xcrun --show-sdk-path) \
+    -DBUILTINS_CMAKE_ARGS=-DCOMPILER_RT_ENABLE_IOS=OFF \
+    -DPGO_INSTRUMENT_LTO=Thin \
+    -DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
+    -C clang/cmake/caches/PGO.cmake
 
-	ninja -C build-s1 stage2-instrumented-generate-profdata
+  ninja -C build-s1 stage2-instrumented-generate-profdata
 
-	cmake -S llvm -B build-s2 -G Ninja \
-		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_FLAGS="${CFLAGS/-O2/-O3}" \
-		-DCMAKE_CXX_FLAGS="${CXXFLAGS/-O2/-O3}" \
-		-DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
-		-DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;pstl;openmp;lldb;lld" \
-		-DLLVM_TARGETS_TO_BUILD="all" \
-		-DLLVM_PARALLEL_LINK_JOBS=1 \
-		-DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind" \
-		-DLLVM_INSTALL_UTILS=ON \
-		-DLLVM_BUILD_LLVM_DYLIB=ON \
-		-DLLVM_LINK_LLVM_DYLIB=ON \
-		-DLLVM_ENABLE_LTO=Thin \
-		-DCMAKE_LIBTOOL=build-s1/bin/llvm-libtool-darwin \
-		-DDEFAULT_SYSROOT=$(xcrun --show-sdk-path) \
-		-DCMAKE_C_COMPILER=$(pwd)/build-s1/bin/clang \
-		-DCMAKE_CXX_COMPILER=$(pwd)/build-s1/bin/clang++ \
-		-DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
-		-DBUILTINS_CMAKE_ARGS=-DCOMPILER_RT_ENABLE_IOS=OFF \
-		-DLLVM_PROFDATA_FILE=./build-s1/tools/clang/stage2-instrumented-bins/tools/clang/utils/perf-training/clang.profdata
+  cmake -S llvm -B build-s2 -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_FLAGS="${CFLAGS/-O2/-O3}" \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS/-O2/-O3}" \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;pstl;openmp;lldb;lld" \
+    -DLLVM_TARGETS_TO_BUILD="all" \
+    -DLLVM_PARALLEL_LINK_JOBS=1 \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind" \
+    -DLLVM_INSTALL_UTILS=ON \
+    -DLLVM_BUILD_LLVM_DYLIB=ON \
+    -DLLVM_LINK_LLVM_DYLIB=ON \
+    -DLLVM_ENABLE_LTO=Thin \
+    -DCMAKE_LIBTOOL=build-s1/bin/llvm-libtool-darwin \
+    -DDEFAULT_SYSROOT=$(xcrun --show-sdk-path) \
+    -DCMAKE_C_COMPILER=$(pwd)/build-s1/bin/clang \
+    -DCMAKE_CXX_COMPILER=$(pwd)/build-s1/bin/clang++ \
+    -DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
+    -DBUILTINS_CMAKE_ARGS=-DCOMPILER_RT_ENABLE_IOS=OFF \
+    -DLLVM_PROFDATA_FILE=./build-s1/tools/clang/stage2-instrumented-bins/tools/clang/utils/perf-training/clang.profdata
 
-	ninja -C build-s2
+  ninja -C build-s2
 }
 
 

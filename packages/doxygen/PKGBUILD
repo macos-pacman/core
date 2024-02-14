@@ -33,7 +33,7 @@ build() {
     -DPYTHON_EXECUTABLE=${pacman_root}/usr/bin/python \
     -Dbuild_doc:BOOL=ON \
     -Dbuild_wizard:BOOL=ON
-  make -C build VERBOSE=1
+  make -C build
   export CAIRO_DEBUG_PDF=1 # https://github.com/doxygen/doxygen/issues/9319
   make -C build docs -j1
 }

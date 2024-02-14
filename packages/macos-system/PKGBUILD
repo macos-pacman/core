@@ -1,6 +1,6 @@
 pkgname=(macos-system tzdata macos-accelerate-blas-lapack)
 pkgver=13.3
-pkgrel=19
+pkgrel=20
 pkgrel+=".1"
 pkgdesc='builtin macos packages'
 arch=('x86_64' 'arm64')
@@ -56,6 +56,12 @@ package_tzdata() {
 }
 
 package_macos-system() {
+  # note: putting these dependencies here makes it more complicated
+  # to bootstrap a system from source, but i think it's fine.
+  depends=(
+    'system-toolchain-libs'  # binary packages might end up depending on libs (eg. libc++) from llvm-project
+    'sed'                    # many PKGBUILDs implicitly depend on GNU sed
+  )
   provides=(
     'sh'
     'pam'

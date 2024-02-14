@@ -1,0 +1,13 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".2"
+@@ -7 +8 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -17 +18 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
+@@ -24 +25 @@
+-  install -Dm644 $pkgname-release-$pkgver/LICENSE.md -t "$pkgdir"/usr/share/licenses/$pkgname/
++  install -Dm644 $pkgname-release-$pkgver/LICENSE.md -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
