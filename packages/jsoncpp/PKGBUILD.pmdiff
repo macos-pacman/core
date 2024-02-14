@@ -1,0 +1,59 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,2 +6 @@
+-pkgbase=jsoncpp
+-pkgname=('jsoncpp' 'jsoncpp-doc')
++pkgname=jsoncpp
+@@ -9,0 +9 @@
++pkgrel+=".1"
+@@ -12 +12 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -14 +14 @@
+-makedepends=('gcc-libs' 'doxygen' 'graphviz' 'python' 'meson')
++makedepends=('gcc-libs' 'python' 'meson')
+@@ -16 +16 @@
+-source=(https://github.com/open-source-parsers/${pkgbase}/archive/${pkgver}/${pkgbase}-${pkgver}.tar.gz)
++source=(https://github.com/open-source-parsers/${pkgname}/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz)
+@@ -21,2 +21,2 @@
+-  cd ${pkgbase}-${pkgver}
+-  echo "${pkgver}" > version
++  cd ${pkgname}-${pkgver}
++  echo "${pkgver}" > pkg_version
+@@ -26 +26 @@
+-  cd ${pkgbase}-${pkgver}
++  cd ${pkgname}-${pkgver}
+@@ -35,5 +34,0 @@
+-
+-  echo "Building docs..."
+-  python doxybuild.py \
+-    --doxygen="$(command -v doxygen)" \
+-    --with-dot
+@@ -43 +38 @@
+-  cd ${pkgbase}-${pkgver}
++  cd ${pkgname}-${pkgver}
+@@ -50 +45 @@
+-package_jsoncpp() {
++package() {
+@@ -52,2 +47 @@
+-  optdepends=('jsoncpp-doc: documentation')
+-  provides=('libjsoncpp.so')
++  provides=('libjsoncpp.dylib')
+@@ -55 +49 @@
+-  cd ${pkgbase}-${pkgver}
++  cd ${pkgname}-${pkgver}
+@@ -58,2 +52,2 @@
+-  install -Dm 644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+-  install -Dm 644 README.md -t "${pkgdir}/usr/share/doc/${pkgname}"
++  install -Dm 644 LICENSE -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
++  install -Dm 644 README.md -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+@@ -62,9 +55,0 @@
+-package_jsoncpp-doc() {
+-  pkgdesc+=' (documentation)'
+-  optdepends=('jsoncpp')
+-
+-  cd ${pkgbase}-${pkgver}
+-  install -Dm 644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+-  install -dm 755 "${pkgdir}/usr/share/doc/${pkgbase}"
+-  cp -a dist/doxygen/jsoncpp-api-html-${pkgver} "${pkgdir}/usr/share/doc/${pkgbase}/html"
+-}
