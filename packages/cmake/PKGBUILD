@@ -33,9 +33,9 @@ build() {
     --mandir=/share/man \
     --docdir=/share/doc/cmake \
     --datadir=/share/cmake \
+    --system-libs \
     --sphinx-man \
     --sphinx-html \
-    --no-debugger \
     --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN) \
     -- \
     -DCMAKE_BUILD_TYPE:STRING=Release \
