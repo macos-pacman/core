@@ -1,0 +1,40 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6 +6 @@
+-pkgver=1.10.0
++pkgver=1.9.7
+@@ -7,0 +8 @@
++pkgrel+=".0"
+@@ -10 +11 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -12,3 +13,2 @@
+-makedepends=('cmake' 'gcc-libs' 'flex' 'qt6-base' 'ghostscript'
+-             'texlive-latexextra' 'texlive-fontutils' 'texlive-fontsrecommended' 'texlive-plaingeneric'
+-             'graphviz' 'python')
++makedepends=('cmake' 'gcc-libs' 'flex' 'qt5-base' 'texlive-core' 'ghostscript'
++             'texlive-latexextra' 'graphviz' 'python' 'git')
+@@ -16,3 +16,3 @@
+-sha256sums=('795692a53136ca9bb9a6cd72656968af7858a78be7d6d011e12ab1dce6b9533c')
+-sha512sums=('d8731796d5513ff5939c234f32f7f31aabc45f5557947741a330b3d33b368fb5ad770ef1d3d7384a402d98229eafeb1f955ef76e9932310b83c1d35a2eef500f')
+-b2sums=('e9eaf70e106aa022bb0edc99082e6bccd5c6879c41be40ce69d2d5e4eb7d1c5ff078fd8f9132206bf546fa78aab7f8bef4584fd1f2d6e1e84b01d2e65933375e')
++sha256sums=('691777992a7240ed1f822a5c2ff2c4273b57c1cf9fc143553d87f91a0c5970ee')
++sha512sums=('2986ea60f9b683d92d81083af74ed17cffa283b9893f61c1d8d62a9d7f0daa8b16057e952163046c96aa9b26a83f8fd55d27b124a3d65f0129acd18866fdb8be')
++b2sums=('69f30fc701e55c9cca0a14da141acbc16403c7c35bb60720415e5851c16ea2ee68bca90a6d88c9b14b98d794c80dc93d2c9e085a8dcd4fd9e6f8111544ce678e')
+@@ -31,2 +31,3 @@
+-    -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+-    -DDOC_INSTALL_DIR:PATH=share/doc/doxygen \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
++    -DDOC_INSTALL_DIR=share/doc/doxygen \
++    -DPYTHON_EXECUTABLE=${pacman_root}/usr/bin/python \
+@@ -49 +50 @@
+-              'qt6-base: for doxywizard')
++              'qt5-base: for doxywizard')
+@@ -54 +55 @@
+-  rm -rf "${pkgdir}/usr/share/doc"
++  rm -rf "${pkgdir}/${pacman_root}/usr/share/doc"
+@@ -63,2 +64,2 @@
+-  rm -rf "${pkgdir}/usr/bin"
+-  rm -rf "${pkgdir}/usr/share/man"
++  rm -rf "${pkgdir}/${pacman_root}/usr/bin"
++  rm -rf "${pkgdir}/${pacman_root}/usr/share/man"
