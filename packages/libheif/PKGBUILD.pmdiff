@@ -1,0 +1,59 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,4 +5,4 @@
+-pkgver=1.17.6
+-pkgrel=3
+-pkgdesc='An HEIF and AVIF file format decoder and encoder'
+-arch=(x86_64)
++pkgver=1.16.1
++pkgrel=2
++pkgdesc='HEIF file format decoder and encoder'
++arch=('x86_64' 'arm64')
+@@ -11,22 +11,13 @@
+-makedepends=(cmake
+-             dav1d
+-             ffmpeg
+-             gdk-pixbuf2
+-             libjpeg
+-             libpng
+-             rav1e
+-             svt-av1)
+-depends=(aom
+-         gcc-libs
+-         glibc
+-         libde265
+-         libwebp
+-         x265)
+-optdepends=('libjpeg: for heif-convert and heif-enc'
+-            'libpng: for heif-convert and heif-enc'
+-            'dav1d: dav1d encoder'
+-            'ffmpeg: hardware decode'
+-            'rav1e: rav1e encoder'
+-            'svt-av1: svt-av1 encoder')
+-source=(https://github.com/strukturag/libheif/releases/download/v$pkgver/libheif-$pkgver.tar.gz)
+-sha256sums=('8390baf4913eda0a183e132cec62b875fb2ef507ced5ddddc98dfd2f17780aee')
++makedepends=(cmake libjpeg libpng gdk-pixbuf2 svt-av1 rav1e)
++depends=(libde265 x265 aom dav1d)
++optdepends=('libjpeg: for heif-convert and heif-enc' 'libpng: for heif-convert and heif-enc'
++            'svt-av1: svt-av1 encoder' 'rav1e: rav1e encoder')
++source=(https://github.com/strukturag/libheif/releases/download/v$pkgver/libheif-$pkgver.tar.gz
++        'fix-macos-compile.patch')
++sha256sums=('ac15b54b6d7c315710e156d119b8a1bfc89f29621e99222b2750b1f31c9c3558'
++            '7df26e5fe1b12bc228cd3a712903fb805fb906651ca402388871c92e3bc60bb6')
++
++prepare() {
++  cd $pkgname-$pkgver
++  patch -Np1 -i ../fix-macos-compile.patch
++}
+@@ -35,7 +26,4 @@
+-  cmake -B build -S $pkgname-$pkgver \
+-    -DCMAKE_INSTALL_PREFIX=/usr \
+-    -DWITH_DAV1D=ON \
+-    -DWITH_RAV1E=ON \
+-    -DWITH_FFMPEG_DECODER=ON \
+-    -DWITH_FFMPEG_DECODER_PLUGIN=ON \
+-    -DWITH_SvtEnc=ON
++  cmake -B build -S $pkgname-$pkgver\
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
++    -DCMAKE_BUILD_TYPE=Release \
++    -DAOM_ENCODER=ON
