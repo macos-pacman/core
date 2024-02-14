@@ -3,7 +3,7 @@
 @@ -9 +9,2 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-+pkgrel+=".10"
++pkgrel+=".11"
 @@ -12,7 +13,3 @@
 -depends=('curl' 'libarchive' 'hicolor-icon-theme' 'jsoncpp' 'libjsoncpp.so' 'libuv' 'rhash' 'cppdap')
 -makedepends=('qt6-base' 'python-sphinx' 'emacs' 'nlohmann-json')
@@ -35,11 +35,12 @@
 @@ -33 +32 @@
 -  ./bootstrap --prefix=/usr \
 +  ./bootstrap --prefix=${pacman_root}/usr \
-@@ -39,3 +38,8 @@
+@@ -36,0 +36 @@
++    --system-libs \
+@@ -39,3 +39,7 @@
 -    --system-libs \
 -    --qt-gui \
 -    --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN)
-+    --no-debugger \
 +    --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN) \
 +    -- \
 +    -DCMAKE_BUILD_TYPE:STRING=Release \
