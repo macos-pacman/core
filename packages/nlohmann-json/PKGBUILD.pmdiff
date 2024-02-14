@@ -1,0 +1,18 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7 +7,2 @@
+-pkgrel=2
++pkgrel=3
++pkgrel+=".1"
+@@ -44,3 +45,3 @@
+-    -D CMAKE_BUILD_TYPE=None
+-    -D CMAKE_INSTALL_PREFIX=/usr
+-    -D CMAKE_INSTALL_LIBDIR=/usr/lib
++    -D CMAKE_BUILD_TYPE=Release
++    -D CMAKE_INSTALL_PREFIX=${pacman_root}/usr
++    -D CMAKE_INSTALL_LIBDIR=${pacman_root}/usr/lib
+@@ -71,2 +72,2 @@
+-  install -vDm 644 $pkgname/README.md -t "$pkgdir/usr/share/doc/$pkgname/"
+-  install -vDm 644 $pkgname/LICENSE.MIT -t "$pkgdir/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgname/README.md -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
++  install -vDm 644 $pkgname/LICENSE.MIT -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
