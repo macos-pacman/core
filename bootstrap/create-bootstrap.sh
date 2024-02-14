@@ -5,7 +5,7 @@ set -o pipefail
 
 download_packages() {
 	IFS=$'\n' read -r -d '' -a package_list < <(pactree -uls pacman | sort) || :
-	package_list+=(default-keyring pacman-contrib)
+	package_list+=(default-keyring pacman-contrib sed)
 
 	# cd $(mktemp -d)
 	mkdir -p tmp
