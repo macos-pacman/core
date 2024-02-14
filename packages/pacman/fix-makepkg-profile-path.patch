@@ -1,0 +1,13 @@
+--- a/scripts/makepkg.sh.in	2024-02-13 18:41:22.525191773 -0500
++++ b/scripts/makepkg.sh.in	2024-02-14 02:09:15.304065823 -0500
+@@ -300,7 +300,9 @@
+ 	# save our shell options and turn off extglob
+ 	local shellopts=$(shopt -p extglob)
+ 	shopt -u extglob
+-	source /etc/profile &>/dev/null
++
++	# god dammit this escaped me for the longest time
++	source $(pacman-root-dir)/etc/profile &>/dev/null
+ 	eval "$shellopts"
+ 
+ 	# umask might have been changed in /etc/profile
