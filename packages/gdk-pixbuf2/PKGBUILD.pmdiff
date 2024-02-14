@@ -1,0 +1,36 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7 +7 @@
+-pkgrel=2
++pkgrel=4
+@@ -10 +10 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -26 +26 @@
+-  gdk-pixbuf-query-loaders.hook
++  gdk-pixbuf-query-loaders.hook.in
+@@ -29 +29 @@
+-            '9fb71d95e6a212779eb0f88dde5a3cee0df7f4d9183f8f9ce286f8cdc14428f0')
++            'aec7338fc0d9a0fb9cb6d4d7909410c8b2fc076cf2d9ab6e2e9c20b0d77ee2fa')
+@@ -37,0 +38,10 @@
++
++  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" \
++      -e "s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g" \
++      ../gdk-pixbuf-query-loaders.hook.in > ../gdk-pixbuf-query-loaders.hook
++
++  # yeet broken tests
++  sed -i.bak -e "/pixbuf-randomly-modified/d" \
++             -e "/pixbuf-readonly-to-mutable/d" \
++             -e "/pixbuf-fail/d" \
++             tests/meson.build
+@@ -53 +63 @@
+-  provides=(libgdk_pixbuf-2.0.so)
++  provides=(libgdk_pixbuf-2.0.dylib)
+@@ -58,2 +68,2 @@
+-  mkdir -p doc/usr/share
+-  mv {"$pkgdir",doc}/usr/share/doc
++  mkdir -p doc/${pacman_root}/usr/share
++  mv {"$pkgdir",doc}/${pacman_root}/usr/share/doc
+@@ -61 +71 @@
+-  install -Dt "$pkgdir/usr/share/libalpm/hooks" -m644 *.hook
++  install -Dt "$pkgdir/${pacman_root}/usr/share/libalpm/hooks" -m644 *.hook

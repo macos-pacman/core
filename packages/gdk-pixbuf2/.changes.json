@@ -1,0 +1,13 @@
+{
+  "upstream_commit": "526c79cfa1facb543f1280c6a3d8eb5474fba083",
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "gdk-pixbuf2.install.pmdiff"
+  ],
+  "clean_files": [
+    "gdk-pixbuf-query-loaders.hook"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

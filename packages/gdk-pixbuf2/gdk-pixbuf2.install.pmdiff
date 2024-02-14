@@ -1,0 +1,5 @@
+--- gdk-pixbuf2.install
++++ gdk-pixbuf2.install
+@@ -2 +2 @@
+-    rm -f /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
++    rm -f $(pacman-root-dir)/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
