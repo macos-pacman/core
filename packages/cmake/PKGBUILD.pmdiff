@@ -3,7 +3,7 @@
 @@ -9 +9,2 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-+pkgrel+=".9"
++pkgrel+=".10"
 @@ -12,7 +13,3 @@
 -depends=('curl' 'libarchive' 'hicolor-icon-theme' 'jsoncpp' 'libjsoncpp.so' 'libuv' 'rhash' 'cppdap')
 -makedepends=('qt6-base' 'python-sphinx' 'emacs' 'nlohmann-json')
@@ -13,7 +13,7 @@
 -  'qt6-base: cmake-gui'
 -)
 +depends=('curl' 'libarchive' 'jsoncpp' 'libjsoncpp.dylib' 'libuv' 'rhash' 'cppdap' 'libiconv')
-+makedepends=('python-sphinx')
++makedepends=('python-sphinx' 'nlohmann-json')
 +optdepends=('qt6-base: cmake-gui')
 @@ -20 +17,2 @@
 -        "https://www.cmake.org/files/v${pkgver%.*}/${pkgname}-${pkgver}-SHA-256.txt"{,.asc})
@@ -35,12 +35,11 @@
 @@ -33 +32 @@
 -  ./bootstrap --prefix=/usr \
 +  ./bootstrap --prefix=${pacman_root}/usr \
-@@ -36,0 +36 @@
-+    --system-libs \
-@@ -39,3 +39,7 @@
+@@ -39,3 +38,8 @@
 -    --system-libs \
 -    --qt-gui \
 -    --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN)
++    --no-debugger \
 +    --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN) \
 +    -- \
 +    -DCMAKE_BUILD_TYPE:STRING=Release \
