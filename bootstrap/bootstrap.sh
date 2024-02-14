@@ -64,7 +64,7 @@ msg "Synchronising Pacman repositories"
 sudo pacman -Syu --overwrite='/*' --noconfirm
 
 msg "Re-installing base packages"
-sudo pacman -S --overwrite='/*' --noconfirm pacman-contrib default-keyring $(pactree -uls pacman | sort | paste -sd' ' -)
+sudo pacman -S --overwrite='/*' --noconfirm pacman-contrib default-keyring sed $(pactree -uls pacman | sort | paste -sd' ' -)
 
 msg "Done"
 EOF
