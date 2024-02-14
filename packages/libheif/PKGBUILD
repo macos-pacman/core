@@ -4,7 +4,7 @@
 pkgname=libheif
 pkgver=1.17.6
 pkgrel=3
-pkgrel+=".0"
+pkgrel+=".1"
 pkgdesc='An HEIF and AVIF file format decoder and encoder'
 arch=('x86_64' 'arm64')
 url='https://github.com/strukturag/libheif'
@@ -29,12 +29,11 @@ optdepends=('libjpeg: for heif-convert and heif-enc'
             'ffmpeg: hardware decode'
             'rav1e: rav1e encoder'
             'svt-av1: svt-av1 encoder')
-source=(https://github.com/strukturag/libheif/releases/download/v$pkgver/libheif-$pkgver.tar.gz
-        'fix-macos-compile.patch')
-sha256sums=('8390baf4913eda0a183e132cec62b875fb2ef507ced5ddddc98dfd2f17780aee'
-            '7df26e5fe1b12bc228cd3a712903fb805fb906651ca402388871c92e3bc60bb6')
+source=(https://github.com/strukturag/libheif/releases/download/v$pkgver/libheif-$pkgver.tar.gz)
+sha256sums=('8390baf4913eda0a183e132cec62b875fb2ef507ced5ddddc98dfd2f17780aee')
 
 build() {
+  export LDFLAGS+=" -Wl,-undefined,dynamic_lookup "
   cmake -B build -S $pkgname-$pkgver \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
     -DWITH_DAV1D=ON \
