@@ -6,6 +6,7 @@ pkgname=(texlive-bin libsynctex)
 _rev=66984
 pkgver=2023.$_rev
 pkgrel=5
+pkgrel+=".1"
 license=(GPL)
 arch=('x86_64' 'arm64')
 makedepends=(git cairo pixman graphite t1lib gd libsigsegv zziplib libpng libjpeg freetype2
@@ -143,6 +144,10 @@ package_texlive-bin() {
 
 # docs are provided in texlive-doc
   rm -r "$pkgdir"/${pacman_root}/usr/share/texmf-dist/doc
+
+# tlmgr is broken: https://wiki.archlinux.org/title/TeX_Live#tlmgr
+# patch: https://bugs.archlinux.org/task/74404
+  sed -i 's/\$Master = "\$Master\/..\/..";/\$Master = "\$Master\/..\/..\/..";/' "$pkgdir/${pacman_root}/usr/share/texmf-dist/scripts/texlive/tlmgr.pl"
 
 # remove libsynctex
   rm "$pkgdir"/${pacman_root}/usr/include/synctex/*

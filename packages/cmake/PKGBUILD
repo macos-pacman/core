@@ -18,7 +18,7 @@ source=("https://www.cmake.org/files/v${pkgver%.*}/${pkgname}-${pkgver}.tar.gz"
         "default.cmake.in")
 sha512sums=('62693c423dd46d252d046662ac34cf9c927b7ec23c213c6b5cd1683636b8bbb5326698af1e7f851f3c01fe3f14dd769b9a8bd405f8f9e73e6d8defae7517cbcb'
             'd34e4c271c7ce55dddb87cfc6ca918d2b970253ace26584b1942933d3adc0ccb4092792aca6c8d59b33bb9111df169715bb91fe3ed1b802b7589c9ce95a66bb5'
-            '76d1fd0dbf7c680c5b571e40ecc8a0665fb7851b811fd6853e2176180aacb6baa91d98a12480e9a968dfa11fb6ad7e7f980302fe05d13c89eda8084837869994')
+            'b991ae8d936291e203f83e01aab1bfe5ec7b51cf00c96c922caafa6d44d97900f56ef6d722af04e795dea7c75bbecd9c9e9dde7466b4b1574e85de088b61dbcb')
 
 prepare() {
   cd ${pkgname}-${pkgver}
