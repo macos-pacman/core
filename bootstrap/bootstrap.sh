@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 set -e -u
+set -o pipefail
 
 msg() {
 	printf "\x1b[32;1m==>\x1b[0m \x1b[1m%s\x1b[0m\n" "$@"
@@ -63,14 +64,13 @@ sudo ln -vsf "${tmp}" "MacOSX.sdk"
 
 # even if we do this, `xcrun --show-sdk-path` is a motherfucker and somehow hunts down MacOSX14.2.sdk.
 # if we delete the 14 sdk folders, it seems to relent. This'll probably hold for 15 etc. down the line.
-for sdk in $(find . -maxdepth 1 -iname "*.sdk" -type l); do
-	tmp="${sdk#MacOSX}"
-
-	# if the major version is a mismatch, yeet it. (no need to remove `.sdk` when matching)
-	if [ $(echo "${sdk#MacOSX}" | cut -d. -f1) != "${major_ver}" ]; then
-		msg "  * Deleting ${sdk}"
-		sudo rm -f "${sdk}"
-	fi
+for sdk in *; do
+    # if the major version is a mismatch, yeet it. (no need to remove `.sdk` when matching)
+    tmp=$(echo "${sdk#MacOSX}" | cut -d. -f1)
+    if [[ "${tmp}" != "${major_ver}" ]] && [[ "${sdk}" != "MacOSX.sdk" ]]; then
+        msg "  * Deleting ${sdk}"
+        sudo rm -f "${sdk}"
+    fi
 done
 popd > /dev/null
 
