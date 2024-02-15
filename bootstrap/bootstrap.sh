@@ -53,7 +53,7 @@ msg "Re-pointing MacOSX.sdk path"
 
 pushd '/Library/Developer/CommandLineTools/SDKs/' > /dev/null
 major_ver=$(sw_vers -productVersion | cut -d. -f1)
-ln -sf "MacOSX.sdk" "MacOSX${major_ver}.sdk"
+sudo ln -sf "MacOSX.sdk" "MacOSX${major_ver}.sdk"
 popd > /dev/null
 
 
