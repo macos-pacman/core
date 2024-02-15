@@ -1,0 +1,13 @@
+{
+  "upstream_commit": "3c2606603aa4a5a3b2d29e560a1bc14986153f49",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "ncurses-6.3-libs.patch",
+    "ncurses-6.3-pkgconfig.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
