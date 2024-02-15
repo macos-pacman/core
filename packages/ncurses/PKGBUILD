@@ -6,6 +6,7 @@
 pkgname=ncurses
 pkgver=6.4
 pkgrel=1
+pkgrel+=".1"
 pkgdesc='System V Release 4.0 curses emulation library'
 arch=(x86_64 arm64)
 url='https://invisible-island.net/ncurses/ncurses.html'
@@ -33,36 +34,44 @@ pacman_root=$(pacman-root-dir)
 
 prepare() {
   # do not link against test libraries
-  patch -Np1 -d $pkgname-$pkgver -i ../$pkgname-6.3-libs.patch
+  patch -Np1 -d $pkgname-${pkgver/_/-} -i ../$pkgname-6.3-libs.patch
   # do not leak build-time LDFLAGS into the pkgconfig files:
   # https://bugs.archlinux.org/task/68523
-  patch -Np1 -d $pkgname-$pkgver -i ../$pkgname-6.3-pkgconfig.patch
+  patch -Np1 -d $pkgname-${pkgver/_/-} -i ../$pkgname-6.3-pkgconfig.patch
   # NOTE: can't run autoreconf because the autotools setup is custom and ancient
 }
 
 build() {
   local configure_options=(
     --prefix=${pacman_root}/usr
+    --disable-root-access
+    --disable-root-environ
+    --disable-setuid-environ
     --enable-widec
     --enable-pc-files
+    --enable-symlinks
+    --enable-overwrite
+    --enable-database
+    --with-terminfo-dirs=${pacman_root}/usr/share/terminfo
     --mandir=${pacman_root}/usr/share/man
     --with-cxx-binding
     --with-cxx-shared
     --with-manpage-format=normal
     --with-pkg-config-libdir=${pacman_root}/usr/lib/pkgconfig
     --with-shared
-    --with-xterm-kbs=del
     --without-ada
   )
 
-  cd $pkgname-$pkgver
+  cd $pkgname-${pkgver/_/-}
   ./configure "${configure_options[@]}"
   make
 }
 
 package() {
-  make DESTDIR="$pkgdir" install -C $pkgname-$pkgver
-  install -vDm 644 $pkgname-$pkgver/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  local _pkgver=${pkgver/_*/}
+
+  make DESTDIR="$pkgdir" install -C $pkgname-${pkgver/_/-}
+  install -vDm 644 $pkgname-${pkgver/_/-}/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
 
   # fool packages looking to link to non-wide-character ncurses libraries
   for lib in ncurses ncurses++ form panel menu; do
@@ -77,8 +86,8 @@ package() {
   # tic and ticinfo functionality is built in by default
   # make sure that anything linking against it links against libncursesw.dylib instead
   for lib in tic tinfo; do
-    ln -sv libncursesw.${pkgver:0:1}.dylib "$pkgdir/${pacman_root}/usr/lib/lib${lib}.dylib"
-    ln -sv libncursesw.${pkgver:0:1}.dylib "$pkgdir/${pacman_root}/usr/lib/lib${lib}.${pkgver:0:1}.dylib"
+    ln -sv libncursesw.${_pkgver:0:1}.dylib "$pkgdir/${pacman_root}/usr/lib/lib${lib}.dylib"
+    ln -sv libncursesw.${_pkgver:0:1}.dylib "$pkgdir/${pacman_root}/usr/lib/lib${lib}.${_pkgver:0:1}.dylib"
     ln -sv ncursesw.pc "$pkgdir/${pacman_root}/usr/lib/pkgconfig/${lib}.pc"
   done
 }
