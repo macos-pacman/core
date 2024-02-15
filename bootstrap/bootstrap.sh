@@ -49,11 +49,13 @@ echo "/opt/pacman/usr/bin/bash" | sudo tee -a /etc/shells
 msg "Changing user's login shell"
 sudo chsh -s /opt/pacman/usr/bin/bash $(whoami)
 
-msg "Re-pointing MacOSX.sdk path"
 
 pushd '/Library/Developer/CommandLineTools/SDKs/' > /dev/null
+
 major_ver=$(sw_vers -productVersion | cut -d. -f1)
-sudo ln -sf "MacOSX.sdk" "MacOSX${major_ver}.sdk"
+msg "Linking MacOSX.sdk -> MacOSX${major_ver}.sdk"
+
+sudo ln -vsf "MacOSX${major_ver}.sdk" "MacOSX.sdk"
 popd > /dev/null
 
 
