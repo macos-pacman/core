@@ -1,45 +1,45 @@
 --- PKGBUILD
 +++ PKGBUILD
-@@ -10 +10 @@
+@@ -10 +11 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
-@@ -16,2 +16 @@
+@@ -16,2 +17 @@
 -provides=(libncurses++w.so libformw.so libmenuw.so libpanelw.so libncursesw.so)
 -replaces=(alacritty-terminfo)
 +provides=(libncurses++w.dylib libformw.dylib libmenuw.dylib libpanelw.dylib libncursesw.dylib)
-@@ -44 +43 @@
+@@ -44 +44 @@
 -    --prefix=/usr
 +    --prefix=${pacman_root}/usr
-@@ -50 +49,5 @@
+@@ -50 +50,5 @@
 -    --mandir=/usr/share/man
 +    --enable-symlinks
 +    --enable-overwrite
 +    --enable-database
 +    --with-terminfo-dirs=${pacman_root}/usr/share/terminfo
 +    --mandir=${pacman_root}/usr/share/man
-@@ -54 +57 @@
+@@ -54 +58 @@
 -    --with-pkg-config-libdir=/usr/lib/pkgconfig
 +    --with-pkg-config-libdir=${pacman_root}/usr/lib/pkgconfig
-@@ -56,2 +58,0 @@
+@@ -56,2 +59,0 @@
 -    --with-versioned-syms
 -    --with-xterm-kbs=del
-@@ -70 +71 @@
+@@ -70 +72 @@
 -  install -vDm 644 $pkgname-${pkgver/_/-}/COPYING -t "$pkgdir/usr/share/licenses/$pkgname/"
 +  install -vDm 644 $pkgname-${pkgver/_/-}/COPYING -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
-@@ -74,2 +75,2 @@
+@@ -74,2 +76,2 @@
 -    printf "INPUT(-l%sw)\n" "${lib}" > "$pkgdir/usr/lib/lib${lib}.so"
 -    ln -sv ${lib}w.pc "$pkgdir/usr/lib/pkgconfig/${lib}.pc"
 +    ln -sv lib${lib}w.dylib "$pkgdir/${pacman_root}/usr/lib/lib${lib}.dylib"
 +    ln -sv ${lib}w.pc "$pkgdir/${pacman_root}/usr/lib/pkgconfig/${lib}.pc"
-@@ -79,2 +80,2 @@
+@@ -79,2 +81,2 @@
 -  printf 'INPUT(-lncursesw)\n' > "$pkgdir/usr/lib/libcursesw.so"
 -  ln -sv libncurses.so "$pkgdir/usr/lib/libcurses.so"
 +  ln -sv libncursesw.dylib "$pkgdir/${pacman_root}/usr/lib/libcursesw.dylib"
 +  ln -sv libncurses.dylib "$pkgdir/${pacman_root}/usr/lib/libcurses.dylib"
-@@ -83 +84 @@
+@@ -83 +85 @@
 -  # make sure that anything linking against it links against libncursesw.so instead
 +  # make sure that anything linking against it links against libncursesw.dylib instead
-@@ -85,3 +86,3 @@
+@@ -85,3 +87,3 @@
 -    printf "INPUT(libncursesw.so.%s)\n" "${_pkgver:0:1}" > "$pkgdir/usr/lib/lib${lib}.so"
 -    ln -sv libncursesw.so.${pkgver:0:1} "$pkgdir/usr/lib/lib${lib}.so.${_pkgver:0:1}"
 -    ln -sv ncursesw.pc "$pkgdir/usr/lib/pkgconfig/${lib}.pc"
