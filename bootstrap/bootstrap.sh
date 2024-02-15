@@ -7,6 +7,12 @@ msg() {
 	printf "\x1b[32;1m==>\x1b[0m \x1b[1m%s\x1b[0m\n" "$@"
 }
 
+die() {
+	echo "${_r}Bootstrap failed! Your system is probably in a weird place now, oops${_n}"
+}
+
+trap die INT TERM
+
 msg "Overview of bootstrap steps:"
 _r=$(tput setaf 1 && tput bold)
 _b=$(tput setaf 7 && tput bold)
@@ -69,7 +75,7 @@ for sdk in *; do
     tmp=$(echo "${sdk#MacOSX}" | cut -d. -f1)
     if [[ "${tmp}" != "${major_ver}" ]] && [[ "${sdk}" != "MacOSX.sdk" ]]; then
         msg "  * Deleting ${sdk}"
-        sudo rm -f "${sdk}"
+        sudo rm -r "${sdk}"
     fi
 done
 popd > /dev/null
