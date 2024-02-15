@@ -17,6 +17,7 @@ ${_b}2.${_n} Unpack the archive at ${_g}/opt/pacman/${_n}
 ${_b}3.${_n} Add ${_g}/opt/pacman/usr/bin/bash${_n} to ${_r}/etc/shells${_n}
 ${_b}4.${_n} Change your login shell to ${_g}/opt/pacman/usr/bin/bash${_n}
 ${_b}5.${_n} Ensure ${_g}/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk${_n} points to the correct major version
+   ${_b}a)${_n} Then delete all other irrelevant SDK versions
 ${_b}6.${_n} Initialise Pacman
    ${_b}a)${_n} Set up Pacman keyrings
    ${_b}b)${_n} Synchronise packages (via ${_g}pacman -Syu${_n})
@@ -59,6 +60,18 @@ tmp=$(readlink "MacOSX${major_ver}.sdk")
 
 sudo rm -f "MacOSX.sdk"
 sudo ln -vsf "${tmp}" "MacOSX.sdk"
+
+# even if we do this, `xcrun --show-sdk-path` is a motherfucker and somehow hunts down MacOSX14.2.sdk.
+# if we delete the 14 sdk folders, it seems to relent. This'll probably hold for 15 etc. down the line.
+for sdk in $(find . -maxdepth 1 -iname "*.sdk" -type l); do
+	tmp="${sdk#MacOSX}"
+
+	# if the major version is a mismatch, yeet it. (no need to remove `.sdk` when matching)
+	if [ $(echo "${sdk#MacOSX}" | cut -d. -f1) != "${major_ver}" ]; then
+		msg "  * Deleting ${sdk}"
+		sudo rm -f "${sdk}"
+	fi
+done
 popd > /dev/null
 
 
