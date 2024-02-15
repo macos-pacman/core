@@ -55,7 +55,10 @@ pushd '/Library/Developer/CommandLineTools/SDKs/' > /dev/null
 major_ver=$(sw_vers -productVersion | cut -d. -f1)
 msg "Linking MacOSX.sdk -> MacOSX${major_ver}.sdk"
 
-sudo ln -vsf "MacOSX${major_ver}.sdk" "MacOSX.sdk"
+tmp=$(readlink "MacOSX${major_ver}.sdk")
+
+sudo rm -f "MacOSX.sdk"
+sudo ln -vsf "${tmp}" "MacOSX.sdk"
 popd > /dev/null
 
 
