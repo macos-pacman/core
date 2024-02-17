@@ -7,6 +7,7 @@ pkgname=libedit
 _pkgver=20221030-3.1
 pkgver=${_pkgver/-/_}
 pkgrel=1
+pkgrel+=".2"
 pkgdesc='Command line editor library providing generic line editing, history, and tokenization functions'
 url='https://thrysoee.dk/editline/'
 arch=('x86_64' 'arm64')
@@ -19,6 +20,8 @@ b2sums=('f4a9784cfc2a30af2778f0e05b6e45ca489555c3009ba050ea19134670ad71fdd099425
 
 build() {
   cd ${pkgname}-${_pkgver}
+
+  export LDFLAGS="${LDFLAGS} -L${pacman_root}/usr/lib/"
   ./configure --prefix=${pacman_root}/usr
   make V=1
 }
