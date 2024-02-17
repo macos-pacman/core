@@ -2,11 +2,10 @@ pkgbase=llvm-project
 pkgname=(llvm-project-runtime llvm-project) # runtime must come first
 pkgver=16.0.6
 pkgrel=6
-pkgrel+=".1"
+pkgrel+=".2"
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
-depends=(python)
 depends=('zlib' 'xz' 'libedit' 'ncurses' 'libxml2' 'python' 'libffi' 'zstd')
 makedepends=('cmake' 'ninja' 'zlib' 'swig' 'python-setuptools')
 options=('staticlibs')
@@ -48,10 +47,10 @@ prepare() {
 
 build() {
   cd $srcdir/$pkgbase-$pkgver.src
-  export CFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
-  export CXXFLAGS+=" -Wno-profile-instr-unprofiled -Wprofile-instr-out-of-date "
+  export CFLAGS+=" -Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date "
+  export CXXFLAGS+=" -Wno-profile-instr-unprofiled -Wno-profile-instr-out-of-date "
 
-  rm -rf build-s1 build-s2
+  # rm -rf build-s1 build-s2
 
   cmake -S llvm -B build-s1 -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
@@ -102,7 +101,7 @@ build() {
 
 check() {
   # tests fail but most of them pass so who cares right?
-  cd llvm-$pkgver.src/build-s2
+  cd $srcdir/$pkgbase-$pkgver.src/build-s2
 
   DYLD_FALLBACK_LIBRARY_PATH=$PWD/lib ninja -k0 check || :
 }
@@ -198,6 +197,12 @@ package_llvm-project-runtime() {
     local _f; for _f in $(find "${pacman_root#/}/usr/lib/" -maxdepth 1 -iname '*.a' -or -iname 'libLLVM*' -or -iname 'libclang*'); do
       _pick "llvm-project" "${_f}"
     done
+
+    _pick "llvm-project" "${pacman_root#/}/usr/lib/libLTO.dylib"
+    _pick "llvm-project" "${pacman_root#/}/usr/lib/libRemarks.dylib"
+
+    _pick "llvm-project" "${pacman_root#/}/usr/lib/liblldb.dylib"
+    _pick "llvm-project" "${pacman_root#/}/usr/lib/liblldb.${pkgver}.dylib"
 
     _pick "llvm-project" "${pacman_root#/}/usr/bin"
     _pick "llvm-project" "${pacman_root#/}/usr/share"

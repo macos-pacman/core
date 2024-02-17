@@ -26,6 +26,12 @@ build() {
 package() {
   cd ${pkgname}-${_pkgver}
   make DESTDIR="${pkgdir}" install
+
+  rm "${pkgdir}"/${pacman_root}/usr/share/man/man3/history.3 # conflicts with readline
+  install -Dm 644 "${pkgdir}"/${pacman_root}/usr/share/man/man3/editline.3 "${pkgdir}"/${pacman_root}/usr/share/man/man3/el.3
+
+  install -Dm 644 ChangeLog -t "${pkgdir}/${pacman_root}/usr/share/doc/${pkgname}"
+  install -Dm 644 COPYING -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
 }
 
 # vim:set sw=2 sts=-1 et:

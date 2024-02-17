@@ -1,0 +1,10 @@
+{
+  "upstream_commit": "8d6ed1127d67bf34763415a7017ea9bb4bce4d8a",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
