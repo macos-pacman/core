@@ -1,0 +1,16 @@
+--- a/lldb/unittests/CMakeLists.txt	2024-02-16 21:40:16.358417645 -0500
++++ b/lldb/unittests/CMakeLists.txt	2024-02-16 22:03:29.493538410 -0500
+@@ -33,7 +33,12 @@
+     POST_BUILD
+     COMMAND "${CMAKE_COMMAND}" -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/Inputs)
+ 
+-  target_link_libraries(${test_name} PRIVATE ${ARG_LINK_LIBS})
++  # link system libraries -- otherwise the editline test chokes.
++  # this is kind of a hack too -- we're assuming the install prefix corresponds to where to find the system libs
++  # it's probably not a wrong assumption, right? it works for our usecase anyway.
++  get_property(system_libs TARGET LLVMSupport PROPERTY LLVM_SYSTEM_LIBS)
++  target_link_directories(${test_name} PRIVATE ${CMAKE_INSTALL_PREFIX}/lib)
++  target_link_libraries(${test_name} PRIVATE ${ARG_LINK_LIBS} ${system_libs})
+ endfunction()
+ 
+ function(add_unittest_inputs test_name inputs)
