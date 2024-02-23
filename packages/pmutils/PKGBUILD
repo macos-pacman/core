@@ -1,8 +1,8 @@
 # Maintainer: zhiayang <zhiayang@nowhere>
 
 pkgname=pmutils
-pkgver=0.6.1
-pkgrel=3
+pkgver=0.6.2
+pkgrel=1
 pkgdesc="Repository management scripts for macos-pacman"
 url="https://github.com/macos-pacman/pmutils"
 license=('Apache')
@@ -15,8 +15,8 @@ depends=('sshpass'
          'python-tqdm'
          'python-click'
          'python-zstandard')
-makedepends=('python-build' 'python-installer' 'python-setuptools')
-_commit='0d38788d62eaf9d975251ea0b418c1a183df5163'
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+_commit='dc02c092be4c633d7ae90d5aa3b448186d956e69'
 source=("git+https://github.com/macos-pacman/pmutils.git#commit=${_commit}")
 sha512sums=('SKIP')
 
