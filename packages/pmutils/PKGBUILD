@@ -1,13 +1,12 @@
 # Maintainer: zhiayang <zhiayang@nowhere>
 
 pkgname=pmutils
-pkgver=0.5.5
-pkgrel=1
+pkgver=0.6.1
+pkgrel=3
 pkgdesc="Repository management scripts for macos-pacman"
 url="https://github.com/macos-pacman/pmutils"
 license=('Apache')
 arch=('any')
-pkgrel+=".6"
 depends=('sshpass'
          'pyalpm'
          'python'
@@ -15,10 +14,9 @@ depends=('sshpass'
          'python-aiohttp'
          'python-tqdm'
          'python-click'
-         'python-zstandard'
-         )
+         'python-zstandard')
 makedepends=('python-build' 'python-installer' 'python-setuptools')
-_commit='df3fc9083be5527fc2fcba91684f4557dd84456b'
+_commit='0d38788d62eaf9d975251ea0b418c1a183df5163'
 source=("git+https://github.com/macos-pacman/pmutils.git#commit=${_commit}")
 sha512sums=('SKIP')
 
@@ -26,6 +24,9 @@ build() {
   cd pmutils
   find . -iname "*.whl" -print -delete
   python -m build --wheel --no-isolation
+
+  # now build the vmhelper
+  make -C vmhelper
 }
 
 package() {
@@ -45,4 +46,6 @@ package() {
   install -Dm644 pm.zsh "$pkgdir"/${pacman_root}/usr/share/zsh/site-functions/_pm
 
   install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/pmutils/
+
+  install -Dm755 vmhelper/vmhelper "$pkgdir/${pacman_root}/usr/bin/pmutils-vmhelper"
 }
