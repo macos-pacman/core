@@ -1,6 +1,6 @@
 pkgname=ca-certificates
 pkgver=2023_12_12
-pkgrel=5
+pkgrel=6
 pkgdesc="Common CA Certificates"
 arch=(any)
 license=(MIT)
