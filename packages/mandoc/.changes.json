@@ -5,10 +5,10 @@
     "configure.local.pmdiff"
   ],
   "clean_files": [
-    "mandoc.service",
-    "mandoc.timer"
   ],
   "ignore_files": [
-    ".SRCINFO"
+    ".SRCINFO",
+    "mandoc.service",
+    "mandoc.timer"
   ]
 }
