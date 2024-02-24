@@ -48,9 +48,16 @@ fi
 
 export TERMINFO_DIRS="$TERMINFO_DIRS:%%PACMAN_ROOT%%/usr/share/terminfo"
 
-export MANPATH="%%PACMAN_ROOT%%/usr/share/man:${MANPATH}"
 export XDG_DATA_DIRS="%%PACMAN_ROOT%%/usr/share:${XDG_DATA_DIRS}"
 export XDG_CONFIG_DIRS="%%PACMAN_ROOT%%/etc/xdg:${XDG_CONFIG_DIRS}"
+
+tmp_manpath="%%PACMAN_ROOT%%/usr/share/man"
+sdk_manpath="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/share/man"
+if test -e "${sdk_manpath}"; then
+	tmp_manpath+=":${sdk_manpath}"
+fi
+
+export MANPATH="${tmp_manpath}:${MANPATH}"
 
 # Termcap is outdated, old, and crusty, kill it.
 unset TERMCAP
