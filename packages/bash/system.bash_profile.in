@@ -51,13 +51,22 @@ export TERMINFO_DIRS="$TERMINFO_DIRS:%%PACMAN_ROOT%%/usr/share/terminfo"
 export XDG_DATA_DIRS="%%PACMAN_ROOT%%/usr/share:${XDG_DATA_DIRS}"
 export XDG_CONFIG_DIRS="%%PACMAN_ROOT%%/etc/xdg:${XDG_CONFIG_DIRS}"
 
-tmp_manpath="%%PACMAN_ROOT%%/usr/share/man"
-sdk_manpath="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/share/man"
-if test -e "${sdk_manpath}"; then
-	tmp_manpath+=":${sdk_manpath}"
+# if we do not have `man-pages` installed, add the SDK (which you should have...) and system manpages to the MANPATH
+# otherwise, `man-pages` includes the system manpages (well more like it symlinks to them because idk what the license is)
+
+manpaths="%%PACMAN_ROOT%%/usr/share/man"
+if test ! -d "%%PACMAN_ROOT%%/etc/profile.d/manpath-profile.sh"; then
+	# "custom" manpages not installed; add the defaults.
+	sdk_manpath="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/share/man"
+	if test -e "${sdk_manpath}"; then
+		manpaths+=":${sdk_manpath}"
+	fi
+
+	# you should always have /usr/share/man... probably
+	manpaths+=":/usr/share/man"
 fi
 
-export MANPATH="${tmp_manpath}:${MANPATH}"
+export MANPATH="${manpaths}:${MANPATH}"
 
 # Termcap is outdated, old, and crusty, kill it.
 unset TERMCAP
