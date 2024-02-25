@@ -1,0 +1,52 @@
+pkgname=man-pages
+pkgver=13.3
+pkgrel=6
+pkgdesc='Symlinks to macOS system-provided manpages'
+arch=('any')
+url=""
+license=('MIT')
+makedepends=('mandoc')
+
+source=('manpath-profile.sh')
+sha256sums=('a592052825b223b18e3de92d2b6cd1fe5131f1d9b621ea7a31562bb1f7b7829b')
+
+_sdkpath="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/"
+prepare() {
+  # make sure we have the SDK installed
+  if [[ ! -e ${_sdkpath} ]]; then
+    error "Cannot build this package without Xcode CLT installed"
+  fi
+}
+
+
+_make_mandoc_db() {
+  if [[ $# -lt 2 ]]; then
+    error "Invalid use of _make_mandoc_db"
+    return 1
+  fi
+
+  local src="$1"
+  local dst="$2"
+
+  # first copy the manpages over so makewhatis doesn't complain
+  cp -r "$src"/* "$dst"/
+  makewhatis -T utf8 "$dst"
+
+  # now yeet the manpages because licensing
+  local d; for d in $(find $dst -mindepth 1 -type d -print); do
+    rm -fr "$d"
+  done
+}
+
+
+package() {
+  cd "$pkgdir"
+  install -dm644 ${pkgdir}/${pacman_root}/usr/share/man-macos
+  install -dm644 ${pkgdir}/${pacman_root}/usr/share/man-macos-sdk
+
+  _make_mandoc_db "/usr/share/man/" "${pkgdir}/${pacman_root}/usr/share/man-macos"
+  _make_mandoc_db "${_sdkpath}/usr/share/man/" "${pkgdir}/${pacman_root}/usr/share/man-macos-sdk"
+
+  # finally, add these new MANPATHs to the bash thingy
+  install -Dm644 "$srcdir/manpath-profile.sh" "${pkgdir}/${pacman_root}/etc/profile.d/"
+}
