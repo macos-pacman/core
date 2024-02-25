@@ -1,7 +1,6 @@
 pkgname=(macos-system tzdata macos-accelerate-blas-lapack)
 pkgver=13.3
-pkgrel=20
-pkgrel+=".1"
+pkgrel=22
 pkgdesc='builtin macos packages'
 arch=('x86_64' 'arm64')
 license=(MIT)
@@ -67,7 +66,7 @@ package_macos-system() {
     'pam'
     'bison=2.3'
     'flex=2.6.4'
-    'ncurses=5.7'
+    # 'ncurses=5.7' -- never use the system ncurses, it sucks
     'readline=6.0'
     'curl=7.79.1'
     'bzip2=1.0.8'
@@ -83,12 +82,12 @@ package_macos-system() {
     'zlib'
     'libiconv=1.11'
     'krb5'
-    'make=3.81'
+    # 'make=3.81' -- most PKGBUILDs probably assume `make == gmake == make > v4`
     'libnsl'
     'libcups'
     'acl'
     'file'
-    'coreutils'
+    'coreutils'    # questionable
     'openssh'
     'gperf=3.0.3'
     'unzip=6.0'
