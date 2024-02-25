@@ -1,8 +1,7 @@
 pkgbase=llvm-project
 pkgname=(llvm-project-runtime llvm-project) # runtime must come first
 pkgver=16.0.6
-pkgrel=7
-pkgrel+=".6"
+pkgrel=9
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
@@ -28,7 +27,7 @@ sha256sums=(
   '95f3b49c4bf7575b02836d7fd1172dda67bbbf5ed0a5cd1b5cedfccac84a03f6'  # libstdcxx-on-macos
   'af308051c99737e194287b72b585010371c2a91558103a55feedc96d671eef76'  # fix-clang-tests
   '629466c885bd99358fb45725ec16d99ea820904322be95a829908007c700f074'  # fix-lldb-tests
-  'e54fbdfc4f147d69cb25234f2d58528602288c8e9a8fd9cab5ee70c0b383b249'  # fix-asan-tests
+  '6d53ebaa3ce23ec51b40e9d3c36becc76e659cb161e1f7b138704e852e6973ce'  # fix-asan-tests
   '3762db63da40ac6fd3e28dc475c6aaa342e7b8547792afa188996ee962dc77ae'  # fix-tsan-tests
 )
 
@@ -254,6 +253,9 @@ package_llvm-project-runtime() {
   for _exe in "${_exes[@]}"; do
     fix_rpath_v2 "${_exe}"
   done
+
+  # libgomp comes from gcc-runtime
+  rm -f ${pkgdir}/${pacman_root}/usr/lib/libgomp*.dylib
 
   # need to codesign the debug server
   msg2 'Codesigning debug server'

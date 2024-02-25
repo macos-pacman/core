@@ -108,3 +108,24 @@ index c06292604..bf0eebc01 100644
  // CHECK-FWRITE: {{.*ERROR: AddressSanitizer: stack-buffer-overflow}}
 -// CHECK-FWRITE: #{{.*}} in {{(wrap_|__interceptor_)?}}fwrite
 +// CHECK-FWRITE: #{{.*}} in {{(_*)(wrap_|__interceptor_)?(fwrite|sfvwrite)}}
+diff --git a/compiler-rt/test/sanitizer_common/TestCases/Darwin/malloc_zone.cpp b/compiler-rt/test/sanitizer_common/TestCases/Darwin/malloc_zone.cpp
+index fd6ef0362..e8a212d94 100644
+--- a/compiler-rt/test/sanitizer_common/TestCases/Darwin/malloc_zone.cpp
++++ b/compiler-rt/test/sanitizer_common/TestCases/Darwin/malloc_zone.cpp
+@@ -8,11 +8,13 @@
+ // MSL=lite creates its own special malloc zone, copies the passed zone name,
+ // and leaks it.
+ // RUN: echo "leak:create_and_insert_msl_lite_zone" >> lsan.supp
++// RUN: echo "leak:libobjc.A.dylib" >> lsan.supp
++// RUN: echo "leak:libobjc.A.dylib" >> lsan.supp1
+ //
+ // RUN: %clangxx -g %s -o %t
+-// RUN:                                                                   %run %t | FileCheck %s
+-// RUN: %env MallocStackLogging=lite LSAN_OPTIONS=suppressions=lsan.supp  %run %t | FileCheck %s
+-// RUN: %env MallocStackLogging=full                                      %run %t | FileCheck %s
++// RUN:                                                                    %run %t | FileCheck %s
++// RUN: %env MallocStackLogging=lite LSAN_OPTIONS=suppressions=lsan.supp   %run %t | FileCheck %s
++// RUN: %env MallocStackLogging=full LSAN_OPTIONS=suppressions=lsan.supp1  %run %t | FileCheck %s
+ //
+ // UBSan does not install a malloc zone.
+ // XFAIL: ubsan
