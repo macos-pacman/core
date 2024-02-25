@@ -1,6 +1,6 @@
 pkgname=man-pages
 pkgver=13.3
-pkgrel=6
+pkgrel=8
 pkgdesc='Symlinks to macOS system-provided manpages'
 arch=('any')
 url=""
@@ -36,13 +36,18 @@ _make_mandoc_db() {
   local d; for d in $(find $dst -mindepth 1 -type d -print); do
     rm -fr "$d"
   done
+
+  # make symlinks to the man folders:
+  for d in $(find "$src" -name "man*" -mindepth 1 -type d -print); do
+    ln -sf "${d}" ${dst}
+  done
 }
 
 
 package() {
   cd "$pkgdir"
-  install -dm644 ${pkgdir}/${pacman_root}/usr/share/man-macos
-  install -dm644 ${pkgdir}/${pacman_root}/usr/share/man-macos-sdk
+  install -dm755 ${pkgdir}/${pacman_root}/usr/share/man-macos
+  install -dm755 ${pkgdir}/${pacman_root}/usr/share/man-macos-sdk
 
   _make_mandoc_db "/usr/share/man/" "${pkgdir}/${pacman_root}/usr/share/man-macos"
   _make_mandoc_db "${_sdkpath}/usr/share/man/" "${pkgdir}/${pacman_root}/usr/share/man-macos-sdk"
