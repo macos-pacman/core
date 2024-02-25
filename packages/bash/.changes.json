@@ -5,12 +5,12 @@
   ],
   "clean_files": [],
   "ignore_files": [
-    "bash.install",
     "system.bash_logout",
+    "bash.install",
     "system.bashrc",
-    "dot.bashrc",
-    ".SRCINFO",
     "dot.bash_logout",
-    "dot.bash_profile"
+    ".SRCINFO",
+    "dot.bash_profile",
+    "dot.bashrc"
   ]
 }
