@@ -55,7 +55,7 @@ export XDG_CONFIG_DIRS="%%PACMAN_ROOT%%/etc/xdg:${XDG_CONFIG_DIRS}"
 # otherwise, `man-pages` includes the system manpages (well more like it symlinks to them because idk what the license is)
 
 manpaths="%%PACMAN_ROOT%%/usr/share/man"
-if test ! -d "%%PACMAN_ROOT%%/etc/profile.d/manpath-profile.sh"; then
+if test ! -e "%%PACMAN_ROOT%%/etc/profile.d/manpath-profile.sh"; then
 	# "custom" manpages not installed; add the defaults.
 	sdk_manpath="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/share/man"
 	if test -e "${sdk_manpath}"; then
