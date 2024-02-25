@@ -1,0 +1,21 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -11 +12 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -15 +16 @@
+-provides=('isl' 'libisl.so')
++provides=('isl' 'libisl.dylib')
+@@ -23 +24 @@
+-  ./configure --prefix=/usr
++  ./configure --prefix=${pacman_root}/usr
+@@ -37,2 +38,2 @@
+-  install -dm755 "${pkgdir}"/usr/share/gdb/auto-load/usr/lib/
+-  mv "${pkgdir}"/usr/lib/libisl.so.*-gdb.py "${pkgdir}"/usr/share/gdb/auto-load/usr/lib/
++  install -dm755 "${pkgdir}"/${pacman_root}/usr/share/gdb/auto-load/usr/lib/
++  mv "${pkgdir}"/${pacman_root}/usr/lib/libisl.*-gdb.py "${pkgdir}"/${pacman_root}/usr/share/gdb/auto-load/usr/lib/
+@@ -40 +41 @@
+-  install -Dm644 LICENSE "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE
++  install -Dm644 LICENSE "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}/LICENSE

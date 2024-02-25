@@ -4,28 +4,41 @@
 # Contributor: Allan McRae <allan@archlinux.org>
 # Contributor: Daniel Kozak <kozzi11@gmail.com>
 
-pkgname=(gcc gcc-fortran gcc-objc gcc-runtime)
-pkgver=13.1.0
-pkgrel=1
-pkgrel+=".1"
+pkgname=(gcc gcc-runtime gcc-fortran gcc-m2 gcc-objc lto-dump libgccjit)
+pkgver=13.2.1
+_majorver=${pkgver%%.*}
+_commit=860b0f0ef787f756c0e293671b4c4622dff63a79
+pkgrel=5
+pkgrel+=".0"
 pkgdesc='The GNU Compiler Collection'
 arch=('x86_64' 'arm64')
-license=(GPL3 LGPL FDL custom)
+license=(GPL-3.0-with-GCC-exception GFDL-1.3-or-later)
 url='https://gcc.gnu.org'
-makedepends=(git autoconf python)
-checkdepends=(dejagnu expect python-pytest tcl)
+makedepends=(
+  doxygen
+  git
+  libisl
+  libmpc
+  python
+  zstd
+)
+checkdepends=(
+  dejagnu
+  expect
+  python-pytest
+  tcl
+)
 options=(!emptydirs !lto)
 _chost=${CHOST/arm64/aarch64}
 _libdir=usr/lib/gcc/$_chost/${pkgver%%+*}
-source=(https://ftp.gnu.org/gnu/gcc/gcc-${pkgver}/gcc-${pkgver}.tar.xz{,.sig}
-       "https://raw.githubusercontent.com/Homebrew/formula-patches/master/gcc/gcc-${pkgver}.diff"
+source=(git+https://sourceware.org/git/gcc.git#commit=${_commit}
+       "https://raw.githubusercontent.com/Homebrew/formula-patches/master/gcc/gcc-13.2.0.diff"
        "sanitisers-undefined-dynamic-lookup.patch")
 validpgpkeys=(F3691687D867B81B51CE07D9BBE43771487328A9  # bpiotrowski@archlinux.org
               86CFFCA918CF3AF47147588051E8B148A9999C34  # evangelos@foutrelis.com
               13975A70E63C361C73AE69EF6EEB81F8981C74C7  # richard.guenther@gmail.com
               D3A93CAD751C2AF4F8C7AD516C35B99309B5FA62) # Jakub Jelinek <jakub@redhat.com>
-sha256sums=('61d684f0aa5e76ac6585ad8898a2427aade8979ed5e7f85492286c4dfc13ee86'
-            'SKIP'
+sha256sums=('SKIP'
             'cb4e8a89387f748a744da0273025d0dc2e3c76780cc390b18ada704676afea11'
             '8ebf1788bd0d0cbcecdd13d2c88e1cecf523fb5bb4d4c1663f146e97e4e02b00')
 
@@ -33,18 +46,20 @@ prepare() {
   [[ ! -d gcc ]] && ln -s gcc-${pkgver/+/-} gcc
   cd gcc
 
-  mkdir -p "$srcdir/gcc-build"
-  mkdir -p "$srcdir/libgccjit-build"
+  # Do not run fixincludes
+  sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
 
   # yes, we are patching a patch
-  cp ../gcc-13.1.0.diff ./gcc-13.1.0.patch
-  patch -Np1 -i ../sanitisers-undefined-dynamic-lookup.patch
+  # cp ../gcc-13.1.0.diff ./gcc-13.1.0.patch
+  # patch -Np1 -i ../sanitisers-undefined-dynamic-lookup.patch
 
-  patch -Np1 -i gcc-13.1.0.patch
+  patch -Np1 -i gcc-13.2.0.patch
 
   # download dependencies
-  contrib/download_prerequisites
+  # contrib/download_prerequisites
 
+  mkdir -p "$srcdir/gcc-build"
+  mkdir -p "$srcdir/libgccjit-build"
 }
 
 build() {
@@ -55,12 +70,15 @@ build() {
       --mandir=${pacman_root}/usr/share/man
       --infodir=${pacman_root}/usr/share/info
       --with-sysroot=$(xcrun --show-sdk-path)
+      --with-build-config=bootstrap-lto
       --with-system-zlib
       --enable-libsanitizer
       --enable-checking=release
       --disable-darwin-at-rpath
       --disable-multilib
+      --enable-lto
       --enable-plugin
+      --disable-libstdcxx-pch
       --disable-werror
       --disable-nls
   )
@@ -77,7 +95,7 @@ build() {
   CXXFLAGS=${CXXFLAGS/-march=native/}
 
   "$srcdir/gcc/configure" \
-    --enable-languages=c,c++,fortran,lto,objc,obj-c++ \
+    --enable-languages=c,c++,fortran,lto,m2,objc,obj-c++ \
     --enable-bootstrap \
     "${_confflags[@]:?_confflags unset}"
 
@@ -85,12 +103,12 @@ build() {
   # note: -Wl,-undefined,dynamic_lookup is needed for sanitizers to build properly (apparently)
   make STAGE1_CFLAGS="-O2 -Wno-mismatched-tags" \
           BOOT_CFLAGS="$CFLAGS -Wno-error=deprecated-declarations -Wno-mismatched-tags" \
-          BOOT_LDFLAGS="$LDFLAGS" \
-          LDFLAGS_FOR_TARGET="$LDFLAGS" \
+          BOOT_LDFLAGS="$LDFLAGS -Wl,-ld64" \
+          LDFLAGS_FOR_TARGET="$LDFLAGS -Wl,-ld64" \
           bootstrap
 
   # make documentation
-  # TODO
+  make -O -C $_chost/libstdc++-v3/doc doc-man-doxygen
 
   # Build libgccjit separately, to avoid building all compilers with --enable-host-shared
   # which brings a performance penalty
@@ -105,8 +123,8 @@ build() {
   # see https://bugs.archlinux.org/task/71777 for rationale re *FLAGS handling
   make STAGE1_CFLAGS="-O2 -Wno-mismatched-tags" \
           BOOT_CFLAGS="$CFLAGS -Wno-mismatched-tags" \
-          BOOT_LDFLAGS="$LDFLAGS" \
-          LDFLAGS_FOR_TARGET="$LDFLAGS" \
+          BOOT_LDFLAGS="$LDFLAGS -Wl,-ld64" \
+          LDFLAGS_FOR_TARGET="$LDFLAGS -Wl,-ld64" \
           all-gcc
 
   cp -a gcc/libgccjit.*.dylib ../gcc-build/gcc/
@@ -139,7 +157,8 @@ package_gcc-runtime() {
              libitm \
              libquadmath \
              libsanitizer/{a,l,ub}san \
-             libstdc++-v3/src; do
+             libstdc++-v3/src \
+             libvtv; do
     make -C ${_chost}/$lib DESTDIR="$pkgdir" install-toolexeclibLTLIBRARIES
   done
 
@@ -163,7 +182,7 @@ package_gcc-runtime() {
 
 package_gcc() {
   pkgdesc="The GNU Compiler Collection - C and C++ frontends"
-  depends=(zstd)
+  depends=(libmpc zstd libisl.dylib)
   options=(!emptydirs staticlibs)
 
   cd gcc-build
@@ -216,10 +235,7 @@ package_gcc() {
   make -C gcc DESTDIR="$pkgdir" install-po
 
   # install the libstdc++ man pages
-  # make -C ${_chost}/libstdc++-v3/doc DESTDIR="$pkgdir" doc-install-man
-
-  # yeet the gfortran thing (it goes in gfortran)
-  rm -f "$pkgdir/${pacman_root}/usr/share/info/gfortran.info"
+  make -C ${_chost}/libstdc++-v3/doc DESTDIR="$pkgdir" doc-install-man
 
   # byte-compile python libraries
   python -m compileall "$pkgdir/${pacman_root}/usr/share/gcc-${pkgver%%+*}/"
@@ -233,7 +249,7 @@ package_gcc() {
 
 package_gcc-fortran() {
   pkgdesc='Fortran front-end for GCC'
-  depends=("gcc=$pkgver-$pkgrel")
+  depends=("gcc=$pkgver-$pkgrel" libisl.dylib)
 
   cd gcc-build
   make -C ${_chost}/libgfortran DESTDIR="$pkgdir" install-cafexeclibLTLIBRARIES \
@@ -252,7 +268,7 @@ package_gcc-fortran() {
 
 package_gcc-objc() {
   pkgdesc='Objective-C front-end for GCC'
-  depends=("gcc=$pkgver-$pkgrel")
+  depends=("gcc=$pkgver-$pkgrel" libisl.dylib)
 
   cd gcc-build
   make DESTDIR="$pkgdir" -C ${_chost}/libobjc install-headers
@@ -267,7 +283,7 @@ package_gcc-objc() {
 
 package_lto-dump() {
   pkgdesc="Dump link time optimization object files"
-  depends=("gcc=$pkgver-$pkgrel")
+  depends=("gcc=$pkgver-$pkgrel" libisl.dylib)
 
   cd gcc-build
   make -C gcc DESTDIR="$pkgdir" lto.install-{common,man,info}
@@ -278,9 +294,27 @@ package_lto-dump() {
     "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
 }
 
+package_gcc-m2() {
+  pkgdesc='Modula-2 frontend for GCC'
+  depends=("gcc=$pkgver-$pkgrel" libisl.dylib)
+
+  cd gcc-build
+  make -C gcc DESTDIR="$pkgdir" m2.install-{common,man,info}
+
+  install -Dm755 gcc/cc1gm2 "$pkgdir/${pacman_root}/$_libdir"/cc1gm2
+  install -Dm755 gcc/gm2 "$pkgdir"/${pacman_root}/usr/bin/gm2
+
+  make -C ${_chost}/libgm2 DESTDIR="$pkgdir" install
+
+  # Install Runtime Library Exception
+  install -d "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+  ln -s /${pacman_root}/usr/share/licenses/gcc-runtime/RUNTIME.LIBRARY.EXCEPTION \
+    "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
+}
+
 package_libgccjit() {
   pkgdesc="Just-In-Time Compilation with GCC backend"
-  depends=("gcc=$pkgver-$pkgrel")
+  depends=("gcc=$pkgver-$pkgrel" libisl.dylib)
 
   cd gcc-build
   make -C gcc DESTDIR="$pkgdir" jit.install-common jit.install-info
