@@ -1,9 +1,10 @@
 --- PKGBUILD
 +++ PKGBUILD
-@@ -9 +9,2 @@
+@@ -7,0 +8 @@
++pkgrel+=".0"
+@@ -9 +10 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-+pkgrel+=".11"
 @@ -12,7 +13,3 @@
 -depends=('curl' 'libarchive' 'hicolor-icon-theme' 'jsoncpp' 'libjsoncpp.so' 'libuv' 'rhash' 'cppdap')
 -makedepends=('qt6-base' 'python-sphinx' 'emacs' 'nlohmann-json')
@@ -15,14 +16,15 @@
 +depends=('curl' 'libarchive' 'jsoncpp' 'libjsoncpp.dylib' 'libuv' 'rhash' 'cppdap' 'libiconv')
 +makedepends=('python-sphinx' 'nlohmann-json')
 +optdepends=('qt6-base: cmake-gui')
-@@ -20 +17,2 @@
+@@ -20,5 +17,5 @@
 -        "https://www.cmake.org/files/v${pkgver%.*}/${pkgname}-${pkgver}-SHA-256.txt"{,.asc})
-+        "toolchain.patch"
-+        "default.cmake.in")
-@@ -22,3 +20,2 @@
+-sha512sums=('62693c423dd46d252d046662ac34cf9c927b7ec23c213c6b5cd1683636b8bbb5326698af1e7f851f3c01fe3f14dd769b9a8bd405f8f9e73e6d8defae7517cbcb'
 -            'd23085b03c33c9ca205b55d8049eb2dd331e1ef4b393d2cd707759ec7b162f79e3a7a84add6231d0ddd144c410fc3e013664946088e809ce7a508bfdb1909392'
 -            'SKIP')
 -validpgpkeys=(CBA23971357C2E6590D9EFD3EC8FEF3A7BFB4EDA) # Brad King <brad.king@kitware.com>
++        "toolchain.patch"
++        "default.cmake.in")
++sha512sums=('66e923925b764e1fe3d150c69dab3e0abd9e0c90d8e30cab63c3a1f70c3e37df0a5e3ff12b378eeae3bdc6608495f41399e6f81602e26b513b19fa19ff6c48fc'
 +            'd34e4c271c7ce55dddb87cfc6ca918d2b970253ace26584b1942933d3adc0ccb4092792aca6c8d59b33bb9111df169715bb91fe3ed1b802b7589c9ce95a66bb5'
 +            'b991ae8d936291e203f83e01aab1bfe5ec7b51cf00c96c922caafa6d44d97900f56ef6d722af04e795dea7c75bbecd9c9e9dde7466b4b1574e85de088b61dbcb')
 @@ -27,2 +24,4 @@
