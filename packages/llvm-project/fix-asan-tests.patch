@@ -23,49 +23,36 @@ diff --git a/compiler-rt/test/asan/lit.cfg.py b/compiler-rt/test/asan/lit.cfg.py
 index 9f42e20dc..f2c3cccab 100644
 --- a/compiler-rt/test/asan/lit.cfg.py
 +++ b/compiler-rt/test/asan/lit.cfg.py
-@@ -62,7 +62,12 @@ default_asan_opts = list(config.default_sanitizer_opts)
+@@ -27,7 +27,12 @@ default_asan_opts = list(config.default_sanitizer_opts)
  # On Darwin, leak checking is not enabled by default. Enable on macOS
  # tests to prevent regressions
- if config.host_os == 'Darwin' and config.apple_platform == 'osx':
--  default_asan_opts += ['detect_leaks=1']
-+  pass # default_asan_opts += ['detect_leaks=1']
+ if config.host_os == "Darwin" and config.apple_platform == "osx":
+-    default_asan_opts += ["detect_leaks=1"]
++    pass # default_asan_opts += ["detect_leaks=1"]
 +
 +default_asan_opts += ["print_suppressions=0"]
 +
-+suppr = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'suppressions.txt')
-+config.environment['LSAN_OPTIONS'] = 'suppressions={}'.format(suppr)
++suppr = os.path.join(os.path.dirname(os.path.realpath(__file__)), "suppressions.txt")
++config.environment["LSAN_OPTIONS"] = "suppressions={}".format(suppr)
  
- default_asan_opts_str = ':'.join(default_asan_opts)
+ default_asan_opts_str = ":".join(default_asan_opts)
  if default_asan_opts_str:
-@@ -247,3 +252,4 @@ if not config.parallelism_group:
- 
- if config.host_os == 'NetBSD':
-   config.substitutions.insert(0, ('%run', config.netbsd_noaslr_prefix))
-+
 diff --git a/compiler-rt/test/sanitizer_common/lit.common.cfg.py b/compiler-rt/test/sanitizer_common/lit.common.cfg.py
 index 13a21c6c4..19a339ba7 100644
 --- a/compiler-rt/test/sanitizer_common/lit.common.cfg.py
 +++ b/compiler-rt/test/sanitizer_common/lit.common.cfg.py
-@@ -1,5 +1,7 @@
- # -*- Python -*-
-
-+import os
-+
- # Setup source root.
- config.test_source_root = os.path.join(os.path.dirname(__file__), "TestCases")
-
-@@ -46,6 +48,11 @@ elif config.android:
-   # which does not work for abort()-terminated programs.
-   default_tool_options += ['abort_on_error=0']
+@@ -60,6 +60,11 @@ elif config.android:
+     # which does not work for abort()-terminated programs.
+     default_tool_options += ["abort_on_error=0"]
 
 +if config.tool_name in ["lsan"]:
-+  suppr = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'suppressions.txt')
-+  default_tool_options += ['suppressions={}'.format(suppr), "print_suppressions=0"]
-+  # default_tool_options += []
++    suppr = os.path.join(os.path.dirname(os.path.realpath(__file__)), "suppressions.txt")
++    default_tool_options += ["suppressions={}".format(suppr), "print_suppressions=0"]
++    # default_tool_options += []
 +
- default_tool_options_str = ':'.join(default_tool_options)
+ default_tool_options_str = ":".join(default_tool_options)
  if default_tool_options_str:
-   config.environment[tool_options] = default_tool_options_str
+     config.environment[tool_options] = default_tool_options_str
 diff --git a/compiler-rt/test/sanitizer_common/TestCases/Posix/dedup_token_length_test.cpp b/compiler-rt/test/sanitizer_common/TestCases/Posix/dedup_token_length_test.cpp
 index deedbba76..155f3d408 100644
 --- a/compiler-rt/test/sanitizer_common/TestCases/Posix/dedup_token_length_test.cpp

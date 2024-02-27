@@ -1,44 +1,19 @@
-diff -purN --speed-large-files -x build /tmp/llvm-project-15.0.2.src/clang/lib/Driver/ToolChains/Darwin.cpp llvm-project-15.0.2.src/clang/lib/Driver/ToolChains/Darwin.cpp
---- /tmp/llvm-project-15.0.2.src/clang/lib/Driver/ToolChains/Darwin.cpp	2022-10-04 17:29:17.000000000 +0800
-+++ llvm-project-15.0.2.src/clang/lib/Driver/ToolChains/Darwin.cpp	2022-12-05 21:56:35.000000000 +0800
-@@ -2404,58 +2404,60 @@ void DarwinClang::AddClangCXXStdlibInclu
+--- a/clang/lib/Driver/ToolChains/Darwin.cpp	2024-02-26 06:32:40.904073642 -0500
++++ b/clang/lib/Driver/ToolChains/Darwin.cpp	2024-02-26 06:42:44.372997061 -0500
+@@ -2534,51 +2534,63 @@
+     break;
    }
  
-   case ToolChain::CST_Libstdcxx:
--    llvm::SmallString<128> UsrIncludeCxx = Sysroot;
--    llvm::sys::path::append(UsrIncludeCxx, "usr", "include", "c++");
-+    // check for libstdc++ in the install prefix. since this is for personal use,
-+    // we know that libstdc++ will never be in the system sysroot anyway (since that's the MacOSX.sdk stuff)
+-  case ToolChain::CST_Libstdcxx:
++  case ToolChain::CST_Libstdcxx: {
+     llvm::SmallString<128> UsrIncludeCxx = Sysroot;
+     llvm::sys::path::append(UsrIncludeCxx, "usr", "include", "c++");
  
 -    llvm::Triple::ArchType arch = getTriple().getArch();
 -    bool IsBaseFound = true;
 -    switch (arch) {
 -    default: break;
 -
--    case llvm::Triple::ppc:
--    case llvm::Triple::ppc64:
--      IsBaseFound = AddGnuCPlusPlusIncludePaths(DriverArgs, CC1Args, UsrIncludeCxx,
--                                                "4.2.1",
--                                                "powerpc-apple-darwin10",
--                                                arch == llvm::Triple::ppc64 ? "ppc64" : "");
--      IsBaseFound |= AddGnuCPlusPlusIncludePaths(DriverArgs, CC1Args, UsrIncludeCxx,
--                                                "4.0.0", "powerpc-apple-darwin10",
--                                                 arch == llvm::Triple::ppc64 ? "ppc64" : "");
--      break;
-+    // Get from '<install>/bin' to '<install>/include/c++/v1'.
-+    // Note that InstallBin can be relative, so we use '..' instead of
-+    // parent_path.
-+    llvm::SmallString<128> HeaderDir =
-+        llvm::StringRef(getDriver().getInstalledDir()); // <install>/bin
-+    llvm::sys::path::append(HeaderDir, "..", "include", "c++");
-+    if (!getVFS().exists(HeaderDir)) {
-+      if (DriverArgs.hasArg(options::OPT_v)) {
-+        llvm::errs() << "ignoring nonexistent directory \"" << HeaderDir
-+                     << "\"\n";
-+      }
-+      return;
-+    }
- 
 -    case llvm::Triple::x86:
 -    case llvm::Triple::x86_64:
 -      IsBaseFound = AddGnuCPlusPlusIncludePaths(DriverArgs, CC1Args, UsrIncludeCxx,
@@ -49,15 +24,7 @@ diff -purN --speed-large-files -x build /tmp/llvm-project-15.0.2.src/clang/lib/D
 -                                                "4.0.0", "i686-apple-darwin8",
 -                                                 "");
 -      break;
-+    // now we should get the highest version. stolen from https://llvm.org/doxygen/MSVCPaths_8cpp_source.html#l00062
-+    std::error_code errc;
-+    llvm::VersionTuple HighestTuple;
-+    bool Found = false;
-+
-+    for (auto DirIt = getVFS().dir_begin(HeaderDir, errc);
-+        !errc && DirIt != llvm::vfs::directory_iterator{};
-+        DirIt.increment(errc)) {
- 
+-
 -    case llvm::Triple::arm:
 -    case llvm::Triple::thumb:
 -      IsBaseFound = AddGnuCPlusPlusIncludePaths(DriverArgs, CC1Args, UsrIncludeCxx,
@@ -69,21 +36,48 @@ diff -purN --speed-large-files -x build /tmp/llvm-project-15.0.2.src/clang/lib/D
 -                                                "arm-apple-darwin10",
 -                                                 "v6");
 -      break;
-+      auto status = getVFS().status(DirIt->path());
-+      if (!status || !status->isDirectory())
-+        continue;
- 
+-
 -    case llvm::Triple::aarch64:
 -      IsBaseFound = AddGnuCPlusPlusIncludePaths(DriverArgs, CC1Args, UsrIncludeCxx,
 -                                                "4.2.1",
 -                                                "arm64-apple-darwin10",
 -                                                "");
 -      break;
-+      auto CandidateName = llvm::sys::path::filename(DirIt->path());
-+      llvm::VersionTuple Tuple;
-+      if (Tuple.tryParse(CandidateName)) { // tryParse() returns true on error.
-+        continue;
++    // check for libstdc++ in the install prefix. since this is for personal use,
++    // we know that libstdc++ will never be in the system sysroot anyway (since that's the MacOSX.sdk stuff)
++    // Get from '<install>/bin' to '<install>/include/c++/v1'.
++    // Note that InstallBin can be relative, so we use '..' instead of parent_path.
++    llvm::SmallString<128> HeaderDir =
++        llvm::StringRef(getDriver().getInstalledDir()); // <install>/bin
++    llvm::sys::path::append(HeaderDir, "..", "include", "c++");
++    if (!getVFS().exists(HeaderDir)) {
++      if (DriverArgs.hasArg(options::OPT_v)) {
++        llvm::errs() << "ignoring nonexistent directory \"" << HeaderDir
++                     << "\"\n";
 +      }
++      return;
+     }
+ 
+-    if (!IsBaseFound) {
+-      getDriver().Diag(diag::warn_drv_libstdcxx_not_found);
++    // now we should get the highest version. stolen from https://llvm.org/doxygen/MSVCPaths_8cpp_source.html#l00062
++    std::error_code errc;
++    llvm::VersionTuple HighestTuple;
++    bool Found = false;
++
++    for (auto DirIt = getVFS().dir_begin(HeaderDir, errc);
++        !errc && DirIt != llvm::vfs::directory_iterator{};
++        DirIt.increment(errc))
++    {
++      auto status = getVFS().status(DirIt->path());
++      if (!status || !status->isDirectory())
++        continue;
++
++      auto CandidateName = llvm::sys::path::filename(DirIt->path());
++
++      llvm::VersionTuple Tuple;
++      if (Tuple.tryParse(CandidateName)) // tryParse() returns true on error.
++        continue;
 +
 +      if (Tuple > HighestTuple)
 +        HighestTuple = Tuple;
@@ -93,21 +87,21 @@ diff -purN --speed-large-files -x build /tmp/llvm-project-15.0.2.src/clang/lib/D
 +      Found = false;
 +    } else {
 +      Found = AddGnuCPlusPlusIncludePaths(DriverArgs, CC1Args, HeaderDir,
-+        HighestTuple.getAsString(),
-+        getTriple().str(),
-+        /* BitDir: */ "");
++          HighestTuple.getAsString(), getTriple().str(), /* BitDir: */ "");
      }
  
--    if (!IsBaseFound) {
 +    if (!Found) {
-       getDriver().Diag(diag::warn_drv_libstdcxx_not_found);
++      getDriver().Diag(diag::warn_drv_libstdcxx_not_found);
 +    } else {
 +      // if we found it, we need to use emulated TLS for libstdc++, for some reason.
 +      CC1Args.push_back("-femulated-tls");
-     }
- 
++    }
      break;
-@@ -2494,12 +2496,23 @@ void DarwinClang::AddCXXStdlibLibArgs(co
++    }
+   }
+ }
+ 
+@@ -2614,12 +2626,23 @@
        }
      }
  
