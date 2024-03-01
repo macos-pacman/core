@@ -2,7 +2,7 @@
 +++ PKGBUILD
 @@ -15 +15 @@
 -	"https://ftp.gnu.org/pub/gnu/${pkgname}/${pkgname}-${pkgver}.tar.xz"{,.sig}
-+    "https://ftp.gnu.org/pub/gnu/${pkgname}/${pkgname}-${pkgver}.tar.xz{,.sig}"
++   "https://ftp.gnu.org/pub/gnu/${pkgname}/${pkgname}-${pkgver}.tar.xz"{,.sig}
 @@ -20,0 +21,6 @@
 +prepare() {
 +	# use glibtoolize on macos
