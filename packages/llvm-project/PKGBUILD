@@ -1,7 +1,7 @@
 pkgbase=llvm-project
 pkgname=(llvm-project-runtime llvm-project) # runtime must come first
 pkgver=17.0.6
-pkgrel=1
+pkgrel=2
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
@@ -111,7 +111,6 @@ build() {
     -DLLVM_BUILD_LLVM_DYLIB=ON \
     -DLLVM_LINK_LLVM_DYLIB=ON \
     -DLLVM_ENABLE_LTO=Thin \
-    -DCLANG_DEFAULT_LINKER=lld \
     -DLLDB_USE_SYSTEM_DEBUGSERVER=ON \
     -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
     -DLIBCXX_ENABLE_SHARED_ABI_LIBRARY=ON \
