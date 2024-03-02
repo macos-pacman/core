@@ -34,7 +34,7 @@ diff '--color=auto' -ur fakeroot-orig/libfakeroot_unix2003.c fakeroot-1.31/libfa
 diff '--color=auto' -ur fakeroot-orig/wrapfunc.inp fakeroot-1.31/wrapfunc.inp
 --- fakeroot-orig/wrapfunc.inp	2023-05-03 13:24:47.173814451 +0800
 +++ fakeroot-1.31/wrapfunc.inp	2023-05-03 14:54:21.754897591 +0800
-@@ -46,13 +46,9 @@
+@@ -46,14 +46,10 @@
  fgetattrlist;int;(int fd, void *attrList, void *attrBuf, size_t attrBufSize, unsigned long options);(fd, attrList, attrBuf, attrBufSize, options)
  #endif
  #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
@@ -42,13 +42,14 @@ diff '--color=auto' -ur fakeroot-orig/wrapfunc.inp fakeroot-1.31/wrapfunc.inp
  #endif
  #endif
  #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
+ #include <spawn.h>
 -lstat$INODE64;int;(const char *file_name, struct stat *buf);(file_name, buf)
 -stat$INODE64;int;(const char *file_name, struct stat *buf);(file_name, buf)
 -fstat$INODE64;int;(int fd, struct stat *buf);(fd, buf)
  posix_spawn;int;(pid_t * __restrict pid, const char * __restrict path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t * __restrict attrp, char *const argv[ __restrict], char *const envp[ __restrict]);(pid, path, file_actions, attrp, argv, envp)
  posix_spawnp;int;(pid_t * __restrict pid, const char * __restrict path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t * __restrict attrp, char *const argv[ __restrict], char *const envp[ __restrict]);(pid, path, file_actions, attrp, argv, envp)
  #endif
-@@ -89,9 +85,6 @@
+@@ -90,9 +86,6 @@
  #endif
  #if defined __APPLE__ && !defined __LP64__
  #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
@@ -58,7 +59,7 @@ diff '--color=auto' -ur fakeroot-orig/wrapfunc.inp fakeroot-1.31/wrapfunc.inp
  #endif
  #endif /* if defined __APPLE__ && !defined __LP64__ */
  mkdir;int;(const char *path, mode_t mode);(path, mode)
-@@ -123,8 +116,6 @@
+@@ -124,8 +117,6 @@
  setregid;int;(SETREGID_ARG rgid, SETREGID_ARG egid);(rgid, egid)
  #if defined __APPLE__ && !defined __LP64__
  #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
@@ -67,7 +68,7 @@ diff '--color=auto' -ur fakeroot-orig/wrapfunc.inp fakeroot-1.31/wrapfunc.inp
  #endif
  #endif /* if defined __APPLE__ && !defined __LP64__ */
  #ifdef HAVE_GETRESUID
-@@ -235,7 +226,6 @@
+@@ -236,7 +227,6 @@
  fts_read;FTSENT *;(FTS *ftsp);(ftsp)
  #ifdef __APPLE__
  #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
@@ -75,7 +76,7 @@ diff '--color=auto' -ur fakeroot-orig/wrapfunc.inp fakeroot-1.31/wrapfunc.inp
  #endif
  #endif /* ifdef __APPLE__ */
  #endif /* HAVE_FTS_READ */
-@@ -243,7 +233,6 @@
+@@ -244,7 +234,6 @@
  fts_children;FTSENT *;(FTS *ftsp, int options);(ftsp, options)
  #ifdef __APPLE__
  #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5

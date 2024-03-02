@@ -1,5 +1,5 @@
---- scripts/fakeroot.in	2024-03-01 22:55:22.861037889 -0500
-+++ scripts/fakeroot.in2	2024-03-01 23:01:59.392660264 -0500
+--- a/scripts/fakeroot.in	2024-03-02 00:00:20.854143320 -0500
++++ b/scripts/fakeroot.in	2024-03-02 00:00:48.818235681 -0500
 @@ -35,7 +35,7 @@
  
  USEABSLIBPATH=@LDPRELOADABS@
@@ -14,10 +14,21 @@
  GETOPTTEST=`getopt -T`
  if test "$?" -eq 4; then # GNU getopt
 -    FAKE_TEMP=`getopt -l lib: -l faked: -l unknown-is-real -l fd-base: -l version -l help -- +l:f:i:s:ub:vh "$@"`
-+    FAKE_TEMP=`getopt -l lib: -l faked: -l unknown-is-real -l fd-base: -l version -l help -- +l:f:i:s:ub:vh "${*@Q}"`
++    FAKE_TEMP=`getopt -l lib: -l faked: -l unknown-is-real -l fd-base: -l version -l help -- +l:f:i:s:ub:vh "${@@Q}"`
  else
 -    FAKE_TEMP=`getopt l:f:i:s:ub:vh "$@"`
-+    FAKE_TEMP=`getopt l:f:i:s:ub:vh "${*@Q}"`
++    FAKE_TEMP=`getopt l:f:i:s:ub:vh "${@@Q}"`
  fi
  
  if test "$?" -ne 0; then
+@@ -104,7 +104,9 @@
+   shift
+ done
+ 
+-shift #get rid of the '--'
++while test "X$1" = "X--"; do
++    shift
++done
+ 
+ # make sure the preload is available
+ ABSLIB=""

@@ -1,0 +1,53 @@
+--- a/scripts/fakeroot.in	2024-03-02 00:00:20.854143320 -0500
++++ b/scripts/fakeroot.in	2024-03-02 01:21:51.397318456 -0500
+@@ -43,18 +43,18 @@
+ 
+ libfound=no
+ 
+-GETOPTTEST=`getopt -T`
+-if test "$?" -eq 4; then # GNU getopt
+-    FAKE_TEMP=`getopt -l lib: -l faked: -l unknown-is-real -l fd-base: -l version -l help -- +l:f:i:s:ub:vh "$@"`
+-else
+-    FAKE_TEMP=`getopt l:f:i:s:ub:vh "$@"`
+-fi
+-
+-if test "$?" -ne 0; then
+-  usage
+-fi
++#GETOPTTEST=`getopt -T`
++#if test "$?" -eq 4; then # GNU getopt
++#    FAKE_TEMP=`getopt -l lib: -l faked: -l unknown-is-real -l fd-base: -l version -l help -- +l:f:i:s:ub:vh "$@"`
++#else
++#    FAKE_TEMP=`getopt l:f:i:s:ub:vh "$@"`
++#fi
++
++#if test "$?" -ne 0; then
++#  usage
++#fi
+ 
+-eval set -- "$FAKE_TEMP"
++#eval set -- "$FAKE_TEMP"
+ 
+ FAKEDOPTS=""
+ PIPEIN=""
+@@ -100,11 +100,19 @@
+     -h|--help)
+        usage
+        ;;
++    -*)
++       usage
++       ;;
++    *)
++       break
++       ;;
+   esac
+   shift
+ done
+ 
+-shift #get rid of the '--'
++if test "X$1" = "X--"; then
++  shift
++fi
+ 
+ # make sure the preload is available
+ ABSLIB=""
