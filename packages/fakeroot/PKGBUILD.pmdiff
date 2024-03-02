@@ -1,0 +1,45 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9 +9 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -12,3 +12 @@
+-install=fakeroot.install
+-depends=('glibc' 'filesystem' 'sed' 'util-linux' 'sh')
+-makedepends=('systemd' 'po4a')
++depends=('glibc' 'bash')
+@@ -16,2 +14,12 @@
+-source=("https://deb.debian.org/debian/pool/main/f/$pkgname/${pkgname}_${pkgver}.orig.tar.gz")
+-sha256sums=('e157d8e5c64d3a755707791e9be93296c6d249d5c4478bf941b675d49c47757d')
++source=("https://deb.debian.org/debian/pool/main/f/$pkgname/${pkgname}_${pkgver}.orig.tar.gz"
++        'fix-tests.patch'
++        'macos-fix.patch')
++sha256sums=('63886d41e11c56c7170b9d9331cca086421b350d257338ef14daad98f77e202f'
++            'f8d1c965c38c778cd18ecc655037c18741e5c30497952ab47e1388c51ececd13'
++            '47292a64b4af8c95f3f84566934f40b68c1dcfdb510875ff2836c901b8823821')
++
++prepare() {
++  cd $pkgname-$pkgver
++  patch -Np1 -i ../fix-tests.patch
++  patch -Np1 -i ../macos-fix.patch
++}
+@@ -22,3 +30,2 @@
+-  ./configure --prefix=/usr \
+-    --libdir=/usr/lib/libfakeroot \
+-    --disable-static \
++  CONFIG_SHELL=${SHELL} ./configure --prefix=${pacman_root}/usr \
++    --libdir=${pacman_root}/usr/lib/libfakeroot \
+@@ -28,3 +34,0 @@
+-
+-  cd doc
+-  po4a -k 0 --rm-backups --variable 'srcdir=../doc/' po4a/po4a.cfg
+@@ -34,0 +39,2 @@
++
++  export DYLD_LIBRARY_PATH="${PWD}/.libs/:${DYLD_LIBRARY_PATH}"
+@@ -41,6 +46,0 @@
+-
+-  install -dm0755 "$pkgdir/usr/lib/ld.so.conf.d/"
+-  echo '/usr/lib/libfakeroot' > "$pkgdir/usr/lib/ld.so.conf.d/fakeroot.conf"
+-
+-  # install README for sysv/tcp usage
+-  install -Dm0644 README "$pkgdir/usr/share/doc/$pkgname/README"

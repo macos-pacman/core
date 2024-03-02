@@ -1,0 +1,11 @@
+{
+  "upstream_commit": "d28f37658fced5f3c9107dc458b39ad02de6ca86",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [],
+  "ignore_files": [
+    ".SRCINFO",
+    "fakeroot.install"
+  ]
+}

@@ -1,0 +1,23 @@
+--- scripts/fakeroot.in	2024-03-01 22:55:22.861037889 -0500
++++ scripts/fakeroot.in2	2024-03-01 23:01:59.392660264 -0500
+@@ -35,7 +35,7 @@
+ 
+ USEABSLIBPATH=@LDPRELOADABS@
+ FAKEROOT_LIB=lib@fakeroot_transformed@@DLSUFFIX@
+-PATHS=@libdir@:${FAKEROOT_PREFIX}/lib64/libfakeroot:${FAKEROOT_PREFIX}/lib32/libfakeroot
++PATHS=@libdir@:${FAKEROOT_PREFIX}/lib/libfakeroot
+ FAKED=${FAKEROOT_BINDIR}/@faked_transformed@
+ 
+ FAKED_MODE="unknown-is-root"
+@@ -45,9 +45,9 @@
+ 
+ GETOPTTEST=`getopt -T`
+ if test "$?" -eq 4; then # GNU getopt
+-    FAKE_TEMP=`getopt -l lib: -l faked: -l unknown-is-real -l fd-base: -l version -l help -- +l:f:i:s:ub:vh "$@"`
++    FAKE_TEMP=`getopt -l lib: -l faked: -l unknown-is-real -l fd-base: -l version -l help -- +l:f:i:s:ub:vh "${*@Q}"`
+ else
+-    FAKE_TEMP=`getopt l:f:i:s:ub:vh "$@"`
++    FAKE_TEMP=`getopt l:f:i:s:ub:vh "${*@Q}"`
+ fi
+ 
+ if test "$?" -ne 0; then
