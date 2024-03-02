@@ -1,3 +1,14 @@
 {
-  "upstream_package": "procps-ng"
+  "upstream_package": "procps-ng",
+  "upstream_commit": "638638b572be191e98b29572c08ea254e892e8ba",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "0001-build-sys-Add-systemd-elogind-to-w.patch",
+    "0002-ps-Don-t-crash-when-using-short-option.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
 }
