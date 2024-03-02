@@ -1,6 +1,6 @@
 pkgname=(macos-system tzdata macos-accelerate-blas-lapack)
 pkgver=13.3
-pkgrel=22
+pkgrel=23
 pkgdesc='builtin macos packages'
 arch=('x86_64' 'arm64')
 license=(MIT)
@@ -76,8 +76,9 @@ package_macos-system() {
     'glibc'
     'gzip'
     'findutils'
-    'perl'
+    # 'perl' -- don't use this, because system perl won't see our perl-* packages
     'git'
+    'tar'
     'gcc-libs'
     'zlib'
     'libiconv=1.11'
