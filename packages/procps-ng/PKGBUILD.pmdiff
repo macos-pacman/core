@@ -16,27 +16,13 @@
 +arch=('x86_64' 'arm64')
 +depends=(ncurses gettext)
 +makedepends=(autoconf automake libtool pkg-config)
-@@ -21,2 +18 @@
+@@ -21 +18 @@
 -source=(https://downloads.sourceforge.net/project/$pkgname/Production/${pkgname}-${pkgver}.tar.xz{,.asc}
--        0001-build-sys-Add-systemd-elogind-to-w.patch
 +source=(https://downloads.sourceforge.net/project/procps-ng/Production/procps-ng-${pkgver}.tar.xz{,.asc}
-@@ -26 +21,0 @@
--            '77ed82ad684c71319704080a09c7d65efa1b06db4f35b240de7c30fef4caafc5'
-@@ -30 +24,0 @@
--        '021b64fac3b48175ec67d180fc294c674088ece483f0ab358c2cfbdbd519ac6dea13274a66624beda79b00c0c770441e7f8369f3a75a90f7cafd469508a81e16'
-@@ -35,4 +29,4 @@
--  sed 's:<ncursesw/:<:g' -i src/watch.c
--  patch -Np1 < ../0001-build-sys-Add-systemd-elogind-to-w.patch
--  patch -Np1 < ../0002-ps-Don-t-crash-when-using-short-option.patch
--  autoreconf -fi
-+  sed -e 's:<ncursesw/:<:g' -i src/watch.c
-+
-+  # patch -Np1 < ../0002-ps-Don-t-crash-when-using-short-option.patch
-+  autoreconf -fiv
-@@ -44 +38 @@
+@@ -44 +41 @@
 -    --prefix=/usr \
 +    --prefix=${pacman_root}/usr \
-@@ -46,4 +40,4 @@
+@@ -46,4 +43,4 @@
 -    --sysconfdir=/etc \
 -    --libdir=/usr/lib \
 -    --bindir=/usr/bin \
@@ -45,16 +31,13 @@
 +    --libdir=${pacman_root}/usr/lib \
 +    --bindir=${pacman_root}/usr/bin \
 +    --sbindir=${pacman_root}/usr/bin \
-@@ -51,3 +45,2 @@
+@@ -51 +48 @@
 -    --with-systemd \
--    --disable-modern-top \
--    --disable-kill
-+    --disable-systemd \
-+    --disable-nls
-@@ -55 +48 @@
++    --without-systemd \
+@@ -55 +52 @@
 -  make
 +  make src/watch
-@@ -60 +53,2 @@
+@@ -60 +57,2 @@
 -  make DESTDIR="$pkgdir" install
 +
 +  install -Dm755 src/watch "${pkgdir}/${pacman_root}/usr/bin/"
