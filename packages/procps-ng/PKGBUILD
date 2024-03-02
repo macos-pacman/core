@@ -1,0 +1,55 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Christian Hesse <eworm@archlinux.org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Gaetan Bisson <bisson@archlinux.org>
+# Contributor: Eric Bélanger <eric@archlinux.org>
+
+pkgname=watch
+pkgver=4.0.4
+pkgrel=2
+pkgdesc='Executes a program periodically, showing output fullscreen'
+url='https://gitlab.com/procps-ng/procps'
+license=(GPL LGPL)
+arch=('x86_64' 'arm64')
+depends=(ncurses gettext)
+makedepends=(autoconf automake libtool pkg-config)
+options=('!emptydirs')
+validpgpkeys=('5D2FB320B825D93904D205193938F96BDF50FEA5') # Craig Small <csmall@debian.org>
+source=(https://downloads.sourceforge.net/project/procps-ng/Production/procps-ng-${pkgver}.tar.xz{,.asc}
+        0002-ps-Don-t-crash-when-using-short-option.patch)
+sha256sums=('22870d6feb2478adb617ce4f09a787addaf2d260c5a8aa7b17d889a962c5e42e'
+            'SKIP'
+            '2331953f1c859b4973b2f99fbc84495b03a2d5e584370da66adbd45cbbf7825a')
+b2sums=('63b972666ef9e92042be96739ffa15c787d0346b2d3ffcb0d240b0a4e999dc90024b2c5b058df683dd9d2c436ceb812abd0b115cc877a6ca1023988b86de443f'
+        'SKIP'
+        '74a40306c3a1c09d1ad26ae34157803e48e95906febcd4730ac27221e5c6184b9fe1eb7ade77e2da193d4c3491d719b1a1b01f75424722a63602f914aa9db9a8')
+
+prepare() {
+  cd procps-ng-$pkgver
+  sed -e 's:<ncursesw/:<:g' -i src/watch.c
+
+  # patch -Np1 < ../0002-ps-Don-t-crash-when-using-short-option.patch
+  autoreconf -fiv
+}
+
+build() {
+  cd procps-ng-$pkgver
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --exec-prefix=/ \
+    --sysconfdir=${pacman_root}/etc \
+    --libdir=${pacman_root}/usr/lib \
+    --bindir=${pacman_root}/usr/bin \
+    --sbindir=${pacman_root}/usr/bin \
+    --enable-watch8bit \
+    --disable-systemd \
+    --disable-nls
+
+  make src/watch
+}
+
+package() {
+  cd procps-ng-$pkgver
+
+  install -Dm755 src/watch "${pkgdir}/${pacman_root}/usr/bin/"
+}
