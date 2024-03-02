@@ -1,0 +1,25 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -13 +13 @@
+-_gccver=13.2.1
++pkgrel+=".1"
+@@ -15 +15 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -18,6 +18,6 @@
+-depends=(sh tar glibc)
+-makedepends=("gcc>=$_gccver" git help2man)
+-checkdepends=(gcc-fortran)
+-provides=("libltdl=$pkgver" "libtool-multilib=$pkgver")
+-conflicts=(libltdl libtool-multilib)
+-replaces=(libltdl libtool-multilib)
++depends=(sh glibc)
++makedepends=(git help2man automake autoconf texinfo)
++checkdepends=(gcc gcc-fortran)
++provides=("libltdl=$pkgver")
++conflicts=(libltdl)
++replaces=(libltdl)
+@@ -66 +66,2 @@
+-  ./configure --prefix=/usr lt_cv_sys_lib_dlsearch_path_spec="/usr/lib /usr/lib32"
++  ./configure --prefix=${pacman_root}/usr --program-prefix='g' \
++    lt_cv_sys_lib_dlsearch_path_spec="${pacman_root}/usr/lib"
