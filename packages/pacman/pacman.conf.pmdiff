@@ -23,9 +23,10 @@
 @@ -33 +34 @@
 -#Color
 +Color
-@@ -37,34 +38 @@
+@@ -37 +38 @@
 -#ParallelDownloads = 5
--
++ParallelDownloads = 5
+@@ -39,35 +40,4 @@
 -# By default, pacman accepts packages signed by keys that its local keyring
 -# trusts (see pacman-key and its man page), as well as unsigned packages.
 -SigLevel    = Required DatabaseOptional
@@ -58,8 +59,7 @@
 -# The testing repositories are disabled by default. To enable, uncomment the
 -# repo name header and Include lines. You can add preferred servers immediately
 -# after the header, and they will be used before the default mirrors.
-+ParallelDownloads = 5
-@@ -72,2 +40,4 @@
+-
 -#[core-testing]
 -#Include = /etc/pacman.d/mirrorlist
 +# PGP signature checking

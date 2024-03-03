@@ -1,0 +1,3 @@
+2. fix failing tests to do with ldconfig and various weird stuff
+	- ok, so the reason a lot of the hook tests fail is because pacman wants to chroot
+	- and thanks to the wisdom of tim apple, we cannot have chroot.

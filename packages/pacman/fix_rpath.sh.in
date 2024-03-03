@@ -19,10 +19,6 @@ _canonicalise_path() {
 	python -c "import pathlib; print(pathlib.Path('$1').resolve())"
 }
 
-_filter_bullshit() {
-    grep -v 'warning: changes being made to the file will invalidate the code signature in: ' < /dev/stdin || :
-}
-
 _get_all_rpath_cmds() {
 	if [ $# -lt 1 ]; then
 		error 'usage: _get_all_rpath_cmds <file>'
@@ -87,6 +83,18 @@ _get_rpath_cmd() {
 	return 1
 }
 
+# returns 1 if we need to resign the file later
+_run_install_name_tool() {
+	local _tmp=$(install_name_tool "$@" 2>&1)
+	if echo "${_tmp}" | grep -q 'will invalidate the code signature'; then
+		return 1
+	elif ! codesign -dv "${_file}" 2>&1 | grep 'CodeDirectory' | grep -q 'linker-signed'; then
+		return 1
+	fi
+
+	return 0
+}
+
 _add_rpath_to_thing() {
 	if [ $# -lt 2 ]; then
 		error 'usage: _add_rpath_to_thing <rpath> <file>'
@@ -111,7 +119,11 @@ _add_rpath_to_thing() {
 
 	# doesn't exist, have to add.
 	msg2 'adding %s to rpath for %s' "${_new_rpath}" "${_file}"
-	install_name_tool -add_rpath "${_new_rpath}" "${_file}" |& _filter_bullshit
+	if ! _run_install_name_tool -add_rpath "${_new_rpath}" "${_file}"; then
+		# need to re-codesign it
+		msg2 'replacing code signature'
+		codesign -fs - "${_file}"
+	fi
 }
 
 
@@ -142,6 +154,8 @@ replace_lib_paths_with_rpath() {
         *) return ;;
 	esac
 
+	local _need_codesign=0
+
 	# check whether we need to change the id of the shared library
 	if [ "${_file##*.}" = "dylib" ] || [[ "${_file_type}" = *"shared library"* ]] || [[ "${_file_type}" = *"Mach-O"*"bundle" ]]; then
 		local _dylib_id
@@ -153,7 +167,9 @@ replace_lib_paths_with_rpath() {
 
 		if [ "${_dylib_id}" != "${_fixed_id}" ]; then
 			msg2 "changing install_id of dylib '%s'" ${_file}
-			install_name_tool -id "${_fixed_id}" "${_file}" |& _filter_bullshit
+			if ! _run_install_name_tool -id "${_fixed_id}" "${_file}"; then
+				_need_codesign=1
+			fi
 		fi
 	fi
 
@@ -192,7 +208,9 @@ replace_lib_paths_with_rpath() {
 				_rpath=$(echo "${_rpath}" | tr -s '/')
 
 				msg2 'changing rpath for %s (%s -> %s)' $(echo "${_file}" | tr -s '/') "${_lib}" "${_rpath}"
-				install_name_tool -change "${_lib}" "${_rpath}" "${_file}" |& _filter_bullshit
+				if ! _run_install_name_tool -change "${_lib}" "${_rpath}" "${_file}"; then
+					_need_codesign=1
+				fi
 
 				# add the rpath (if we need to)
 				_add_rpath_to_thing "${_rpath_root}" "${_file}"
@@ -208,6 +226,11 @@ replace_lib_paths_with_rpath() {
 			*)  ;;
 		esac
 	done
+
+	if [ "${_need_codesign}" = "1" ]; then
+		msg2 'replacing code signature'
+		codesign -fs - "${_file}"
+	fi
 }
 
 
@@ -304,6 +327,7 @@ fix_rpath_v2() {
 
 	local _file; for _file in "${_input_files[@]}"; do
 		local _have_fixes=0
+		local _need_codesign=0
 
 		# msg "looking at '%s'" ${_file}
 
@@ -337,7 +361,9 @@ fix_rpath_v2() {
 				(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
 
 				msg3 "Replacing install_id"
-				install_name_tool -id "${_final_file_path}" "${_file}" |& _filter_bullshit
+				if ! _run_install_name_tool -id "${_final_file_path}" "${_file}"; then
+					_need_codesign=1
+				fi
 			fi
 		fi
 
@@ -424,17 +450,20 @@ fix_rpath_v2() {
 					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
 					msg3 "Replacing '%s' -> '%s'" "${_change_target}" "${_final}"
 
-					install_name_tool -change "${_change_target}" "${_final}" "${_file}" |& _filter_bullshit
+					if ! _run_install_name_tool -change "${_change_target}" "${_final}" "${_file}"; then
+						_need_codesign=1
+					fi
 					;;
 
 				# absolute path that contains pkgdir -- definitely fix
 				"${_pkgdir}"*)
 					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
-					# msg3 "orig: '${_lib}'"
 					msg3 "Removing reference to \$pkgdir in '\$pkgdir/%s'" "${_change_target#${_pkgdir}/}"
 
 					local _fixed="${_change_target#${_pkgdir}}"
-					# install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
+					if ! _run_install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"; then
+						_need_codesign=1
+					fi
 					;;
 
 				# same, but contains srcdir
@@ -447,7 +476,9 @@ fix_rpath_v2() {
 					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
 					msg3 "Removing reference to \$srcdir; replacing '\$srcdir/%s' -> '%s'" "${_change_target#${_srcdir}/}" "${_replacement}"
 
-					install_name_tool -change "${_change_target}" "${_replacement}" "${_file}" |& _filter_bullshit
+					if ! _run_install_name_tool -change "${_change_target}" "${_replacement}" "${_file}"; then
+						_need_codesign=1
+					fi
 					;;
 
 
@@ -473,10 +504,17 @@ fix_rpath_v2() {
 					msg3 "Replacing relative path '%s'" "${_change_target}"
 
 					local _fixed="${_pacman_root}/usr/lib/${_change_target}"
-					install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
+					if ! _run_install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"; then
+						_need_codesign=1
+					fi
 					;;
 			esac
 		done
+
+		if [ "${_need_codesign}" = "1" ]; then
+			msg3 'Replacing code signature'
+			codesign -fs - "${_file}"
+		fi
 	done
 }
 
@@ -576,7 +614,7 @@ fix_rpath() {
 		# the id of the dylib should be '/opt/pacman/${_file_path}'
 		if [ "${_dylib_id}" != "${_file_path}" ]; then
 			msg2 "fixing install_id of dylib '%s'" ${_file_path}
-			install_name_tool -id "${_file_path}" "${_file}" |& _filter_bullshit
+			install_name_tool -id "${_file_path}" "${_file}"
 		fi
 	fi
 
@@ -652,7 +690,7 @@ fix_rpath() {
 				_base=$(basename "/${_rpath}/${_fixed}")
 
 				_fixed="${_dir}/${_base}"
-				install_name_tool -change "${_change_target}" $(echo "${_fixed}" | tr -s '/') "${_file}" |& _filter_bullshit
+				install_name_tool -change "${_change_target}" $(echo "${_fixed}" | tr -s '/') "${_file}"
 				;;
 
 			# absolute path that contains pkgdir -- definitely fix
@@ -660,7 +698,7 @@ fix_rpath() {
 				msg2 "fixing reference to \$pkgdir '%s' in %s" "${_change_target}" "${_file_path#${_pkgdir}/}"
 
 				_fixed="${_change_target#${_pkgdir}}"
-				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
 				;;
 
 			# same, but contains srcdir
@@ -671,7 +709,7 @@ fix_rpath() {
 				warning "using default prefix of ${_pm_root}/usr/lib/"
 
 				_fixed="${_pm_root}/usr/lib/${_lib_name}"
-				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
 				;;
 
 
@@ -691,7 +729,7 @@ fix_rpath() {
 				msg2 "fixing relative path '%s' in %s" "${_change_target}" "${_file_path#${_pkgdir}/}"
 
 				_fixed="${_pm_root}/usr/lib/${_change_target}"
-				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}" |& _filter_bullshit
+				install_name_tool -change "${_change_target}" "${_fixed}" "${_file}"
 				;;
 		esac
 	done

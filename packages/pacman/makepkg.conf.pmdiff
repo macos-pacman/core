@@ -3,7 +3,8 @@
 @@ -3 +3 @@
 -# /etc/makepkg.conf
 +# /opt/pacman/etc/makepkg.conf
-@@ -5,0 +6,25 @@
+@@ -4,0 +5,25 @@
++
 +export CC=clang
 +export CXX=clang++
 +export OBJC=clang
@@ -28,7 +29,6 @@
 +
 +# should not be needed if everything is built correctly
 +# export DYLD_FALLBACK_LIBRARY_PATH=${pacman_root}/usr/lib
-+
 @@ -12,4 +37,4 @@
 -DLAGENTS=('file::/usr/bin/curl -qgC - -o %o %u'
 -          'ftp::/usr/bin/curl -qgfC - --ftp-pasv --retry 3 --retry-delay 3 -o %o %u'

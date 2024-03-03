@@ -5,7 +5,7 @@
 pkgname=pacman
 pkgver=6.0.2
 pkgrel=9
-pkgrel+=".35"
+pkgrel+=".39"
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64' 'arm64')
 url="https://www.archlinux.org/pacman/"
@@ -61,22 +61,21 @@ source=(https://sources.archlinux.org/other/pacman/$pkgname-$pkgver.tar.xz{,.sig
         'fix-makepkg-profile-path.patch'
         'pacman.conf'
         'makepkg.conf')
-
 sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             'SKIP'
-            '6fed94326b9ecfbb438ab17a4576b5e9d52ecc0f4574f29d46adfde3886dee03'  # ...
-            'd2bc104788290e3de829a232590b66ad745cf5b4762a01acc1191ebf70fef114'  # ...
-            'f3d4f39ef24e312f610cbb3439fb02bc6b8829e37bcf1a50ae50cd0a69bde5d0'  # ...
-            'd87d0c9957c613fda272553bee58140349d151ae399f346ddaf6d75ee5916312'  # ...
+            '6fed94326b9ecfbb438ab17a4576b5e9d52ecc0f4574f29d46adfde3886dee03'
+            'd2bc104788290e3de829a232590b66ad745cf5b4762a01acc1191ebf70fef114'
+            'f3d4f39ef24e312f610cbb3439fb02bc6b8829e37bcf1a50ae50cd0a69bde5d0'
+            'd87d0c9957c613fda272553bee58140349d151ae399f346ddaf6d75ee5916312'
             '8641d514ef4cae9e4d1867aadf4b9c850a9e8dc9792c6c559f9d2a0e1713a5a1'
             'b11f62d4bd9557e9d3e7456bc95f63e9eabab5ecee1368f4a14a84bc94b1c8d1'
             'cf749ad981e8f3dedd89c05a5e69a9c91d1e58ef9407e8f8e04ba9c183939623'
             '17e7af22533984924aaf1cf36c74aa26b46b04ad140cd76b65521be906bd3ff7'
             '94d1f3575d0c3faf8bf11fee8e5ef36c8b339ebfd24868931903ba179ffecf4e'
-            '96efb79a96abf8cdcecb9f8dc461552549cf46159f44bb4160eb073e1ea5000a'
+            '468837eed9a4ffd3778f159a7e62f89a38a4244f822a3a5b014daa69e3c65d28'
             '0ac6a34e6fc126a243a642e509f459f6cde20af213ab949791a5cc325cf031f9'
-            '6e81b34e6a5f312d48ce3aaca0f02ddd10b7a43325cb32acf7666b6b7ac41552'
-            '250598a27a3077ec1dfe97a30af8bb0daf449d3ab456ed6a0c7a5bea0eb58f51'
+            'd08d4a56dc3a977fdfd4591c30733fa28976710ffba53786541d98717892dc24'
+            '4a3cdfba490121a20f3648791cd47ba323f3d3d56bf7ced21b9badb1f22d6abc'
             '94c273f07e4e28125b6002567c62e1f6c65f543597de6a8bd79e8c5bf6e4a125'
 
             '0bc2247ab86f52b43dbf1b7d14b772ba9e5e7bc18aa7b6c434147fc4d9572730'  # macos-bsd-touch-date.patch
@@ -91,7 +90,7 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             '6b66c29a0a15689952e7ebb79df7b2a39123d9de6d51f150dc4cc48e739814c9'  # makepkg-rpath-check.patch
             'c22049fba34aa3d019815f48b112c518236a9e696105478dfaaedb15c9d522a4'  # mac_checksums.sh.in
             '35338ee810dd88b07fcb0893ee5452cd6a467ff94cdf6ce00223a6e6b98855c1'  # check_rpath.sh.in
-            'f35ec892e0e5813f4cc3345066af498a42623ee2ba7c6f40da6e110b9115410c'  # fix_rpath.sh.in
+            'b900c86f7fcb01cbc148b85590bd2520c2caf47cd4b8dbbb5844261d380106fe'  # fix_rpath.sh.in
             '69b76b9a2eab66a3d9219d32f379cad426678de6c18485fab132348930f36ac9'  # fix-bin-true.patch
             'dc5e13d965f4c1e12630ba24601a223b908f12fe19d5e3287d7176369acb8fe4'  # fix-test-fakeroot-path.patch
             'fbd50755b9fd9ae11874fd83c94f5f922655e6256b527e4ba61be0e2c6157967'  # macos-bsd-cp.patch
