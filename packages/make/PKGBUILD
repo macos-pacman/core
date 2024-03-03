@@ -7,10 +7,11 @@ pkgver=4.4.1
 pkgrel=2
 pkgdesc="GNU make utility to maintain groups of programs"
 arch=('x86_64' 'arm64')
-pkgrel+=".2"
+pkgrel+=".3"
 url="https://www.gnu.org/software/make"
 license=('GPL3')
 depends=('glibc' 'guile')
+provides=("gnu-make=${pkgver}")
 source=("https://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.lz"{,.sig}
         'fix-glob-stupidity.patch')
 sha256sums=('8814ba072182b605d156d7589c19a43b89fc58ea479b9355146160946f8cf6e9'

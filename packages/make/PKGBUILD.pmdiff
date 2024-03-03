@@ -3,22 +3,23 @@
 @@ -9 +9,2 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-+pkgrel+=".2"
-@@ -13 +14,2 @@
++pkgrel+=".3"
+@@ -13 +14,3 @@
 -source=("https://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.lz"{,.sig})
++provides=("gnu-make=${pkgver}")
 +source=("https://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.lz"{,.sig}
 +        'fix-glob-stupidity.patch')
-@@ -15 +17,2 @@
+@@ -15 +18,2 @@
 -            'SKIP')
 +            'SKIP'
 +            '56deeb0db339644ed3fa56ee3ae6317bb90e77ed902263338b2174af55ea19ea')
-@@ -17,0 +21,5 @@
+@@ -16,0 +21,5 @@
++
 +prepare() {
 +  cd "${pkgname}-${pkgver}"
 +  patch -Np1 -i ../fix-glob-stupidity.patch
 +}
-+
-@@ -20 +28,4 @@
+@@ -20 +29,4 @@
 -	./configure --prefix=/usr
 +	./configure \
 +	  --prefix=${pacman_root}/usr \
