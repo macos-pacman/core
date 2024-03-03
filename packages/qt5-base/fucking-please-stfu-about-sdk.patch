@@ -1,0 +1,31 @@
+--- a/mkspecs/features/mac/default_post.prf	2024-02-14 05:19:05.649874649 -0500
++++ b/mkspecs/features/mac/default_post.prf	2024-02-14 05:19:16.234285446 -0500
+@@ -33,17 +33,17 @@
+         QMAKE_MAC_SDK_MAJOR_VERSION = $$replace(QMAKE_MAC_SDK_VERSION, "(\\d+)(\\.\\d+)(\\.\\d+)?", \\1)
+ 
+         !sdk_no_version_check:!versionAtMost(QMAKE_MAC_SDK_MAJOR_VERSION, $$QT_MAC_SDK_VERSION_MAX) {
+-            warning("Qt has only been tested with version $$QT_MAC_SDK_VERSION_MAX"\
+-                    "of the platform SDK, you're using $${QMAKE_MAC_SDK_MAJOR_VERSION}.")
+-            warning("This is an unsupported configuration. You may experience build issues," \
+-                    "and by using")
+-            warning("the $$QMAKE_MAC_SDK_VERSION SDK you are opting in to new features" \
+-                    "that Qt has not been prepared for.")
+-
+-            warning("Please downgrade the SDK you use to build your app to version" \
+-                    "$$QT_MAC_SDK_VERSION_MAX, or configure")
+-            warning("with CONFIG+=sdk_no_version_check when running qmake" \
+-                    "to silence this warning.")
++#            warning("Qt has only been tested with version $$QT_MAC_SDK_VERSION_MAX"\
++#                    "of the platform SDK, you're using $${QMAKE_MAC_SDK_MAJOR_VERSION}.")
++#            warning("This is an unsupported configuration. You may experience build issues," \
++#                    "and by using")
++#            warning("the $$QMAKE_MAC_SDK_VERSION SDK you are opting in to new features" \
++#                    "that Qt has not been prepared for.")
++#
++#            warning("Please downgrade the SDK you use to build your app to version" \
++#                    "$$QT_MAC_SDK_VERSION_MAX, or configure")
++#            warning("with CONFIG+=sdk_no_version_check when running qmake" \
++#                    "to silence this warning.")
+         }
+     }
+ }

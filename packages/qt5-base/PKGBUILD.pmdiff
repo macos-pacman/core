@@ -1,56 +1,48 @@
 --- PKGBUILD
 +++ PKGBUILD
-@@ -5,6 +5,7 @@
+@@ -5 +5 @@
 -pkgname=(qt5-base qt5-xcb-private-headers)
--_basever=5.15.12
--pkgver=5.15.12+kde+r150
--pkgrel=1
--_commit=f2e586366678383a0fe25fbcd4ecd5d55e7b61cd
--arch=('x86_64')
 +pkgname=(qt5-base)
-+_basever=5.15.10
-+pkgver=5.15.10+kde+r152
-+pkgrel=2
-+_commit=f959f5879597d48e3d3b46d7d395717fe94c78bc
-+pkgrel+=".1"
+@@ -9,1 +9,2 @@
+-arch=('x86_64')
 +arch=('x86_64' 'arm64')
-@@ -14,5 +15,2 @@
++pkgrel+=".1"
+@@ -14,5 +15,7 @@
 -depends=('libjpeg-turbo' 'xcb-util-keysyms' 'xcb-util-renderutil' 'libgl' 'fontconfig' 'xdg-utils'
 -         'shared-mime-info' 'xcb-util-wm' 'libxrender' 'libxi' 'sqlite' 'xcb-util-image' 'mesa'
 -         'tslib' 'libinput' 'libxkbcommon-x11' 'libproxy' 'libcups' 'double-conversion' 'md4c')
 -makedepends=('libfbclient' 'mariadb-libs' 'unixodbc' 'postgresql-libs' 'alsa-lib' 'gst-plugins-base-libs'
 -             'gtk3' 'libpulse' 'cups' 'freetds' 'vulkan-headers' 'git')
-+depends=('libjpeg-turbo' 'fontconfig' 'sqlite' 'libpng' 'pcre2' 'glib2' 'python' 'zlib' 'icu' 'freetype2' 'harfbuzz')
-+makedepends=('mariadb-libs' 'unixodbc' 'postgresql-libs' 'git')
-@@ -20 +17,0 @@
--            'qt5-wayland: to run Qt applications in a Wayland session'
-@@ -24,3 +20,0 @@
--            'libfbclient: Firebird/iBase driver'
--            'freetds: MS SQL driver'
--            'gtk3: GTK platform plugin'
-@@ -29 +23 @@
--groups=('qt5')
-+groups=('qt' 'qt5')
-@@ -32 +25,0 @@
--        work-around-pyside2-brokenness.patch
-@@ -34 +27,3 @@
++depends=('libjpeg-turbo' 'fontconfig'
++         'shared-mime-info' 'sqlite'
++         'pcre2' 'zlib' 'python' 'glib2' 'icu' 'freetype2' 'harfbuzz' 'libpng'
++         'double-conversion' 'md4c')
++makedepends=('mariadb-libs' 'unixodbc' 'postgresql-libs'
++             'pkg-config' 'sed'
++             'git')
+@@ -34 +37,6 @@
 -        qmake-config.patch)
 +        qmake-config.patch
-+        work-around-pyside2-brokenness.patch
-+        stop-fucking-using-xcode.patch)
-@@ -36 +30,0 @@
--            '6a4ec2bfcf4e7cff73346762b252cc28be5ca0ed79fde5e69350efe229b43adc'
-@@ -38 +32,3 @@
++        fucking-stop-using-xcode.patch
++        fucking-please-stfu-about-sdk.patch
++        fucking-fix-mysql-detection.patch
++        fucking-fix-macos-compile.patch
++        backport-503172.patch)
+@@ -38 +46,6 @@
 -            '4abc22150fa3e06b2fdcec32146abc9be4e316692aa4d5bd5aa53b4b726783fa')
 +            '4abc22150fa3e06b2fdcec32146abc9be4e316692aa4d5bd5aa53b4b726783fa'
-+            '6a4ec2bfcf4e7cff73346762b252cc28be5ca0ed79fde5e69350efe229b43adc'
-+            'SKIP')
-@@ -47 +42,0 @@
--  patch -p1 < ../work-around-pyside2-brokenness.patch
-@@ -49,0 +45,2 @@
-+  patch -p1 < ../work-around-pyside2-brokenness.patch
-+  patch -p1 < ../stop-fucking-using-xcode.patch
-@@ -56,8 +53,10 @@
++            '51bea035cbfec099924eb1ad8a2faa2dbe16dd859f2394eb9a819391f7b8489d'
++            'a6ead4329b1a859f001874bc035fc0dc8e92ebeb5e4a7abbf158e4f3bcc2980c'
++            'd992fec118dd843f2e392ef9dd60f5328762608c719f9ea63aa3bbde76efaa7c'
++            '5dbb51f3c702d71f4228ae336c9280798e401374140ab20fbe2b5a3d161ad43f'
++            '757b83f99c7a28790416cbcfa4e4469b966adf3bfb4c21f678703c1a32acc9df')
+@@ -49,0 +63,5 @@
++  patch -p1 < ../fucking-please-stfu-about-sdk.patch
++  patch -p1 < ../fucking-fix-mysql-detection.patch
++  patch -p1 < ../fucking-fix-macos-compile.patch
++  patch -p1 < ../fucking-stop-using-xcode.patch
++  patch -p1 < ../backport-503172.patch
+@@ -56,8 +74,8 @@
 -    -prefix /usr \
 -    -docdir /usr/share/doc/qt \
 -    -headerdir /usr/include/qt \
@@ -67,49 +59,50 @@
 +    -sysconfdir ${pacman_root}/etc/xdg \
 +    -examplesdir ${pacman_root}/usr/share/doc/qt/examples \
 +    -plugin-sql-{psql,mysql,sqlite,odbc} \
-+    -pkg-config \
-+    -fontconfig \
-@@ -64,0 +64,6 @@
-+    -system-zlib \
-+    -system-pcre \
-+    -system-freetype \
-+    -system-harfbuzz \
-+    -glib \
-+    -icu \
-@@ -66,0 +72,2 @@
-+    -no-framework \
-+    -no-securetransport \
-@@ -68,4 +74,0 @@
+@@ -68 +85,0 @@
 -    -dbus-linked \
--    -system-harfbuzz \
+@@ -70,2 +86,0 @@
 -    -journald \
 -    -libproxy \
-@@ -76,3 +79,4 @@
+@@ -76 +91,21 @@
 -    -ltcg
--# No configure flag for fat static libs with lto
--  bin/qmake CONFIG+=fat-static-lto -- -redo
 +    -no-vulkan \
-+    -release
++    -openssl \
++    -openssl-linked \
++    -no-framework \
++    -no-securetransport \
++    -system-freetype \
++    -system-zlib \
++    -system-pcre \
++    -pkg-config \
++    -glib \
++    -icu \
++    -no-debug-and-release \
++    -L "${pacman_root}/usr/lib" \
++    -I "${pacman_root}/usr/include" \
++    QMAKE_CC="${pacman_root}/usr/bin/clang" \
++    QMAKE_CXX="${pacman_root}/usr/bin/clang++ -std=c++11" \
++    QMAKE_LINK="${pacman_root}/usr/bin/clang++"
 +
-+  bin/qmake CONFIG+="sdk_no_version_check" QT_MAC_SDK_NO_VERSION_CHECK=1 -- -redo
-@@ -82 +86 @@
--package_qt5-base() {
-+package() {
-@@ -84 +88 @@
--  depends+=(qt5-translations)
-+  optdepends+=(qt5-translations)
-@@ -89 +93 @@
++  # note: patch this after we generate the things.
++  echo 'CONFIG += c++11' >> config.tests/icu/icu.pro
++
+@@ -78,2 +113,3 @@
+-  bin/qmake CONFIG+=fat-static-lto -- -redo
+-  make
++  bin/qmake -- -redo
++
++  make VERBOSE=1 AR="llvm-libtool-darwin -static -o"
+@@ -89 +125 @@
 -  install -Dm644 LICENSE* -t "$pkgdir"/usr/share/licenses/$pkgbase
 +  install -Dm644 LICENSE* -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgbase
-@@ -92 +96 @@
+@@ -92 +128 @@
 -  find "${pkgdir}/usr/lib" -type f -name '*.prl' \
 +  find "${pkgdir}/${pacman_root}/usr/lib" -type f -name '*.prl' \
-@@ -96,2 +100,2 @@
--  sed -i "s|${srcdir}/${_pkgfqn}|/usr|" \
+@@ -97 +133 @@
 -    "${pkgdir}"/usr/lib/qt/mkspecs/modules/qt_lib_bootstrap_private.pri
-+  sed -i "s|${srcdir}/${_pkgfqn}|${pacman_root}/usr|" \
 +    "${pkgdir}"/${pacman_root}/usr/lib/qt/mkspecs/modules/qt_lib_bootstrap_private.pri
-@@ -100,2 +104,7 @@
+@@ -100,2 +136,7 @@
 -  for b in "${pkgdir}"/usr/bin/*; do
 -    ln -s $(basename $b) "${pkgdir}"/usr/bin/$(basename $b)-qt5
 +  for b in "${pkgdir}"/${pacman_root}/usr/bin/*; do
@@ -118,16 +111,16 @@
 +
 +  # fix rpaths
 +  local _f; for _f in $(find "${pkgdir}/${pacman_root}/usr/lib/qt/plugins" -iname "*.dylib"); do
-+    fix_rpath "${_f}"
-@@ -105,2 +113,0 @@
++    fix_rpath_v2 "${_f}"
+@@ -105,12 +145,0 @@
 -package_qt5-xcb-private-headers() {
 -  pkgdesc='Private headers for Qt5 Xcb'
-@@ -108,4 +114,0 @@
+-
 -  depends=("qt5-base=$pkgver")
 -  optdepends=()
 -  groups=()
 -  conflicts=()
-@@ -113,4 +115,0 @@
+-
 -  cd ${_pkgfqn}
 -  install -d -m755 "$pkgdir"/usr/include/qtxcb-private
 -  cp -r src/plugins/platforms/xcb/*.h "$pkgdir"/usr/include/qtxcb-private/

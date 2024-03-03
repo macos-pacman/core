@@ -3,42 +3,51 @@
 
 pkgbase=qt5-base
 pkgname=(qt5-base)
-_basever=5.15.10
-pkgver=5.15.10+kde+r152
-pkgrel=2
-_commit=f959f5879597d48e3d3b46d7d395717fe94c78bc
+_basever=5.15.12
+pkgver=5.15.12+kde+r151
+pkgrel=1
 pkgrel+=".1"
+_commit=a43df98d037ad07cf096ef2f775958ceba743613
 arch=('x86_64' 'arm64')
 url='https://www.qt.io'
 license=('GPL3' 'LGPL3' 'FDL' 'custom')
 pkgdesc='A cross-platform application and UI framework'
-depends=('libjpeg-turbo' 'fontconfig' 'sqlite' 'libpng' 'pcre2' 'glib2' 'python' 'zlib' 'icu' 'freetype2' 'harfbuzz'
-         'openssl' 'double-conversion' 'md4c')
-makedepends=('mariadb-libs' 'unixodbc' 'postgresql-libs' 'git'
-             'pkg-config')
+depends=('libjpeg-turbo' 'fontconfig'
+         'shared-mime-info' 'sqlite'
+         'pcre2' 'zlib' 'python' 'glib2' 'icu' 'freetype2' 'harfbuzz' 'libpng'
+         'double-conversion' 'md4c')
+makedepends=('mariadb-libs' 'unixodbc' 'postgresql-libs'
+             'pkg-config' 'sed'
+             'git')
 optdepends=('qt5-svg: to use SVG icon themes'
+            'qt5-wayland: to run Qt applications in a Wayland session'
             'postgresql-libs: PostgreSQL driver'
             'mariadb-libs: MariaDB driver'
             'unixodbc: ODBC driver'
+            'libfbclient: Firebird/iBase driver'
+            'freetds: MS SQL driver'
+            'gtk3: GTK platform plugin'
             'perl: for fixqt4headers and syncqt')
 conflicts=('qtchooser')
-groups=('qt' 'qt5')
+groups=('qt5')
 _pkgfqn=${pkgbase/5-/}
 source=(git+https://invent.kde.org/qt/qt/$_pkgfqn#commit=$_commit
+        work-around-pyside2-brokenness.patch
         qmake-cflags.patch
         qmake-config.patch
-        work-around-pyside2-brokenness.patch
         fucking-stop-using-xcode.patch
         fucking-please-stfu-about-sdk.patch
         fucking-fix-mysql-detection.patch
+        fucking-fix-macos-compile.patch
         backport-503172.patch)
 sha256sums=('SKIP'
+            '6a4ec2bfcf4e7cff73346762b252cc28be5ca0ed79fde5e69350efe229b43adc'
             '5411edbe215c24b30448fac69bd0ba7c882f545e8cf05027b2b6e2227abc5e78'
             '4abc22150fa3e06b2fdcec32146abc9be4e316692aa4d5bd5aa53b4b726783fa'
-            '6a4ec2bfcf4e7cff73346762b252cc28be5ca0ed79fde5e69350efe229b43adc'
             '51bea035cbfec099924eb1ad8a2faa2dbe16dd859f2394eb9a819391f7b8489d'
             'a6ead4329b1a859f001874bc035fc0dc8e92ebeb5e4a7abbf158e4f3bcc2980c'
             'd992fec118dd843f2e392ef9dd60f5328762608c719f9ea63aa3bbde76efaa7c'
+            '5dbb51f3c702d71f4228ae336c9280798e401374140ab20fbe2b5a3d161ad43f'
             '757b83f99c7a28790416cbcfa4e4469b966adf3bfb4c21f678703c1a32acc9df')
 
 pkgver() {
@@ -48,11 +57,12 @@ pkgver() {
 
 prepare() {
   cd ${_pkgfqn}
+  patch -p1 < ../work-around-pyside2-brokenness.patch
   patch -p1 < ../qmake-cflags.patch # Use system CFLAGS in qmake
   patch -p1 < ../qmake-config.patch # Don't strip binaries with qmake and use -ltcg, cf. QTBUG-73834
-  patch -p1 < ../work-around-pyside2-brokenness.patch
   patch -p1 < ../fucking-please-stfu-about-sdk.patch
   patch -p1 < ../fucking-fix-mysql-detection.patch
+  patch -p1 < ../fucking-fix-macos-compile.patch
   patch -p1 < ../fucking-stop-using-xcode.patch
   patch -p1 < ../backport-503172.patch
 }
@@ -69,35 +79,45 @@ build() {
     -sysconfdir ${pacman_root}/etc/xdg \
     -examplesdir ${pacman_root}/usr/share/doc/qt/examples \
     -plugin-sql-{psql,mysql,sqlite,odbc} \
-    -pkg-config \
-    -fontconfig \
     -system-sqlite \
-    -system-zlib \
-    -system-pcre \
-    -system-freetype \
-    -system-harfbuzz \
-    -glib \
-    -icu \
-    -openssl \
     -openssl-linked \
     -nomake examples \
-    -no-framework \
-    -no-securetransport \
     -no-rpath \
+    -system-harfbuzz \
     -no-mimetype-database \
     -no-use-gold-linker \
     -no-reduce-relocations \
     -no-strip \
     -no-vulkan \
-    -release
+    -openssl \
+    -openssl-linked \
+    -no-framework \
+    -no-securetransport \
+    -system-freetype \
+    -system-zlib \
+    -system-pcre \
+    -pkg-config \
+    -glib \
+    -icu \
+    -no-debug-and-release \
+    -L "${pacman_root}/usr/lib" \
+    -I "${pacman_root}/usr/include" \
+    QMAKE_CC="${pacman_root}/usr/bin/clang" \
+    QMAKE_CXX="${pacman_root}/usr/bin/clang++ -std=c++11" \
+    QMAKE_LINK="${pacman_root}/usr/bin/clang++"
 
-  bin/qmake CONFIG+="sdk_no_version_check" -- -redo
-  make
+  # note: patch this after we generate the things.
+  echo 'CONFIG += c++11' >> config.tests/icu/icu.pro
+
+# No configure flag for fat static libs with lto
+  bin/qmake -- -redo
+
+  make VERBOSE=1 AR="llvm-libtool-darwin -static -o"
 }
 
-package() {
+package_qt5-base() {
   pkgdesc='A cross-platform application and UI framework'
-  optdepends+=(qt5-translations)
+  depends+=(qt5-translations)
 
   cd ${_pkgfqn}
   make INSTALL_ROOT="${pkgdir}" install
@@ -109,7 +129,7 @@ package() {
     -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;
 
   # Fix wrong qmake path in pri file
-  sed -i "s|${srcdir}/${_pkgfqn}|${pacman_root}/usr|" \
+  sed -i "s|${srcdir}/${_pkgfqn}|/usr|" \
     "${pkgdir}"/${pacman_root}/usr/lib/qt/mkspecs/modules/qt_lib_bootstrap_private.pri
 
   # Symlinks for backwards compatibility
@@ -119,9 +139,7 @@ package() {
 
   # fix rpaths
   local _f; for _f in $(find "${pkgdir}/${pacman_root}/usr/lib/qt/plugins" -iname "*.dylib"); do
-    fix_rpath "${_f}"
+    fix_rpath_v2 "${_f}"
   done
 }
-
-
 

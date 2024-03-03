@@ -1,0 +1,19 @@
+--- a/src/tools/bootstrap/bootstrap.pro	2024-03-02 21:34:51.469092803 -0500
++++ b/src/tools/bootstrap/bootstrap.pro	2024-03-02 21:35:41.544383201 -0500
+@@ -143,13 +143,14 @@
+         ../../corelib/kernel/qcore_foundation.mm
+ 
+     LIBS += -framework Foundation
+-    osx: LIBS_PRIVATE += -framework CoreServices
++    osx: LIBS_PRIVATE += -framework CoreServices -framework IOKit -framework Cocoa
+     uikit: LIBS_PRIVATE += -framework UIKit
+ }
+ 
+ macx {
+     OBJECTIVE_SOURCES += \
+-        ../../corelib/io/qstandardpaths_mac.mm
++        ../../corelib/io/qstandardpaths_mac.mm \
++        ../../corelib/io/qfilesystemengine_mac.mm
+ } else:unix {
+     SOURCES += \
+         ../../corelib/io/qstandardpaths_unix.cpp

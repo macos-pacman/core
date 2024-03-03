@@ -1,0 +1,11 @@
+--- a/src/plugins/sqldrivers/configure.pri	2024-02-14 14:29:40.793821194 -0500
++++ b/src/plugins/sqldrivers/configure.pri	2024-02-14 14:30:10.856171965 -0500
+@@ -52,7 +52,7 @@
+             for(l, libs) {
+                 # Drop all options besides the -L one and the -lmysqlclient one
+                 # so we don't unnecessarily link to libs like OpenSSL
+-                contains(l, "^(-L|-lmysqlclient).*"): cleanlibs += $$l
++                contains(l, "^(-L|-lmysqlclient|-lmariadb).*"): cleanlibs += $$l
+             }
+             libs = $$cleanlibs
+         }
