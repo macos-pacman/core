@@ -1,9 +1,13 @@
+# Maintainer: Fabian Bornschein <fabiscafe-at-mailbox-dot-org>
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 # Contributor: Lukas Fleischer <lfleischer@archlinux.org>
 # Contributor: Jan de Groot <jgc@archlinux.org>
 
 pkgbase=adwaita-icon-theme
-pkgname=(adwaita-icon-theme adwaita-cursors)
+pkgname=(
+  adwaita-icon-theme
+  adwaita-cursors
+)
 pkgver=45.0
 pkgrel=1
 pkgdesc="GNOME standard icons"
@@ -15,22 +19,20 @@ license=(
 )
 depends=(
   hicolor-icon-theme
+  gtk-update-icon-cache
   librsvg
 )
 makedepends=(
   git
   gtk3
+  meson
 )
 _commit=709725baa9e17e8d0ca62eab7920162bfeda37b9  # tags/45.0^0
-source=(
-  git+https://gitlab.gnome.org/GNOME/adwaita-icon-theme.git#commit=$_commit
-)
-b2sums=(
-  'SKIP'
-)
+source=("git+https://gitlab.gnome.org/GNOME/adwaita-icon-theme.git#commit=$_commit")
+b2sums=('SKIP')
 
 pkgver() {
-  cd $pkgname
+  cd $pkgbase
   git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
 }
 
