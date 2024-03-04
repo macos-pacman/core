@@ -3,6 +3,7 @@
 pkgname=aws-c-event-stream
 pkgver=0.3.1
 pkgrel=1
+pkgrel+=".1"
 pkgdesc='C99 implementation of the vnd.amazon.eventstream content-type'
 arch=('x86_64' 'arm64')
 url='https://github.com/awslabs/aws-c-event-stream'
