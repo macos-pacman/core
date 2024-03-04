@@ -3,9 +3,6 @@
 @@ -8 +8 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-@@ -14 +14 @@
--         scoped-mock-log.patch)
-+        scoped-mock-log.patch)
 @@ -28 +28 @@
 -    -DCMAKE_INSTALL_PREFIX=/usr \
 +    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
