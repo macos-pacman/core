@@ -3,6 +3,7 @@
 pkgname=aws-c-compression
 pkgver=0.2.17
 pkgrel=1
+pkgrel+=".1"
 pkgdesc='C99 implementation of huffman encoding/decoding'
 arch=('x86_64' 'arm64')
 url='https://github.com/awslabs/aws-c-compression'
