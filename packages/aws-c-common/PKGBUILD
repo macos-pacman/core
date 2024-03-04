@@ -3,6 +3,7 @@
 pkgname=aws-c-common
 pkgver=0.9.0
 pkgrel=1
+pkgrel+=".1"
 pkgdesc='Core c99 package for AWS SDK for C. Includes cross-platform primitives, configuration, data structures, and error handling.'
 arch=('x86_64' 'arm64')
 url='https://github.com/awslabs/aws-c-common'
