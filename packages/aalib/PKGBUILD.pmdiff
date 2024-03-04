@@ -1,26 +1,27 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -7,0 +8 @@
-+pkgrel+=".9"
++pkgrel+=".10"
 @@ -9 +10 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-@@ -12,3 +13 @@
+@@ -12,3 +13,2 @@
 -depends=('glibc' 'gpm' 'libx11' 'ncurses' 'slang')
 -optdepends=('xorg-fonts-misc: x11 driver'
 -            'xorg-mkfontscale: x11 driver')
 +depends=('glibc' 'ncurses' 'slang')
-@@ -17 +16,2 @@
++makedepends=('autoconf' 'automake' 'libtool')
+@@ -17 +17,2 @@
 -        'aalib.m4.patch')
 +        'aalib.m4.patch'
 +        'fix-people-who-cannot-write-software.patch')
-@@ -20 +20,2 @@
+@@ -20 +21,2 @@
 -            '0202545881ec34bd637c04b5896b9b3093609530cc4f85e1d5ffe9a3136d9483')
 +            '0202545881ec34bd637c04b5896b9b3093609530cc4f85e1d5ffe9a3136d9483'
 +            'df3e9b1af54a5a3f3f767fcb40e6686e5f59918681d82d575fe82c8d4449d9e7')
-@@ -31,0 +33,2 @@
+@@ -31,0 +34,2 @@
 +  patch -Np1 -i ../fix-people-who-cannot-write-software.patch
 +
-@@ -37 +40 @@
+@@ -37 +41 @@
 -  ./configure --prefix=/usr --with-curses-driver
 +  ./configure --prefix=${pacman_root}/usr --with-curses-driver --without-x

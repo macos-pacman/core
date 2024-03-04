@@ -5,12 +5,13 @@ pkgname=aalib
 pkgver=1.4rc5
 _pkgver=1.4.0
 pkgrel=17
-pkgrel+=".9"
+pkgrel+=".10"
 pkgdesc='ASCII art graphic library'
 arch=('x86_64' 'arm64')
 url='https://aa-project.sourceforge.net/aalib/'
 license=('LGPL-2.0-or-later')
 depends=('glibc' 'ncurses' 'slang')
+makedepends=('autoconf' 'automake' 'libtool')
 source=("https://downloads.sourceforge.net/aa-project/$pkgname-$pkgver.tar.gz"
         'aclocal-fixes.patch'
         'aalib.m4.patch'
