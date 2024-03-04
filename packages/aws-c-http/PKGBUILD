@@ -3,6 +3,7 @@
 pkgname=aws-c-http
 pkgver=0.7.11
 pkgrel=1
+pkgrel+=".1"
 pkgdesc='C99 implementation of the HTTP/1.1 and HTTP/2 specifications'
 arch=('x86_64' 'arm64')
 url='https://github.com/awslabs/aws-c-http'
