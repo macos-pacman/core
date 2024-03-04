@@ -1,11 +1,13 @@
 --- PKGBUILD
 +++ PKGBUILD
-@@ -7 +7 @@
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -7 +8 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
-@@ -18 +18 @@
+@@ -18 +19 @@
 -  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIBS=ON -S . -B build
 +  cmake -DUSE_OPENSSL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr -DBUILD_SHARED_LIBS=ON -S . -B build
-@@ -31 +31 @@
+@@ -31 +32 @@
 -  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 +  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
