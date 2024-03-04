@@ -12,11 +12,11 @@
 +  '276e50c134a5a5925591cbc5c76a11383d288854bc5f4db79d97f1e4e41e74f5739ee916df127112cb678673f09aeb5dfa91f1d8696b0894923837cea991bd73'
 +  'SKIP'
 +)
-@@ -35,0 +37,4 @@
+@@ -34,0 +36,4 @@
++
 +if [ $(uname -m) = "x86_64" ]; then
 +  makedepends+=('yasm')
 +fi
-+
 @@ -42,7 +47,4 @@
 -    # Upstream would like Release, adding -O3 and removing assertions
 -    # https://gitlab.archlinux.org/archlinux/packaging/packages/aom/-/issues/1
