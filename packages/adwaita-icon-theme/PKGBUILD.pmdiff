@@ -1,0 +1,11 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -60,2 +60,2 @@
+-  mkdir -p cursors/usr/share/icons/Adwaita
+-  mv {"$pkgdir",cursors}/usr/share/icons/Adwaita/cursors
++  mkdir -p cursors/${pacman_root}/usr/share/icons/Adwaita
++  mv {"$pkgdir",cursors}/${pacman_root}/usr/share/icons/Adwaita/cursors
+@@ -69,3 +68,0 @@
+-
+-  # deduplicate cursors
+-  hardlink -c "$pkgdir/usr"
