@@ -3,25 +3,13 @@
 @@ -8 +8 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-@@ -13,4 +13,8 @@
--source=("https://github.com/abseil/abseil-cpp/archive/$pkgver/$pkgname-$pkgver.tar.gz"
+@@ -14 +14 @@
 -         scoped-mock-log.patch)
--sha256sums=('987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed'
--            'a6cbc612a2b96fcbd52d081e03e8581107ceb4827edb19d96510a31c568e1396')
-+source=(
-+  https://github.com/abseil/abseil-cpp/archive/$pkgver/$pkgname-$pkgver.tar.gz
-+  scoped-mock-log.patch
-+)
-+sha256sums=(
-+  '987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed'
-+  'a6cbc612a2b96fcbd52d081e03e8581107ceb4827edb19d96510a31c568e1396'
-+)
-@@ -27,2 +31,2 @@
--    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DNDEBUG" \
++        scoped-mock-log.patch)
+@@ -28 +28 @@
 -    -DCMAKE_INSTALL_PREFIX=/usr \
-+    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -DNDEBUG" \
 +    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
-@@ -33 +37,2 @@
+@@ -33 +33,2 @@
 -    -DABSL_FIND_GOOGLETEST=ON
 +    -DABSL_FIND_GOOGLETEST=ON \
 +    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
