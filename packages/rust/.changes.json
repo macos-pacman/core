@@ -1,0 +1,15 @@
+{
+  "upstream_commit": "4aea1ce0aa2dbaa742430892d2cfe871765a2c99",
+  "diff_files": [
+    "0001-bootstrap-Change-libexec-dir.patch.pmdiff",
+    "0002-bootstrap-Change-bash-completion-dir.patch.pmdiff",
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    "0003-compiler-Change-LLVM-targets.patch",
+    "0004-compiler-Use-wasm-ld-for-wasm-targets.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

@@ -1,0 +1,43 @@
+--- 0001-bootstrap-Change-libexec-dir.patch
++++ 0001-bootstrap-Change-libexec-dir.patch
+@@ -2 +2 @@
+-From: "Jan Alexander Steffens (heftig)" <heftig@archlinux.org>
++From: "Jan Alexander Steffens (heftig)" <jan.steffens@gmail.com>
+@@ -7,3 +7,3 @@
+- src/bootstrap/src/core/build_steps/dist.rs | 2 +-
+- src/bootstrap/src/core/build_steps/tool.rs | 2 +-
+- 2 files changed, 2 insertions(+), 2 deletions(-)
++ src/bootstrap/dist.rs | 4 ++--
++ src/bootstrap/tool.rs | 2 +-
++ 2 files changed, 3 insertions(+), 3 deletions(-)
+@@ -11,5 +11,5 @@
+-diff --git a/src/bootstrap/src/core/build_steps/dist.rs b/src/bootstrap/src/core/build_steps/dist.rs
+-index f50026368dab..6940e0c50752 100644
+---- a/src/bootstrap/src/core/build_steps/dist.rs
+-+++ b/src/bootstrap/src/core/build_steps/dist.rs
+-@@ -423,7 +423,7 @@ fn prepare_image(builder: &Builder<'_>, compiler: Compiler, image: &Path) {
++diff --git a/src/bootstrap/dist.rs b/src/bootstrap/dist.rs
++index 9b2b549612d8..80bb25199dcb 100644
++--- a/src/bootstrap/dist.rs
+++++ b/src/bootstrap/dist.rs
++@@ -414,7 +414,7 @@ fn prepare_image(builder: &Builder<'_>, compiler: Compiler, image: &Path) {
+@@ -24,5 +24,14 @@
+-diff --git a/src/bootstrap/src/core/build_steps/tool.rs b/src/bootstrap/src/core/build_steps/tool.rs
+-index 5d8d10a7debc..f52315416bd4 100644
+---- a/src/bootstrap/src/core/build_steps/tool.rs
+-+++ b/src/bootstrap/src/core/build_steps/tool.rs
+-@@ -682,7 +682,7 @@ fn run(self, builder: &Builder<'_>) -> Option<PathBuf> {
++@@ -1064,7 +1064,7 @@ fn run(self, builder: &Builder<'_>) -> Option<GeneratedTarball> {
++         for dirent in fs::read_dir(cargo.parent().unwrap()).expect("read_dir") {
++             let dirent = dirent.expect("read dir entry");
++             if dirent.file_name().to_str().expect("utf8").starts_with("cargo-credential-") {
++-                tarball.add_file(&dirent.path(), "libexec", 0o755);
+++                tarball.add_file(&dirent.path(), "lib", 0o755);
++             }
++         }
++ 
++diff --git a/src/bootstrap/tool.rs b/src/bootstrap/tool.rs
++index 3c9a154da9ab..3f57819fd96d 100644
++--- a/src/bootstrap/tool.rs
+++++ b/src/bootstrap/tool.rs
++@@ -850,7 +850,7 @@ fn run(self, builder: &Builder<'_>) -> Option<PathBuf> {
