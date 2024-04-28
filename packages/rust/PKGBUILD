@@ -11,8 +11,9 @@
 
 pkgbase=rust
 pkgname=(rust rust-wasm rust-src)
-pkgver=1.72.0
-pkgrel=3
+pkgver=1.77.2
+pkgrel=1
+pkgrel+=".1"
 pkgdesc="Systems programming language focused on safety, speed and concurrency"
 url=https://www.rust-lang.org/
 arch=('x86_64' 'arm64')
@@ -27,7 +28,9 @@ depends=(
   curl
   gcc-libs
   libssh2
+  libgit2
   llvm-libs
+  openssl
 )
 makedepends=(
   cmake
@@ -37,27 +40,27 @@ makedepends=(
   ninja
   perl
   python
+  pkg-config
   wasi-libc
 )
 source=(
   "https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.gz"{,.asc}
-  0001-cargo-Change-libexec-dir.patch
   0001-bootstrap-Change-libexec-dir.patch
   0002-bootstrap-Change-bash-completion-dir.patch
-  0002-compiler-Change-LLVM-targets.patch
-  0003-compiler-Use-wasm-ld-for-wasm-targets.patch
+  0003-compiler-Change-LLVM-targets.patch
+  0004-compiler-Use-wasm-ld-for-wasm-targets.patch
   disable-time-machine-fuckery.patch
 )
-b2sums=('cb0b20523154da26ce2e8cd2e214c3e3c62a66dcf15f1615c92c2efcf3cfc2a437e8b7d582f05cc123e0450ae924aef9c28884b2579c589f9e4336f6bc1b6e70'
+b2sums=('cf9fd96580d2c696e8d2992a5b4ee285824648bfa721212dd7691d63c876cf8fda1d50e924bec891af2c721e3746c4227fd23a0bed48e0b505fcd328936f5a35'
         'SKIP'
-        'c4bf40d48fd7ccb02c73fc02d5d968cfda80d1fd85c1ade4781d174bb4cb165b52998af4bf9495f2c04b0a25b147c13a5f3de4281d621353c9e799a67297a3fe'
-        '9752dc3b5fc2248c8bec4efbb3d927088d48d9416229d545a05180374549a0dda6e9d6d9a8d0a3b03437f2e3c54f9c153aab3281d46411f4c81559033b8fb04a'
-        'fdf2159315b96337da84b45fc49b55ea73d6d14710f3967710da4fcee6d049ef9e5bb18e438e604750f4a3af9c909e58eea143f4a3c497acb7d806f834fd3b44'
-        '66c5cf262c4b865cdcc238d88aad4aa46e0861de0b4e20b5e86f7f1c312f7a40df0f9477fbc494949a99f51e9eb93537c072270e9bd20dfa79eb5cbe0d850e0f'
-        '9f3f911088a22101f8966dc16a1ecc65da5facaad5c169d9464e721aa452dd45968d359a5b35ae74ff23bd98d44c60cb04c0b8bc89e10fb99549c1670371c902'
+        'd3ed7043e288c78ac4007b267448457db0972905037754b67249d81be0889f47c4d93573c24d730907c31ec44e80ce696fbf50f98521eadee92c003d2324a1a3'
+        '6afaf5bff729618aa35d84f20b1447694c887b84a406f55344864b9e8dce72f80467412c128b5309d5b962b605ca396b77a52f275dd35681ab50cbedc68f873a'
+        '18ca47c350373d9a095aff9a658c61816a542bb391a2a8ddf582f25795a21e9fc344b3e71a2eed7b094610bb61d9658e5360ef2ace9441fd21e4193746d45be7'
+        '23f399d5ea776df5dba1ec42a96020a7ae3b18f5a83121d90ca0256a90027529135bac751373a31480860c0dbad30598833a7da43d1e7f25ce5b6d5d945ce550'
         '6ea472d7d8afd0688dac305decb818b3779277b87058cb8f9207adc01881e7b51474f8c52fc4c21247060ede2614a54183446b0290987db02bb83a0233149b06')
-validpgpkeys=(108F66205EAEB0AAA8DD5E1C85AB96E6FA1BE5FE  # Rust Language (Tag and Release Signing Key) <rust-key@rust-lang.org>
-              474E22316ABF4785A88C6E8EA2C794A986419D8A) # Tom Stellard <tstellar@redhat.com>
+validpgpkeys=(
+  108F66205EAEB0AAA8DD5E1C85AB96E6FA1BE5FE  # Rust Language (Tag and Release Signing Key) <rust-key@rust-lang.org>
+)
 
 _arch1=$(clang -print-target-triple)
 _arch2=${_arch1%%.*}
@@ -66,20 +69,16 @@ _arch=$(echo ${_arch2} | grep -o '.*[^0-9]' | sed -e 's/arm64/aarch64/')
 prepare() {
   cd rustc-$pkgver-src
 
-  # Patch bootstrap and cargo so credential helpers
-  # are in /usr/lib instead of /usr/libexec
-  patch -d src/tools/cargo -Np1 < ../0001-cargo-Change-libexec-dir.patch
-
   patch -Np1 -i ../0001-bootstrap-Change-libexec-dir.patch
 
   # Put bash completions where they belong
   patch -Np1 -i ../0002-bootstrap-Change-bash-completion-dir.patch
 
   # Use our *-pc-linux-gnu targets, making LTO with clang simpler
-  patch -Np1 -i ../0002-compiler-Change-LLVM-targets.patch
+  patch -Np1 -i ../0003-compiler-Change-LLVM-targets.patch
 
   # Use our wasm-ld
-  patch -Np1 -i ../0003-compiler-Use-wasm-ld-for-wasm-targets.patch
+  patch -Np1 -i ../0004-compiler-Use-wasm-ld-for-wasm-targets.patch
 
   # disable time machine fuckery
   patch -Np1 -i ../disable-time-machine-fuckery.patch
@@ -205,13 +204,11 @@ package_rust() {
   )
   conflicts=(
     cargo
-    'rust-docs<1:1.56.1-3'
     rustfmt
   )
   replaces=(
     cargo
     cargo-tree
-    'rust-docs<1:1.56.1-3'
     rustfmt
   )
 
@@ -233,14 +230,14 @@ package_rust() {
     -o -iname "rust-analyzer-proc-macro-srv") || true
 
   for _lib in "${_libs[@]}"; do
-    fix_rpath "${pacman_root}" "${pkgdir}" "${_lib}"
+    fix_rpath_v2 "${_lib}"
   done
 
   local _exe _exes
   IFS=$'\n' read -r -d '' -a _exes < <(find ${pkgdir}/${pacman_root}/usr/bin -type f) || true
 
   for _exe in "${_exes[@]}"; do
-    fix_rpath "${pacman_root}" "${pkgdir}" "${_exe}"
+    fix_rpath_v2 "${_exe}"
   done
 
   msg 'Codesigning modified dylibs'
