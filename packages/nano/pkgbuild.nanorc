@@ -5,7 +5,7 @@ tabgives "  "
 comment "# "
 
 # highlight PKGBUILD variables
-color bold,mauve "^\s*(arch|backup|checkdepends|conflicts|depends|groups|license|makedepends|noextract|optdepends|options|provides|replaces|source|validpgpkeys|url|pkgver|pkgrel|pkgname|pkgbase|pkgdesc|changelog|epoch|install|)[+]?="
+color bold,mauve "^\s*(arch|backup|checkdepends|conflicts|depends|groups|license|makedepends|noextract|optdepends|options|provides|replaces|source|validpgpkeys|url|pkgver|pkgrel|pkgname|pkgbase|pkgdesc|changelog|epoch|install|ignore_rpath|ignore_broken_dylibs|skip_otool_checks)[+]?="
 
 color bold,mauve "^\s*(ck|md5|sha(1|224|256|384|512)|b2)sums[+]?="
 
