@@ -144,14 +144,42 @@ warn_library_rpath() {
 			esac
 		done
 		if [ ${#_PROBLEM_FILES[@]} -gt 0 ]; then
-			error 'Package contains broken dylib paths:'
-			printf '%s\n' "${_PROBLEM_FILES[@]#"$pkgdir/"}" >&2
-			_ret=1
+			if [ -z ${ignore_broken_dylibs:-} ]; then
+				local ignore_broken_dylibs=()
+			fi
+			local _f; for _f in "${_PROBLEM_FILES[@]}"; do
+				local _x; _x='0'
+				local _m; for _m in "${ignore_broken_dylibs[@]}"; do
+					local _f1="${_f#"${pkgdir/}"}"
+					# echo  "${_f1#/}" "vs ${_m#/}"
+					if [[ "${_f1#/}" == ${_m#/} ]]; then
+						_x=1; break
+					fi
+				done
+				if [ "$_x" = "0" ]; then
+					error 'Package contains dylib with broken path(s): %s' "${_f#"$pkgdir/"}"
+					_ret=1
+				fi
+			done
 		fi
 
 		if [ ${#_RPATH_FILES[@]} -gt 0 ]; then
-			error 'Package contains dylibs with @rpath:'
-			printf '%s\n' "${_RPATH_FILES[@]#"$pkgdir/"}" >&2
+			if [ -z ${ignore_rpath:-} ]; then
+				local ignore_rpath=()
+			fi
+			local _f; for _f in "${_RPATH_FILES[@]}"; do
+				local _x; _x='0'
+				local _m; for _m in "${ignore_rpath[@]}"; do
+					local _f1="${_f#"${pkgdir/}"}"
+					# echo  "${_f1#/}" "vs ${_m#/}"
+					if [[ "${_f1#/}" == ${_m#/} ]]; then
+						_x=1; break
+					fi
+				done
+				if [ "$_x" = "0" ]; then
+					error 'Package contains object with @rpath: %s' "${_f#"$pkgdir/"}"
+				fi
+			done
 		fi
 
 		return $_ret
