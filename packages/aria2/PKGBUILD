@@ -1,0 +1,48 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Bartłomiej Piotrowski <bpiotrowski@archlinux.org>
+# Contributor: Thomas Dziedzic < gostrc at gmail >
+# Contributor: Angel Velasquez <angvp@archlinux.org>
+# Contributor: Alexander Fehr <pizzapunk gmail com>
+# Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
+
+pkgname=aria2
+pkgver=1.37.0
+pkgrel=1
+pkgrel+=".1"
+pkgdesc='Download utility that supports HTTP(S), FTP, BitTorrent, and Metalink'
+arch=('x86_64' 'arm64')
+url='https://aria2.github.io'
+license=('GPL')
+depends=('gnutls' 'libxml2' 'sqlite' 'c-ares' 'ca-certificates' 'libssh2')
+checkdepends=('cppunit')
+source=("https://github.com/tatsuhiro-t/aria2/releases/download/release-$pkgver/aria2-$pkgver.tar.xz")
+sha512sums=('df3b8b4de8fa8d78f203ea00c059e43585e18a229009f202e42e6a9e59db67d09df0dbba8a016e99ed73c82f59e4f8b26f86c2288afdbb96a6807cbe2c56e6b3')
+
+build() {
+  cd $pkgname-$pkgver
+
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --enable-libaria2 \
+    --with-ca-bundle=${pacman_root}/etc/ssl/certs/ca-certificates.crt
+
+  make
+}
+
+check() {
+  cd $pkgname-$pkgver
+  # https://github.com/aria2/aria2/issues/1476
+  # Upstream states "I don't see any issues with aria2 code."
+  make check || echo "Ignoring test failures"
+}
+
+package() {
+  cd $pkgname-$pkgver
+  make DESTDIR="$pkgdir" install
+
+  # add bash completion
+  install -d "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions
+  install -m644 "$pkgdir"/${pacman_root}/usr/share/doc/aria2/bash_completion/aria2c \
+    "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions
+  rm -rf "$pkgdir"/${pacman_root}/usr/share/doc/aria2/bash_completion
+}

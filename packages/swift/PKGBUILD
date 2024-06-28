@@ -1,0 +1,16 @@
+# Maintainer: yuki <yuki@nowhere>
+
+pkgname=swift
+pkgver=5.8.1
+pkgrel=3
+pkgdesc="High-performance system programming language"
+arch=('x86_64' 'arm64')
+license=('MIT')
+url="https://www.swift.org"
+depends=('macos-system' 'xcode')
+source=()
+sha256sums=()
+
+package() {
+  :
+}

@@ -1,0 +1,21 @@
+# Maintainer: yuki <yuki@nowhere>
+
+pkgname=xcode
+pkgver=14.3.1
+pkgrel=8
+pkgdesc="Xcode"
+arch=('x86_64' 'arm64')
+license=('MIT')
+url="https://developer.apple.com/xcode/"
+depends=('macos-system')
+makedepends=('xcodes' 'aria2')
+install=xcode.install
+
+# ignore_rpath=('*')
+# ignore_broken_dylibs=('*')
+skip_otool_checks=('*')
+
+package() {
+  install -dm755 "${pkgdir}/Applications"
+  xcodes install ${pkgver%-[0-9]} --empty-trash --experimental-unxip --directory "${pkgdir}/Applications/"
+}

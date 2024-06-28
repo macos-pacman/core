@@ -1,0 +1,12 @@
+post_upgrade() {
+	xcodes select "${1%-[0-9]}"
+}
+
+post_install() {
+	xcodes select "${1%-[0-9]}"
+}
+
+post_remove() {
+	# reset the command-line-tools path to the default (prolly /Library/Developer/...)
+	xcode-select -r
+}

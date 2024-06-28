@@ -1,0 +1,19 @@
+# Maintainer: yuki <yuki@nowhere.org>
+
+pkgname=xcodes-bin
+pkgver=1.4.1
+pkgrel=2
+pkgdesc="The best command-line tool to install and switch between multiple versions of Xcode"
+arch=('x86_64' 'arm64')
+license=('MIT')
+url="https://github.com/XcodesOrg/xcodes"
+depends=('macos-system')
+provides=('xcodes')
+source=("https://github.com/XcodesOrg/xcodes/releases/download/${pkgver}/xcodes.zip")
+sha256sums=('3ed5c5d9ea8d7c45f6f44b5795c8ddc6b52cec13e7fd8bab52e14578ba57c2b9')
+ignore_rpath=("${pacman_root#/}/usr/bin/xcodes")
+
+package() {
+  # cd "${pkgname}-${pkgver}"
+  install -Dm755 xcodes ${pkgdir}/${pacman_root}/usr/bin/xcodes
+}

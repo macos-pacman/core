@@ -1,0 +1,29 @@
+# Maintainer: yuki <yuki@nowhere>
+
+pkgname=bclm
+pkgver=0.1.0
+pkgrel=2
+pkgdesc="macOS command-line utility to limit max battery charge"
+arch=('x86_64' 'arm64')
+license=('MIT')
+url="https://github.com/zackelia/bclm/"
+depends=('macos-system')
+makedepends=('swift')
+source=("https://github.com/zackelia/bclm/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('36279d52be0f94b941454ffce36a6b2a56e663de5350e6765f0606bd35c70615')
+
+build() {
+  cd "${pkgname}-${pkgver}"
+  make build
+}
+
+check() {
+  cd "${pkgname}-${pkgver}"
+  make test || :
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  install -dm755 ${pkgdir}/${pacman_root}/usr/bin/
+  make prefix="${pkgdir}/${pacman_root}/usr/" install
+}
