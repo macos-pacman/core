@@ -1,0 +1,37 @@
+diff --git a/lib/libalpm/dload.c b/lib/libalpm/dload.c
+index bc4c4ba..e08a3c4 100644
+--- a/lib/libalpm/dload.c
++++ b/lib/libalpm/dload.c
+@@ -271,8 +271,17 @@ static int dload_progress_cb(void *file, curl_off_t dltotal, curl_off_t dlnow,
+ 
+ 	/* do NOT include initial_size since it wasn't part of the package's
+ 	 * download_size (nor included in the total download size callback) */
+-	cb_data.total = dltotal;
+-	cb_data.downloaded = dlnow;
++
++	/* if this is for an OCI package, handle counts separately
++	 * for multi-layer images.
++	 */
++	if(payload->oci_digest) {
++		cb_data.total = payload->max_size;
++		cb_data.downloaded = payload->initial_size + dlnow;
++	} else {
++		cb_data.total = dltotal;
++		cb_data.downloaded = dlnow;
++	}
+ 	payload->handle->dlcb(payload->handle->dlcb_ctx,
+ 			payload->remote_name, ALPM_DOWNLOAD_PROGRESS, &cb_data);
+ 	payload->prevprogress = current_size;
+@@ -843,7 +852,11 @@ cleanup:
+ 
+ 	if(handle->dlcb) {
+ 		alpm_download_event_completed_t cb_data = {0};
+-		cb_data.total = bytes_dl;
++		if(payload->oci_digest) {
++			cb_data.total = payload->max_size;
++		} else {
++			cb_data.total = bytes_dl;
++		}
+ 		cb_data.result = ret;
+ 		handle->dlcb(handle->dlcb_ctx, payload->remote_name, ALPM_DOWNLOAD_COMPLETED, &cb_data);
+ 	}

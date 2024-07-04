@@ -5,7 +5,7 @@
 pkgname=pacman
 pkgver=6.0.2
 pkgrel=9
-pkgrel+=".46"
+pkgrel+=".48"
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64' 'arm64')
 url="https://www.archlinux.org/pacman/"
@@ -60,6 +60,7 @@ source=(https://sources.archlinux.org/other/pacman/$pkgname-$pkgver.tar.xz{,.sig
         'makepkg-msg3-etc.patch'
         'fix-makepkg-profile-path.patch'
         'pacman-support-oci-multipart.patch'
+        'pacman-support-oci-multipart-p2.patch'
         'pacman.conf'
         'makepkg.conf')
 sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
@@ -90,7 +91,7 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             '4f48a60e2035fcdc07032ef7fed1833cf58783bd013d0f8d9d9d7da0bcd82564'  # makepkg-rpath-fixer.patch
             '6b66c29a0a15689952e7ebb79df7b2a39123d9de6d51f150dc4cc48e739814c9'  # makepkg-rpath-check.patch
             'c22049fba34aa3d019815f48b112c518236a9e696105478dfaaedb15c9d522a4'  # mac_checksums.sh.in
-            'e3e5b4803c978680739b533baa61abe45613d5280391552d6c2cc98f4d73c403'  # check_rpath.sh.in
+            'afbacc05d475a2a2ba14dde745186ecb2a72a795164004bb162ff78844dda4bb'  # check_rpath.sh.in
             'b900c86f7fcb01cbc148b85590bd2520c2caf47cd4b8dbbb5844261d380106fe'  # fix_rpath.sh.in
             '69b76b9a2eab66a3d9219d32f379cad426678de6c18485fab132348930f36ac9'  # fix-bin-true.patch
             'dc5e13d965f4c1e12630ba24601a223b908f12fe19d5e3287d7176369acb8fe4'  # fix-test-fakeroot-path.patch
@@ -102,6 +103,7 @@ sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
             'ba2ff8714768ddd5870a4e8c16f647f490a2bb7db03e7ca41650b504ffadf3bb'  # makepkg-msg3-etc.patch
             '11040e2bf80a031d51a4c2ec1b3c954b3b788308ce732bedda70ab6923002faf'  # fix-makepkg-profile-path.patch
             '530b0a25106075f0fdda5dd789b55ca4e6938cb772bcfeb2177e2c9c47fb5aaa'  # pacman-support-oci-multipart.patch
+            '7a24658deb1cee4d394826b6800c81202fcca732fd06f4e9664ead6a4ddd6678'  # pacman-support-oci-multipart-p2.patch
             'b11689f2502a881ab908d64a8c30d442e6713b2a27a78ce3d7ed692390246ef8'  # pacman.conf
             'b3aa595f3c22813075ba15161a3df9b87f4477455913e8b290323a038d29e5c7'  # makepkg.conf
 )

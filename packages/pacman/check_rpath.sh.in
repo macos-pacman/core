@@ -121,11 +121,25 @@ warn_library_rpath() {
 	local file
 	local problems
 
+	# fast path skip -- if the glob is '*', just return 0 straight away
+	if [ "${skip_otool_checks}" = '*' ]; then
+		msg 'Completely skipping otool (rpath) checks for this package'
+		return 0;
+	fi
+
 	local ret=0
 
 	find "$pkgdir" -type f -print0 | {
 		local _ret=0
 		while IFS= read -r -d '' file; do
+
+			local _o; for _o in "${skip_otool_checks[@]}"; do
+				local _f1="${file#"${pkgdir/}"}"
+				if [[ "${_f1#/}" == ${_o#/} ]]; then
+					continue
+				fi
+			done
+
 			tmp=$(file "${file}")
 			case "$tmp" in
 				*"executable"* | *"shared library"* | *"bundle"*) ;;
