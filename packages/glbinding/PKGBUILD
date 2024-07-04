@@ -1,0 +1,35 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Contributor: carstene1ns <arch carsten-teibes de> - http://git.io/ctPKG
+# Contributor: Xentec <xentec at aix0 dot eu>
+
+pkgname=glbinding
+pkgver=3.3.0
+pkgrel=1
+pkgrel+=".0"
+pkgdesc="A C++ binding for the OpenGL API, generated using the gl.xml specification"
+arch=('x86_64' 'arm64')
+url="http://www.glbinding.org"
+license=('MIT')
+depends=('libgl' 'glfw')
+makedepends=('cmake' 'mesa' 'ninja')
+source=($pkgname-$pkgver.tar.gz::"https://github.com/cginternals/glbinding/archive/v$pkgver.tar.gz")
+sha256sums=('a0aa5e67b538649979a71705313fc2b2c3aa49cf9af62a97f7ee9a665fd30564')
+
+build() {
+  cmake -B build -S $pkgname-$pkgver \
+      -G Ninja \
+      -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+      -DCMAKE_BUILD_TYPE=Release \
+      -Wno-dev
+  cmake --build build
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+
+  cd $pkgname-$pkgver
+  mv "$pkgdir"/${pacman_root}/usr/bin/glinfo "$pkgdir"/${pacman_root}/usr/bin/glinfo-glbinding
+  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+  install -d "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname
+  install -m644 README.md AUTHORS "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname
+}

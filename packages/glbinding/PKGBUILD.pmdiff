@@ -1,0 +1,21 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".0"
+@@ -9 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -20,2 +21,2 @@
+-      -DCMAKE_INSTALL_PREFIX=/usr \
+-      -DCMAKE_BUILD_TYPE=None \
++      -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
++      -DCMAKE_BUILD_TYPE=Release \
+@@ -30,4 +31,4 @@
+-  mv "$pkgdir"/usr/bin/glinfo "$pkgdir"/usr/bin/glinfo-glbinding
+-  install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+-  install -d "$pkgdir"/usr/share/doc/$pkgname
+-  install -m644 README.md AUTHORS "$pkgdir"/usr/share/doc/$pkgname
++  mv "$pkgdir"/${pacman_root}/usr/bin/glinfo "$pkgdir"/${pacman_root}/usr/bin/glinfo-glbinding
++  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
++  install -d "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname
++  install -m644 README.md AUTHORS "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname
