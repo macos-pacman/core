@@ -1,0 +1,21 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -12,3 +12,2 @@
+-arch=('x86_64')
+-replaces=('glfw-x11' 'glfw-wayland' 'glfw-doc')
+-provides=('glfw-x11' 'glfw-wayland')
++pkgrel+=".4"
++arch=('x86_64' 'arm64')
+@@ -17,3 +16 @@
+-depends=('libgl' 'libxkbcommon')
+-makedepends=('mesa' 'cmake' 'doxygen' 'vulkan-headers' 'vulkan-icd-loader' 'extra-cmake-modules'
+-             'wayland-protocols' 'libxi' 'libxrandr' 'libxcursor' 'libxinerama')
++makedepends=('mesa' 'cmake' 'doxygen' 'vulkan-headers' 'vulkan-icd-loader' 'extra-cmake-modules')
+@@ -25,2 +22,2 @@
+-    -DCMAKE_BUILD_TYPE='None' \
+-    -DCMAKE_INSTALL_PREFIX='/usr' \
++    -DCMAKE_BUILD_TYPE=Release \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+@@ -35 +32 @@
+-  install -Dm644 "$pkgname-$pkgver"/LICENSE.md "$pkgdir/usr/share/licenses/$pkgname/LICENSE.md"
++  install -Dm644 "$pkgname-$pkgver"/LICENSE.md "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE.md"
