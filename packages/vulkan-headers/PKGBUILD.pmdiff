@@ -1,0 +1,8 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -22 +22 @@
+-  cmake -DCMAKE_INSTALL_PREFIX=/usr \
++  cmake -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+@@ -32 +32 @@
+-  install -Dm644 "${srcdir}"/Vulkan-Headers*/LICENSES/*.txt -t "$pkgdir/usr/share/licenses/$pkgname"
++  install -Dm644 "${srcdir}"/Vulkan-Headers*/LICENSES/*.txt -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
