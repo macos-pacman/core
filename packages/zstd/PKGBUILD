@@ -6,6 +6,7 @@
 pkgname=zstd
 pkgver=1.5.5
 pkgrel=1
+pkgrel+=".1"
 pkgdesc='Zstandard - Fast real-time compression algorithm'
 url='https://facebook.github.io/zstd/'
 arch=('x86_64' 'arm64')

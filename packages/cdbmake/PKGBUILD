@@ -1,0 +1,22 @@
+# Maintainer: yuki <yuki@nowhere>
+
+pkgname=cdbmake
+pkgver=1.0.0
+pkgrel=2
+_commit='57b2294fa0bfaa00566feded42c074c1517415f3'
+pkgdesc="Wrapper for make that generates compile_commands.json"
+url="https://github.com/zhiayang/cdbmake"
+license=('Apache')
+arch=('any')
+source=("git+https://github.com/zhiayang/cdbmake.git#commit=${_commit}")
+sha512sums=('SKIP')
+
+build() {
+  cd cdbmake
+  make
+}
+
+package() {
+  cd cdbmake
+  install -Dm755 build/cdbmake "$pkgdir/${pacman_root}/usr/bin/cdbmake"
+}
