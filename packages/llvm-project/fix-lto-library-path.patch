@@ -1,0 +1,71 @@
+--- a/clang/lib/Driver/ToolChains/Darwin.cpp	2024-11-24 11:31:56.052894699 +0800
++++ b/clang/lib/Driver/ToolChains/Darwin.cpp	2024-11-24 11:38:20.443402646 +0800
+@@ -284,6 +284,11 @@
+     StringRef P = llvm::sys::path::parent_path(D.Dir);
+     SmallString<128> LibLTOPath(P);
+     llvm::sys::path::append(LibLTOPath, "lib");
++    // note: see the commit message here:
++    // https://github.com/macports/macports-ports/commit/70088c9cf4ce312082ecf721d7a4776df8b1eca7
++    // basically, ld64 uses `lto_library` in a fucked up way by basically abusing DYLD_LIBRARY_PATH,
++    // causing it to pick up other libraries that we don't want. So put libLTO in its own folder.
++    llvm::sys::path::append(LibLTOPath, "lto");
+     llvm::sys::path::append(LibLTOPath, "libLTO.dylib");
+     CmdArgs.push_back("-lto_library");
+     CmdArgs.push_back(C.getArgs().MakeArgString(LibLTOPath));
+--- a/compiler-rt/test/lit.common.cfg.py	2024-11-24 11:42:24.710824215 +0800
++++ b/compiler-rt/test/lit.common.cfg.py	2024-11-24 11:42:35.337170026 +0800
+@@ -722,7 +722,7 @@
+ 
+ 
+ def liblto_path():
+-    return os.path.join(config.llvm_shlib_dir, "libLTO.dylib")
++    return os.path.join(config.llvm_shlib_dir, "lto", "libLTO.dylib")
+ 
+ 
+ def is_darwin_lto_supported():
+--- a/clang/CMakeLists.txt	2024-11-24 11:31:56.023617919 +0800
++++ b/clang/CMakeLists.txt	2024-11-24 11:44:33.904892980 +0800
+@@ -636,7 +636,7 @@
+       # includes /bin/sh, which ninja uses when executing build commands. To
+       # work around the envar being filtered away we pass it in as a CMake
+       # variable, and have LLVM's CMake append the envar to the archiver calls.
+-      set(LTO_LIBRARY -DDARWIN_LTO_LIBRARY=${LLVM_SHLIB_OUTPUT_INTDIR}/libLTO.dylib
++      set(LTO_LIBRARY -DDARWIN_LTO_LIBRARY=${LLVM_SHLIB_OUTPUT_INTDIR}/lto/libLTO.dylib
+         -DDYLD_LIBRARY_PATH=${LLVM_LIBRARY_OUTPUT_INTDIR})
+     elseif(MSVC)
+       add_dependencies(clang-bootstrap-deps llvm-lib)
+diff --git a/llvm/cmake/modules/AddLLVM.cmake b/llvm/cmake/modules/AddLLVM.cmake
+index 03f4e1f19..18856bdae 100644
+--- a/llvm/cmake/modules/AddLLVM.cmake
++++ b/llvm/cmake/modules/AddLLVM.cmake
+@@ -933,10 +933,15 @@ macro(add_llvm_library name)
+       endif()
+ 
+       get_target_export_arg(${name} LLVM export_to_llvmexports ${umbrella})
++      if (${name} STREQUAL LTO)
++        set(_lib_lto_path "/lto/")
++      else()
++        set(_lib_lto_path "")
++      endif()
+       install(TARGETS ${name}
+               ${export_to_llvmexports}
+-              LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
+-              ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
++              LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX}${_lib_lto_path} COMPONENT ${name}
++              ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}${_lib_lto_path} COMPONENT ${name}
+               RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT ${name})
+ 
+       if (NOT LLVM_ENABLE_IDE)
+diff --git a/llvm/test/lit.cfg.py b/llvm/test/lit.cfg.py
+index fe1262893..71089999f 100644
+--- a/llvm/test/lit.cfg.py
++++ b/llvm/test/lit.cfg.py
+@@ -533,7 +533,7 @@ if have_ld_plugin_support():
+ 
+ def have_ld64_plugin_support():
+     if not os.path.exists(
+-        os.path.join(config.llvm_shlib_dir, "libLTO" + config.llvm_shlib_ext)
++        os.path.join(config.llvm_shlib_dir, "lib", "libLTO" + config.llvm_shlib_ext)
+     ):
+         return False
+ 

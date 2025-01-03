@@ -1,7 +1,7 @@
 pkgbase=llvm-project
 pkgname=(llvm-project-runtime llvm-project) # runtime must come first
 pkgver=17.0.6
-pkgrel=2
+pkgrel=5
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
@@ -17,6 +17,7 @@ source=(
   'fix-lldb-tests.patch'
   'fix-asan-tests.patch'
   'fix-tsan-tests.patch'
+  'fix-lto-library-path.patch'
 )
 
 sha256sums=(
@@ -27,6 +28,7 @@ sha256sums=(
   '629466c885bd99358fb45725ec16d99ea820904322be95a829908007c700f074'  # fix-lldb-tests
   'db28595b27258d8613a5f559e54527b2db2556d45f3bc1d84b1331cf7358c2c4'  # fix-asan-tests
   '3762db63da40ac6fd3e28dc475c6aaa342e7b8547792afa188996ee962dc77ae'  # fix-tsan-tests
+  'ed35c4add67de834eb444dc839f5123f5d4d23395afe21e9774712bbe4a5ac69'  # fix-lto-library-path
 )
 
 _pick() {
@@ -48,6 +50,7 @@ prepare() {
   patch -Np1 -i ../fix-lldb-tests.patch
   patch -Np1 -i ../fix-asan-tests.patch
   patch -Np1 -i ../fix-tsan-tests.patch
+  patch -Np1 -i ../fix-lto-library-path.patch
 
   rm -f compiler-rt/test/asan/suppressions.txt
   echo 'leak:CF'                                 >  compiler-rt/test/asan/suppressions.txt
@@ -75,6 +78,8 @@ build() {
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
     -DLLVM_ENABLE_PROJECTS="clang;lld" \
     -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DBOOTSTRAP_LLVM_ENABLE_LLD=ON \
+    -DBOOTSTRAP_BOOTSTRAP_LLVM_ENABLE_LLD=ON \
     -DLLVM_TARGETS_TO_BUILD="${_llvm_targets}" \
     -DLLVM_PARALLEL_LINK_JOBS=1 \
     -DLLVM_ENABLE_LIBCXX=ON \
@@ -104,19 +109,18 @@ build() {
     -DCMAKE_CXX_FLAGS="${CXXFLAGS/-O2/-O3}" \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
     -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;pstl;lldb;lld" \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;openmp" \
     -DLLVM_PARALLEL_LINK_JOBS=2 \
-    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind;openmp" \
     -DLLVM_TARGETS_TO_BUILD="${_llvm_targets}" \
     -DLLVM_INSTALL_UTILS=ON \
     -DLLVM_BUILD_LLVM_DYLIB=ON \
     -DLLVM_LINK_LLVM_DYLIB=ON \
     -DLLVM_ENABLE_LTO=Thin \
-    -DLLDB_USE_SYSTEM_DEBUGSERVER=ON \
+    -DLLVM_ENABLE_LLD=ON \
     -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
     -DLIBCXX_ENABLE_SHARED_ABI_LIBRARY=ON \
+    -DLLDB_USE_SYSTEM_DEBUGSERVER=ON \
     -DLIBCXX_OSX_REEXPORT_LIBCXXABI_SYMBOLS=ON \
-    -DLIBCXX_STATICALLY_LINK_ABI_IN_SHARED_LIBRARY=ON \
-    -DLIBCXX_STATICALLY_LINK_ABI_IN_STATIC_LIBRARY=ON \
     -DSANITIZER_MIN_OSX_VERSION="${MACOS_MAJOR}.0" \
     -DDEFAULT_SANITIZER_MIN_OSX_VERSION="${MACOS_MAJOR}.0" \
     -DCMAKE_OSX_DEPLOYMENT_TARGET="${_deployment_target}" \
@@ -130,6 +134,12 @@ build() {
     -DBUILTINS_CMAKE_ARGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=${_deployment_target};-DCOMPILER_RT_ENABLE_IOS=OFF" \
     -DRUNTIMES_CMAKE_ARGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=${_deployment_target};-DCOMPILER_RT_ENABLE_IOS=OFF" \
     -DLLVM_PROFDATA_FILE=./build-s1/tools/clang/stage2-instrumented-bins/tools/clang/utils/perf-training/clang.profdata
+
+#     -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+#     -DLIBCXX_ENABLE_SHARED_ABI_LIBRARY=ON \
+#     -DLIBCXX_STATICALLY_LINK_ABI_IN_SHARED_LIBRARY=ON \
+#     -DLIBCXX_STATICALLY_LINK_ABI_IN_STATIC_LIBRARY=ON \
+#     -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind;openmp" \
 
   ninja -C build-s2
 }
@@ -287,7 +297,7 @@ package_llvm-project-runtime() {
       _pick "llvm-project" "${_f}"
     done
 
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/libLTO.dylib"
+    # _pick "llvm-project" "${pacman_root#/}/usr/lib/libLTO.dylib"
     _pick "llvm-project" "${pacman_root#/}/usr/lib/libRemarks.dylib"
 
     _pick "llvm-project" "${pacman_root#/}/usr/lib/liblldb.dylib"
