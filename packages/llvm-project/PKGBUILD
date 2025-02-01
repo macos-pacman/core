@@ -1,7 +1,7 @@
 pkgbase=llvm-project
-pkgname=(llvm-project-runtime llvm-project) # runtime must come first
-pkgver=17.0.6
-pkgrel=5
+pkgname=(llvm-project-runtime llvm-project-toolchain llvm-project) # runtime must come first
+pkgver=19.1.7
+pkgrel=4
 arch=('x86_64' 'arm64')
 license=('Apache')
 url='https://llvm.org/'
@@ -18,17 +18,19 @@ source=(
   'fix-asan-tests.patch'
   'fix-tsan-tests.patch'
   'fix-lto-library-path.patch'
+  'fix-libcxx-init-primary-exception.patch'
 )
 
 sha256sums=(
-  '58a8818c60e6627064f312dbf46c02d9949956558340938b71cf731ad8bc0813'  # actual source
-  '637b41022e460b0662b663c5a717c17e98407f693ec922a1a54d67b515f7cd56'  # fix-sysroot-handling
-  '33d40d4c69780f22fa411556763aae99594df31e236ce69729cb5ddee849010a'  # libstdcxx-on-macos
+  '82401fea7b79d0078043f7598b835284d6650a75b93e64b6f761ea7b63097501'  # actual source
+  '8dae1bd960aec7039932147b058abf4826e0a51e5134259ac189880d7c933bca'  # fix-sysroot-handling
+  'c676c752f8d4ec1987b6c52334af095ae61c2363bbae16ea31b4630dcc7dd70e'  # libstdcxx-on-macos
   'af308051c99737e194287b72b585010371c2a91558103a55feedc96d671eef76'  # fix-clang-tests
   '629466c885bd99358fb45725ec16d99ea820904322be95a829908007c700f074'  # fix-lldb-tests
   'db28595b27258d8613a5f559e54527b2db2556d45f3bc1d84b1331cf7358c2c4'  # fix-asan-tests
   '3762db63da40ac6fd3e28dc475c6aaa342e7b8547792afa188996ee962dc77ae'  # fix-tsan-tests
   'ed35c4add67de834eb444dc839f5123f5d4d23395afe21e9774712bbe4a5ac69'  # fix-lto-library-path
+  'a4adc6106604d51a512aa629c92c4256d1aa34118695b18bb8836382aef057c9'  # fix-libcxx-init-primary-exception
 )
 
 _pick() {
@@ -51,6 +53,7 @@ prepare() {
   patch -Np1 -i ../fix-asan-tests.patch
   patch -Np1 -i ../fix-tsan-tests.patch
   patch -Np1 -i ../fix-lto-library-path.patch
+  patch -Np1 -i ../fix-libcxx-init-primary-exception.patch
 
   rm -f compiler-rt/test/asan/suppressions.txt
   echo 'leak:CF'                                 >  compiler-rt/test/asan/suppressions.txt
@@ -76,70 +79,72 @@ build() {
   cmake -S llvm -B build-s1 -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="${_deployment_target}" \
     -DLLVM_ENABLE_PROJECTS="clang;lld" \
     -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
-    -DBOOTSTRAP_LLVM_ENABLE_LLD=ON \
-    -DBOOTSTRAP_BOOTSTRAP_LLVM_ENABLE_LLD=ON \
-    -DLLVM_TARGETS_TO_BUILD="${_llvm_targets}" \
+    -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
     -DLLVM_PARALLEL_LINK_JOBS=1 \
     -DLLVM_ENABLE_LIBCXX=ON \
     -DDEFAULT_OSX_SDK_PATH=$(xcrun --show-sdk-path) \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET="${_deployment_target}" \
     -DBUILTINS_CMAKE_ARGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=${_deployment_target};-DCOMPILER_RT_ENABLE_IOS=OFF;-DCOMPILER_RT_ENABLE_WATCHOS=OFF;-DCOMPILER_RT_ENABLE_TVOS=OFF" \
     -DRUNTIMES_CMAKE_ARGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=${_deployment_target};-DCOMPILER_RT_ENABLE_IOS=OFF" \
-    -DPGO_INSTRUMENT_LTO=Thin \
-    -DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
     -C clang/cmake/caches/PGO.cmake
 
-  ninja -C build-s1 stage2-instrumented-generate-profdata
+  ninja -C build-s1 llvm-libtool-darwin LTO stage2-instrumented-generate-profdata
 
-  # increase profiling coverage by checking a bunch of shit
-  ninja -C build-s1 -k0 check-llvm check-clang || :
+  # ld64 gets -lto_library build-s1/lib/lto/libLTO.dylib passed there for some reason,
+  # so make it so that it can find our new libLTO and read our lto shit.
+  cp -a build-s1/lib/libLTO.dylib build-s1/lib/lto/
 
-
-  # note RE: `LIBCXX_STATICALLY_LINK_ABI_IN_*`
-  # with Xcode CLT >= 15, apple switched to using a new linker backend based on LLD instead of ld64.
-  # however, their new linker does not support the features required (reexporting symbols); we do specify it
-  # (`LIBCXX_OSX_REEXPORT_LIBCXXABI_SYMBOLS`), but it doesn't do much. So for now, libc++ will statically link
-  # in libc++abi, so the compiler isn't fucking completely broken.
-  # if/when apple wakes up their idea, we can get rid of this.
+  rm -rf build-s2
   cmake -S llvm -B build-s2 -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_FLAGS="${CFLAGS/-O2/-O3}" \
     -DCMAKE_CXX_FLAGS="${CXXFLAGS/-O2/-O3}" \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
-    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;pstl;lldb;lld" \
-    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;openmp" \
+    -DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
+    -DCMAKE_C_COMPILER=$(pwd)/build-s1/bin/clang \
+    -DCMAKE_CXX_COMPILER=$(pwd)/build-s1/bin/clang++ \
+    -DCMAKE_LIBTOOL=build-s1/bin/llvm-libtool-darwin \
+    -DCMAKE_RANLIB=build-s1/bin/llvm-ranlib \
+    -DCMAKE_AR=build-s1/bin/llvm-ar \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="${_deployment_target}" \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lldb;polly;mlir" \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind;openmp;pstl" \
+    -DLLVM_POLLY_LINK_INTO_TOOLS=ON \
     -DLLVM_PARALLEL_LINK_JOBS=2 \
+    -DLLVM_SOURCE_PREFIX=. \
+    -DLLVM_USE_RELATIVE_PATHS_IN_FILES=ON \
     -DLLVM_TARGETS_TO_BUILD="${_llvm_targets}" \
     -DLLVM_INSTALL_UTILS=ON \
     -DLLVM_BUILD_LLVM_DYLIB=ON \
     -DLLVM_LINK_LLVM_DYLIB=ON \
     -DLLVM_ENABLE_LTO=Thin \
-    -DLLVM_ENABLE_LLD=ON \
-    -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
-    -DLIBCXX_ENABLE_SHARED_ABI_LIBRARY=ON \
+    -DLLVM_ENABLE_LIBCXX=ON \
+    -DLLVM_CREATE_XCODE_TOOLCHAIN=OFF \
     -DLLDB_USE_SYSTEM_DEBUGSERVER=ON \
-    -DLIBCXX_OSX_REEXPORT_LIBCXXABI_SYMBOLS=ON \
+    -DLIBCXX_INSTALL_MODULES=ON \
+    -DLIBCXX_PSTL_BACKEND=libdispatch \
+    -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
+    -DCOMPILER_RT_USE_LLVM_UNWINDER=OFF \
+    -DLIBUNWIND_INSTALL_LIBRARY_DIR=${pacman_root}/usr/lib/unwind/ \
     -DSANITIZER_MIN_OSX_VERSION="${MACOS_MAJOR}.0" \
-    -DDEFAULT_SANITIZER_MIN_OSX_VERSION="${MACOS_MAJOR}.0" \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET="${_deployment_target}" \
-    -DCMAKE_LIBTOOL=build-s1/bin/llvm-libtool-darwin \
-    -DCMAKE_RANLIB=build-s1/bin/llvm-ranlib \
-    -DCMAKE_AR=build-s1/bin/llvm-ar \
     -DDEFAULT_OSX_SDK_PATH=$(xcrun --show-sdk-path) \
-    -DCMAKE_C_COMPILER=$(pwd)/build-s1/bin/clang \
-    -DCMAKE_CXX_COMPILER=$(pwd)/build-s1/bin/clang++ \
-    -DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
-    -DBUILTINS_CMAKE_ARGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=${_deployment_target};-DCOMPILER_RT_ENABLE_IOS=OFF" \
-    -DRUNTIMES_CMAKE_ARGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=${_deployment_target};-DCOMPILER_RT_ENABLE_IOS=OFF" \
+    -DBUILTINS_CMAKE_ARGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=${_deployment_target};-DCOMPILER_RT_ENABLE_IOS=OFF;-DCOMPILER_RT_ENABLE_WATCHOS=OFF;-DCOMPILER_RT_ENABLE_TVOS=OFF" \
+    -DRUNTIMES_CMAKE_ARGS="-DCMAKE_OSX_DEPLOYMENT_TARGET=${_deployment_target};-DCOMPILER_RT_ENABLE_IOS=OFF;-DCOMPILER_RT_ENABLE_WATCHOS=OFF;-DCOMPILER_RT_ENABLE_TVOS=OFF" \
     -DLLVM_PROFDATA_FILE=./build-s1/tools/clang/stage2-instrumented-bins/tools/clang/utils/perf-training/clang.profdata
 
+#     -DLIBCXX_INSTALL_LIBRARY_DIR=${pacman_root}/usr/lib/c++ \
+#     -DLIBCXXABI_INSTALL_LIBRARY_DIR=${pacman_root}/usr/lib/c++ \
+#     -DLLVM_ENABLE_LLD=ON \
+#     -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
+#     -DLIBCXX_ENABLE_SHARED_ABI_LIBRARY=ON \
+#     -DLIBCXX_OSX_REEXPORT_LIBCXXABI_SYMBOLS=ON \
 #     -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
 #     -DLIBCXX_ENABLE_SHARED_ABI_LIBRARY=ON \
 #     -DLIBCXX_STATICALLY_LINK_ABI_IN_SHARED_LIBRARY=ON \
 #     -DLIBCXX_STATICALLY_LINK_ABI_IN_STATIC_LIBRARY=ON \
-#     -DLLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind;openmp" \
 
   ninja -C build-s2
 }
@@ -226,7 +231,7 @@ check_convert_bitcode() {
       esac
 
       check_convert_bitcode ${archived_file}
-      # msg2 "Repacking $(basename ${archived_file}) into ${archive#${pkgdir}}"
+      echo "     - Repacking $(basename ${archived_file})"
       ${pkgdir}/${pacman_root}/usr/bin/llvm-ar rs ${archive} ${archived_file}
     done
     popd > /dev/null
@@ -240,16 +245,14 @@ package_llvm-project-runtime() {
   cd $srcdir/$pkgbase-$pkgver.src
   DESTDIR="${pkgdir}" ninja -C build-s2 install
 
-  # hmm, this is needed for some reason.
   local _llvm_major=$(echo ${pkgver} | grep -Eo '[0-9]+' | head -1)
-  ln -s libLLVM.dylib ${pkgdir}/${pacman_root}/usr/lib/libLLVM-${_llvm_major}.dylib
 
   # note: do this before undoing rpaths, otherwise it'll be more annoying to run the code
   msg 'Compiling LLVM bitcode to object code'
   local _f _files
   IFS=$'\n' read -r -d '' -a _files < <(find "${pkgdir}/${pacman_root}" -type f -iname "*.[ao]" -print) || true
   for _f in "${_files[@]}"; do
-    : # check_convert_bitcode "${_f}"
+    check_convert_bitcode "${_f}"
   done
 
 
@@ -260,14 +263,22 @@ package_llvm-project-runtime() {
   IFS=$'\n' read -r -d '' -a _libs < <(find ${pkgdir}/${pacman_root}/usr/lib -iname '*.dylib') || true
 
   for _lib in "${_libs[@]}"; do
-    fix_rpath_v2 "${_lib}"
+    if otool -L "${_lib}" | grep -q 'libunwind'; then
+      fix_rpath_v2 "${_lib}" --search-prefix="${pacman_root}/usr/lib/unwind/"
+    else
+      fix_rpath_v2 "${_lib}"
+    fi
   done
 
   local _exe _exes
   IFS=$'\n' read -r -d '' -a _exes < <(find ${pkgdir}/${pacman_root}/usr/bin -type f) || true
 
   for _exe in "${_exes[@]}"; do
-    fix_rpath_v2 "${_exe}"
+    if otool -L "${_exe}" | grep -q 'libunwind'; then
+      fix_rpath_v2 "${_exe}" --search-prefix="${pacman_root}/usr/lib/unwind/"
+    else
+      fix_rpath_v2 "${_exe}"
+    fi
   done
 
   # libgomp comes from gcc-runtime
@@ -297,33 +308,57 @@ package_llvm-project-runtime() {
       _pick "llvm-project" "${_f}"
     done
 
-    # _pick "llvm-project" "${pacman_root#/}/usr/lib/libLTO.dylib"
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/libRemarks.dylib"
+    # llvm libraries
+    _pick "llvm-project" "${pacman_root#/}/usr/include/llvm"
+    _pick "llvm-project" "${pacman_root#/}/usr/include/mlir"
+    _pick "llvm-project" "${pacman_root#/}/usr/include/lldb"
+    _pick "llvm-project" "${pacman_root#/}/usr/include/polly"
+    _pick "llvm-project" "${pacman_root#/}/usr/include/llvm-c"
+    _pick "llvm-project" "${pacman_root#/}/usr/include/mlir-c"
 
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/liblldb.dylib"
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/liblldb.${pkgver}.dylib"
+    # this goes in the lib for *using* clang as a library or something
+    _pick "llvm-project" "${pacman_root#/}/usr/include/clang"
+    _pick "llvm-project" "${pacman_root#/}/usr/include/clang-c"
+    _pick "llvm-project" "${pacman_root#/}/usr/include/clang-tidy"
 
-    _pick "llvm-project" "${pacman_root#/}/usr/bin"
-    _pick "llvm-project" "${pacman_root#/}/usr/share"
-    _pick "llvm-project" "${pacman_root#/}/usr/libexec"
-    _pick "llvm-project" "${pacman_root#/}/usr/include"
 
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/cmake"
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/libear"
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/libscanbuild"
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/lib/libRemarks.dylib"
 
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/lib/liblldb.dylib"
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/lib/liblldb.${pkgver}.dylib"
+
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/bin"
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/share"
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/libexec"
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/include"
+
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/lib/cmake"
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/lib/libear"
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/lib/libscanbuild"
+
+    # the python stuff is just the lldb bindings
     local _pyver=$(python -c 'print(".".join(map(str, __import__("sys").version_info[:2])))')
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/python${_pyver}"
-    _pick "llvm-project" "${pacman_root#/}/usr/lib/clang/${pkgver%%.*}/include"
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/lib/python${_pyver}"
+
+    # this goes in the toolchain, required for clang to work.
+    _pick "llvm-project-toolchain" "${pacman_root#/}/usr/lib/clang/${pkgver%%.*}/include"
 
     # the remaining stuff is the runtime (ie. ours)
   )
 }
 
+package_llvm-project-toolchain() {
+  depends+=(llvm-project-runtime)
+  conflicts=('llvm' 'clang' 'lldb')
+  provides=('system-toolchain'=${pkgver} 'llvm'=${pkgver} 'clang'=${pkgver} 'lldb'=${pkgver})
+
+  mv -v $pkgname/* "$pkgdir/"
+}
+
 package_llvm-project() {
   depends+=(llvm-project-runtime)
-  conflicts=('llvm' 'llvm-libs' 'clang' 'lldb' 'lld')
-  provides=('system-toolchain'=${pkgver} 'llvm'=${pkgver} 'llvm-libs'=${pkgver} 'clang'=${pkgver} 'lldb'=${pkgver} 'lld'=${pkgver})
+  conflicts=('llvm-libs')
+  provides=('llvm-libs'=${pkgver})
 
   mv -v $pkgname/* "$pkgdir/"
 }

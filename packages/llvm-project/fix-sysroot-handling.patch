@@ -1,8 +1,8 @@
 diff --git a/clang-tools-extra/clangd/CompileCommands.cpp b/clang-tools-extra/clangd/CompileCommands.cpp
 index bcd39b2d3..dd7518ae9 100644
---- a/clang-tools-extra/clangd/CompileCommands.cpp
-+++ b/clang-tools-extra/clangd/CompileCommands.cpp
-@@ -38,6 +38,7 @@ namespace {
+--- a/clang-tools-extra/clangd/CompileCommands.cpp	2024-09-17 19:26:36.000000000 +0800
++++ b/clang-tools-extra/clangd/CompileCommands.cpp	2024-11-23 16:33:44.738951395 +0800
+@@ -39,6 +39,7 @@
  
  // Query apple's `xcrun` launcher, which is the source of truth for "how should"
  // clang be invoked on this system.
@@ -10,7 +10,7 @@ index bcd39b2d3..dd7518ae9 100644
  std::optional<std::string> queryXcrun(llvm::ArrayRef<llvm::StringRef> Argv) {
    auto Xcrun = llvm::sys::findProgramByName("xcrun");
    if (!Xcrun) {
-@@ -95,24 +96,40 @@ std::string detectClangPath() {
+@@ -96,24 +97,39 @@
    // so if /usr/bin/clang is a symlink, it sees the resolved path.
    // clangd doesn't have that luxury, so we resolve symlinks ourselves.
  
@@ -25,7 +25,7 @@ index bcd39b2d3..dd7518ae9 100644
 +  // previously, clangd would always preferentially use xcrun to find clang,
 +  // which is a monumentally fucking stupid idea.
 +
-+  // a much better approach: FIRST, try compilers on path.
++  // a much better approach: FIRST, try compilers on path:
    for (const char *Name : {"clang", "gcc", "cc"})
      if (auto PathCC = llvm::sys::findProgramByName(Name))
        return resolve(std::move(*PathCC));
@@ -34,7 +34,6 @@ index bcd39b2d3..dd7518ae9 100644
 +  // THEN, if nothing in the path exists, we try using a 'clang' binary next
 +  // to clangd. idk which clown decided that it would never exist, but it
 +  // definitely should.
-+
    static int StaticForMainAddr;
    std::string ClangdExecutable =
        llvm::sys::fs::getMainExecutable("clangd", (void *)&StaticForMainAddr);
@@ -56,11 +55,11 @@ index bcd39b2d3..dd7518ae9 100644
 +
 +  // if a `clang` next to `clangd` did not exist, and either:
 +  // we are not __APPLE__, *or* xcrun did not find clang, then
-+  // just return the nonexistent path anyway.
-   return std::string(ClangPath.str());
++  // just return the nonexistent path anyway
+   return std::string(ClangPath);
  }
  
-@@ -126,6 +143,9 @@ std::optional<std::string> detectSysroot() {
+@@ -127,6 +143,9 @@
    // SDKROOT overridden in environment, respect it. Driver will set isysroot.
    if (::getenv("SDKROOT"))
      return std::nullopt;
@@ -74,16 +73,13 @@ diff --git a/clang/CMakeLists.txt b/clang/CMakeLists.txt
 index 090cfa352..1ac809a13 100644
 --- a/clang/CMakeLists.txt
 +++ b/clang/CMakeLists.txt
-@@ -186,6 +186,9 @@ set(GCC_INSTALL_PREFIX "" CACHE PATH "Directory where gcc is installed." )
+@@ -208,3 +208,6 @@ set(GCC_INSTALL_PREFIX "" CACHE PATH "Directory where gcc is installed." )
  set(DEFAULT_SYSROOT "" CACHE STRING
    "Default <path> to all compiler invocations for --sysroot=<path>." )
- 
 +set(DEFAULT_OSX_SDK_PATH "" CACHE STRING
 +  "Default SDK path for macOS")
 +
- set(ENABLE_LINKER_BUILD_ID OFF CACHE BOOL "pass --build-id to ld")
- 
- set(ENABLE_X86_RELAX_RELOCATIONS ON CACHE BOOL
+ if(GCC_INSTALL_PREFIX AND NOT USE_DEPRECATED_GCC_INSTALL_PREFIX)
 diff --git a/clang/include/clang/Config/config.h.cmake b/clang/include/clang/Config/config.h.cmake
 index a54a26cd3..4cd6a32c8 100644
 --- a/clang/include/clang/Config/config.h.cmake
@@ -102,7 +98,7 @@ diff --git a/clang/include/clang/Driver/ToolChain.h b/clang/include/clang/Driver
 index f75f35dc9..59af109d4 100644
 --- a/clang/include/clang/Driver/ToolChain.h
 +++ b/clang/include/clang/Driver/ToolChain.h
-@@ -763,6 +763,9 @@ public:
+@@ -801,6 +801,9 @@ public:
      return llvm::DenormalMode::getIEEE();
    }
  
@@ -116,7 +112,7 @@ diff --git a/clang/include/clang/Frontend/CompilerInvocation.h b/clang/include/c
 index 254f048ed..c0d73246a 100644
 --- a/clang/include/clang/Frontend/CompilerInvocation.h
 +++ b/clang/include/clang/Frontend/CompilerInvocation.h
-@@ -219,6 +219,10 @@ public:
+@@ -305,6 +305,10 @@ public:
    /// executable), for finding the builtin compiler path.
    static std::string GetResourcesPath(const char *Argv0, void *MainAddr);
  
@@ -124,14 +120,14 @@ index 254f048ed..c0d73246a 100644
 +  /// if it exists, and we're on an Apple platform. Otherwise, return an empty string.
 +  static const char* GetMacOSXDefaultSDKPath();
 +
-   /// Retrieve a module hash string that is suitable for uniquely
-   /// identifying the conditions under which the module was built.
-   std::string getModuleHash() const;
+   /// Populate \p Opts with the default set of pointer authentication-related
+   /// options given \p LangOpts and \p Triple.
+   ///
 diff --git a/clang/lib/Driver/ToolChains/Clang.cpp b/clang/lib/Driver/ToolChains/Clang.cpp
 index 77554aa2c..86c88896c 100644
 --- a/clang/lib/Driver/ToolChains/Clang.cpp
 +++ b/clang/lib/Driver/ToolChains/Clang.cpp
-@@ -1327,6 +1327,14 @@ void Clang::AddPreprocessingOptions(Compilation &C, const JobAction &JA,
+@@ -1217,6 +1217,14 @@ void Clang::AddPreprocessingOptions(Compilation &C, const JobAction &JA,
        CmdArgs.push_back("-isysroot");
        CmdArgs.push_back(C.getArgs().MakeArgString(sysroot));
      }
@@ -158,13 +154,13 @@ index bb0cf01dd..57823d19e 100644
  #include "llvm/ADT/StringSwitch.h"
  #include "llvm/Option/ArgList.h"
  #include "llvm/ProfileData/InstrProf.h"
-@@ -250,6 +251,14 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
+@@ -261,6 +262,14 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
      }
    }
  
 +  // add our vendor sysroot libs
 +  {
-+    llvm::SmallString<128> libDir = llvm::StringRef(D.getInstalledDir()); // <install>/bin
++    llvm::SmallString<128> libDir = llvm::StringRef(D.Dir); // <install>/bin
 +    llvm::sys::path::append(libDir, "..", "lib");
 +    CmdArgs.push_back("-L");
 +    CmdArgs.push_back(Args.MakeArgString(libDir));
@@ -173,7 +169,7 @@ index bb0cf01dd..57823d19e 100644
    // Use -lto_library option to specify the libLTO.dylib path. Try to find
    // it in clang installed libraries. ld64 will only look at this argument
    // when it actually uses LTO, so libLTO.dylib only needs to exist at link
-@@ -419,6 +428,9 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
+@@ -437,6 +446,9 @@ void darwin::Linker::AddLinkArgs(Compilation &C, const ArgList &Args,
    } else if (const Arg *A = Args.getLastArg(options::OPT_isysroot)) {
      CmdArgs.push_back("-syslibroot");
      CmdArgs.push_back(A->getValue());
@@ -183,7 +179,7 @@ index bb0cf01dd..57823d19e 100644
    }
  
    Args.AddLastArg(CmdArgs, options::OPT_twolevel__namespace);
-@@ -1038,6 +1050,13 @@ Darwin::~Darwin() {}
+@@ -1083,6 +1095,13 @@ Darwin::~Darwin() {}
  
  MachO::~MachO() {}
  
@@ -197,7 +193,7 @@ index bb0cf01dd..57823d19e 100644
  std::string Darwin::ComputeEffectiveClangTriple(const ArgList &Args,
                                                  types::ID InputType) const {
    llvm::Triple Triple(ComputeLLVMTriple(Args, InputType));
-@@ -2303,6 +2322,8 @@ DarwinClang::GetEffectiveSysroot(const llvm::opt::ArgList &DriverArgs) const {
+@@ -2441,6 +2460,8 @@ DarwinClang::GetEffectiveSysroot(const llvm::opt::ArgList &DriverArgs) const {
      Path = DriverArgs.getLastArgValue(options::OPT_isysroot);
    else if (!getDriver().SysRoot.empty())
      Path = getDriver().SysRoot;
@@ -206,13 +202,13 @@ index bb0cf01dd..57823d19e 100644
  
    if (hasEffectiveTriple()) {
      AppendPlatformPrefix(Path, getEffectiveTriple());
-@@ -2340,6 +2361,13 @@ void DarwinClang::AddClangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs
+@@ -2478,6 +2499,13 @@ void DarwinClang::AddClangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs
    if (NoStdInc || NoStdlibInc)
      return;
  
 +  // and <installed_dir>/../include
 +  {
-+    SmallString<128> P1(D.getInstalledDir());
++    SmallString<128> P1(D.Dir);
 +    llvm::sys::path::append(P1, "..", "include");
 +    addExternCSystemInclude(DriverArgs, CC1Args, P1.str());
 +  }
@@ -224,7 +220,7 @@ diff --git a/clang/lib/Driver/ToolChains/Darwin.h b/clang/lib/Driver/ToolChains/
 index f64e7180d..e292bb464 100644
 --- a/clang/lib/Driver/ToolChains/Darwin.h
 +++ b/clang/lib/Driver/ToolChains/Darwin.h
-@@ -559,6 +559,8 @@ public:
+@@ -586,6 +586,8 @@ public:
      return LangOptions::SSPOff;
    }
  
@@ -237,7 +233,7 @@ diff --git a/clang/lib/Frontend/CompilerInvocation.cpp b/clang/lib/Frontend/Comp
 index 0bb9c8c83..653c154fb 100644
 --- a/clang/lib/Frontend/CompilerInvocation.cpp
 +++ b/clang/lib/Frontend/CompilerInvocation.cpp
-@@ -2961,6 +2961,10 @@ std::string CompilerInvocation::GetResourcesPath(const char *Argv0,
+@@ -3127,5 +3127,9 @@ std::string CompilerInvocation::GetResourcesPath(const char *Argv0,
    return Driver::GetResourcesPath(ClangExecutable, CLANG_RESOURCE_DIR);
  }
  
@@ -245,11 +241,10 @@ index 0bb9c8c83..653c154fb 100644
 +  return DEFAULT_OSX_SDK_PATH;
 +}
 +
- static void GenerateHeaderSearchArgs(HeaderSearchOptions &Opts,
-                                      SmallVectorImpl<const char *> &Args,
-                                      CompilerInvocation::StringAllocator SA) {
-@@ -2996,7 +2996,7 @@ static void GenerateHeaderSearchArgs(HeaderSearchOptions &Opts,
-     GenerateArg(Args, OPT_fmodules_ignore_macro, Macro.val(), SA);
+ static void GenerateHeaderSearchArgs(const HeaderSearchOptions &Opts,
+                                      ArgumentConsumer Consumer) {
+@@ -3151,7 +3151,7 @@ static void GenerateHeaderSearchArgs(HeaderSearchOptions &Opts,
+     GenerateArg(Consumer, OPT_fmodules_ignore_macro, Macro.val());
  
    auto Matches = [](const HeaderSearchOptions::Entry &Entry,
 -                    llvm::ArrayRef<frontend::IncludeDirGroup> Groups,
@@ -257,7 +252,7 @@ index 0bb9c8c83..653c154fb 100644
                      std::optional<bool> IsFramework,
                      std::optional<bool> IgnoreSysRoot) {
      return llvm::is_contained(Groups, Entry.Group) &&
-@@ -3012,13 +3012,13 @@ static void GenerateHeaderSearchArgs(HeaderSearchOptions &Opts,
+@@ -3167,13 +3167,13 @@ static void GenerateHeaderSearchArgs(HeaderSearchOptions &Opts,
                               std::nullopt, true);
         ++It) {
      OptSpecifier Opt = [It, Matches]() {
@@ -279,7 +274,7 @@ diff --git a/clang/include/clang/Driver/Driver.h b/clang/include/clang/Driver/Dr
 index 4bbb113b6..df68b3fb4 100644
 --- a/clang/include/clang/Driver/Driver.h
 +++ b/clang/include/clang/Driver/Driver.h
-@@ -181,6 +181,9 @@ public:
+@@ -179,6 +179,9 @@ public:
    /// sysroot, if present
    std::string SysRoot;
  
@@ -293,7 +288,7 @@ diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
 index a268f2fa8..23643640e 100644
 --- a/clang/lib/Driver/Driver.cpp
 +++ b/clang/lib/Driver/Driver.cpp
-@@ -1327,8 +1327,10 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
+@@ -1371,8 +1371,10 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
        CompilerPath = Split.second;
      }
    }

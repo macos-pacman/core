@@ -1,0 +1,11 @@
+--- a/libcxx/include/__configuration/availability.h	2025-01-07 00:21:32.307353144 +0800
++++ b/libcxx/include/__configuration/availability.h	2025-01-07 00:22:13.708387817 +0800
+@@ -397,4 +397,8 @@
+ #  define _LIBCPP_AVAILABILITY_INIT_PRIMARY_EXCEPTION
+ #endif
+ 
++// yeet this shit
++#undef _LIBCPP_AVAILABILITY_HAS_INIT_PRIMARY_EXCEPTION
++#define _LIBCPP_AVAILABILITY_HAS_INIT_PRIMARY_EXCEPTION 0
++
+ #endif // _LIBCPP___CONFIGURATION_AVAILABILITY_H

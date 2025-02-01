@@ -48,7 +48,7 @@
 +    // Get from '<install>/bin' to '<install>/include/c++/v1'.
 +    // Note that InstallBin can be relative, so we use '..' instead of parent_path.
 +    llvm::SmallString<128> HeaderDir =
-+        llvm::StringRef(getDriver().getInstalledDir()); // <install>/bin
++        llvm::StringRef(getDriver().Dir); // <install>/bin
 +    llvm::sys::path::append(HeaderDir, "..", "include", "c++");
 +    if (!getVFS().exists(HeaderDir)) {
 +      if (DriverArgs.hasArg(options::OPT_v)) {
@@ -112,7 +112,7 @@
 -        getVFS().exists("/usr/lib/libstdc++.6.dylib")) {
 -      CmdArgs.push_back("/usr/lib/libstdc++.6.dylib");
 +    // next check the install prefix.
-+    llvm::SmallString<128> P = llvm::StringRef(getDriver().getInstalledDir()); // <install>/bin
++    llvm::SmallString<128> P = llvm::StringRef(getDriver().Dir); // <install>/bin
 +    llvm::sys::path::append(P, "..", "lib", "libstdc++.dylib");
 +    if (getVFS().exists(P)) {
 +      CmdArgs.push_back(Args.MakeArgString(P));
