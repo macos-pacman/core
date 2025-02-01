@@ -5,54 +5,23 @@
 +_commit=9f51a7102085ec6a6ced5778f0864c9af9f50000  # main
 @@ -7 +6,0 @@
 -epoch=1
-@@ -8,0 +8 @@
-+arch=('any')
-@@ -10,7 +10,4 @@
--arch=('any')
--license=('Apache-2.0 WITH LLVM-exception AND Apache-2.0 AND MIT')
--makedepends=(
--  'clang'
--  'git'
--  'llvm'
--)
-+license=('Apache' 'MIT')
-+makedepends=('git' 'llvm' 'clang')
-+source=("git+https://github.com/WebAssembly/wasi-libc.git#commit=${_commit}")
-+b2sums=('SKIP')
-@@ -18,2 +14,0 @@
--source=("git+https://github.com/WebAssembly/wasi-libc.git#commit=${_commit}")
--b2sums=('a90b2fdbc5f5c3de1ef9438a857a54bd39bda7c01a7b22e087960ddd030d62748fd26eb8ebb94383481e47ec952162797b03d9b510878243ca1a481af2875fa3')
-@@ -27,10 +22,8 @@
--  local target= make_options=(
+@@ -20,0 +20 @@
++
+@@ -28,3 +28,3 @@
 -    WASM_CC=/usr/bin/clang
 -    WASM_AR=/usr/bin/llvm-ar
 -    WASM_NM=/usr/bin/llvm-nm
--  )
--  local -A targets=(
--    wasm32-wasi           ''
--    wasm32-wasip1         ''
--    wasm32-wasip1-threads 'THREAD_MODEL=posix'
--    wasm32-wasip2         'WASI_SNAPSHOT=p2'
-+  local make_options=(
 +    WASM_CC=${pacman_root}/usr/bin/clang
 +    WASM_AR=${pacman_root}/usr/bin/llvm-ar
 +    WASM_NM=${pacman_root}/usr/bin/llvm-nm
-+
-+    # Remove bulk memory support
-+    # https://bugzilla.mozilla.org/show_bug.cgi?id=1773200#c4
-+    BULK_MEMORY_SOURCES=
-@@ -40,4 +33 @@
--
--  for target in "${!targets[@]}"; do
--    make "${make_options[@]}" TARGET_TRIPLE="$target" ${targets[$target]}
--  done
-+  make "${make_options[@]}"
-@@ -48,3 +38,2 @@
+@@ -48,3 +48,4 @@
 -  install -dm755 "${pkgdir}"/usr/share
 -  cp -dr --preserve=mode,timestamp sysroot "${pkgdir}"/usr/share/wasi-sysroot
 -  install -Dm644 LICENSE* -t "${pkgdir}"/usr/share/licenses/${pkgname}
 +  install -dm755 "${pkgdir}"/${pacman_root}/usr/share
 +  cp -a sysroot "${pkgdir}"/${pacman_root}/usr/share/wasi-sysroot
-@@ -52,2 +40,0 @@
++  install -Dm644 LICENSE* -t "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}
++
+@@ -52,2 +52,0 @@
 -
 -# vim:set sw=2 sts=-1 et:

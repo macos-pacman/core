@@ -1,17 +1,22 @@
 # Maintainer: Frederik Schwan <freswa at archlinux dot org>
 
 pkgname=wasi-libc
-pkgver=0+339+9f51a710
+pkgver=0+410+574b88da
 _commit=9f51a7102085ec6a6ced5778f0864c9af9f50000  # main
-pkgrel=1
+pkgrel=2
 pkgdesc='WASI libc implementation for WebAssembly'
-arch=('any')
 url='https://github.com/WebAssembly/wasi-libc'
-license=('Apache' 'MIT')
-makedepends=('git' 'llvm' 'clang')
-source=("git+https://github.com/WebAssembly/wasi-libc.git#commit=${_commit}")
-b2sums=('SKIP')
+arch=('any')
+license=('Apache-2.0 WITH LLVM-exception AND Apache-2.0 AND MIT')
+makedepends=(
+  'clang'
+  'git'
+  'llvm'
+)
 options=('staticlibs')
+source=("git+https://github.com/WebAssembly/wasi-libc.git#commit=${_commit}")
+b2sums=('a90b2fdbc5f5c3de1ef9438a857a54bd39bda7c01a7b22e087960ddd030d62748fd26eb8ebb94383481e47ec952162797b03d9b510878243ca1a481af2875fa3')
+
 
 pkgver() {
   cd ${pkgname}
@@ -19,22 +24,29 @@ pkgver() {
 }
 
 build() {
-  local make_options=(
+  local target= make_options=(
     WASM_CC=${pacman_root}/usr/bin/clang
     WASM_AR=${pacman_root}/usr/bin/llvm-ar
     WASM_NM=${pacman_root}/usr/bin/llvm-nm
-
-    # Remove bulk memory support
-    # https://bugzilla.mozilla.org/show_bug.cgi?id=1773200#c4
-    BULK_MEMORY_SOURCES=
+  )
+  local -A targets=(
+    wasm32-wasi           ''
+    wasm32-wasip1         ''
+    wasm32-wasip1-threads 'THREAD_MODEL=posix'
+    wasm32-wasip2         'WASI_SNAPSHOT=p2'
   )
 
   cd ${pkgname}
-  make "${make_options[@]}"
+
+  for target in "${!targets[@]}"; do
+    make "${make_options[@]}" TARGET_TRIPLE="$target" ${targets[$target]}
+  done
 }
 
 package() {
   cd ${pkgname}
   install -dm755 "${pkgdir}"/${pacman_root}/usr/share
   cp -a sysroot "${pkgdir}"/${pacman_root}/usr/share/wasi-sysroot
+  install -Dm644 LICENSE* -t "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}
+
 }
