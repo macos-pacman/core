@@ -1,0 +1,68 @@
+pkgname=lld
+pkgver=19.1.7
+pkgrel=4
+pkgrel+=".0"
+arch=('x86_64' 'arm64')
+license=('Apache')
+url='https://llvm.org/'
+depends=('zlib' 'xz' 'python' 'zstd' 'llvm-project')
+makedepends=('cmake' 'ninja' 'zlib')
+options=('staticlibs')
+
+source=(
+  "https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}/llvm-project-${pkgver}.src.tar.xz"
+)
+
+sha256sums=(
+  '82401fea7b79d0078043f7598b835284d6650a75b93e64b6f761ea7b63097501'  # actual source
+)
+
+build() {
+  cd $srcdir/llvm-project-$pkgver.src
+
+  local _deployment_target="${MACOS_MAJOR}.0"
+  local _llvm_targets="AArch64;AMDGPU;ARM;AVR;BPF;Hexagon;Lanai;Mips;MSP430;NVPTX;PowerPC;RISCV;Sparc;SystemZ;VE;WebAssembly;X86;XCore"
+
+  cmake -S lld -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_FLAGS="${CFLAGS/-O2/-O3}" \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS/-O2/-O3}" \
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+    -DCMAKE_INSTALL_NAME_DIR=${pacman_root}/usr/lib \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="${_deployment_target}" \
+    -DBUILD_SHARED_LIBS=ON \
+    -DLLVM_PARALLEL_LINK_JOBS=2 \
+    -DLLVM_SOURCE_PREFIX=. \
+    -DLLVM_USE_RELATIVE_PATHS_IN_FILES=ON \
+    -DLLVM_TARGETS_TO_BUILD="${_llvm_targets}" \
+    -DLLVM_ENABLE_LTO=ON \
+    -DLLVM_ENABLE_LIBCXX=ON \
+    -DLLD_BUILT_STANDALONE=ON \
+    -DDEFAULT_OSX_SDK_PATH=$(xcrun --show-sdk-path)
+
+  ninja -C build
+}
+
+package() {
+  cd $srcdir/llvm-project-$pkgver.src
+  DESTDIR="${pkgdir}" ninja -C build install
+
+  local _f; for _f in $(find "$pkgdir/${pacman_root}/usr/bin" -type f) \
+                      $(find "$pkgdir/${pacman_root}/usr/lib" -iname "*.dylib"); do
+
+    fix_rpath_v2 "${_f}"
+  done
+
+  install -Dm644 LICENSE.TXT "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+
+  # https://bugs.llvm.org/show_bug.cgi?id=42455
+  install -Dm644 -t "$pkgdir/${pacman_root}/usr/share/man/man1" lld/docs/ld.lld.1
+
+  # Remove documentation sources
+  rm -fr "$pkgdir"/${pacman_root}/usr/share/doc/lld/html/{_sources,.buildinfo}
+}
+
+
+
+
+
