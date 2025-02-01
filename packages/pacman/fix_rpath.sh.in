@@ -242,16 +242,19 @@ replace_lib_paths_with_rpath() {
 
 _get_fallback_replacement_for_library() {
 	if [ $# -lt 5 ]; then
-		error 'usage: <_file> <_lib_name> <_rpath_tail> <_search_prefix> <_pacman_root> <_pkgdir>'
+		error 'usage: <file> <lib_name> <rpath_tail> <pacman_root> <pkgdir> [search_prefixes...]'
 		return 1
 	fi
 
 	local _file="$1"
 	local _lib_name="$2"
 	local _rpath_tail="$3"
-	local _search_prefix="$4"
-	local _pacman_root="$5"
-	local _pkgdir="$6"
+	local _pacman_root="$4"
+	local _pkgdir="$5"
+
+	# use /pm/usr/lib as the default
+	shift 5
+	local _search_prefixes=("$@" "${_pacman_root}/usr/lib")
 
 	# first, check whether the library exists *next to* the current file we are looking at
 	local _containing_path="$(_canonicalise_path "${_file}")/.."
@@ -262,11 +265,21 @@ _get_fallback_replacement_for_library() {
 		_replacement="${_containing_path}/${_lib_name}"
 	else
 		# otherwise, use the the default prefix (or /pm/usr/lib if not given)
-		local _check_prefix=${_search_prefix:-"${_pacman_root}/usr/lib"}
-		if [ ! -e "${_check_prefix}/${_lib_name}" ] && [ ! -e "${_pkgdir}/${_check_prefix}/${_lib_name}" ]; then
-			warning2 "File %s: could not resolve %s: assuming it lives in %s"   "${_file}" "${_lib_name}" "${_check_prefix}"
+		local _found=0
+		local _check; for _check in "${_search_prefixes[@]}"; do
+			if [ -e "${_check}/${_lib_name}" ] || [ -e "${_pkgdir}/${_check}/${_lib_name}" ]; then
+				_found=1
+				_replacement="${_check}/${_lib_name}"
+				break
+			fi
+		done
+
+		if (( ! _found )); then
+			_check="${_search_prefixes[-1]}"
+			_replacement="${_check}/${_lib_name}"
+			warning2 "File %s: could not resolve %s: assuming it lives in %s" \
+				"${_file}" "${_lib_name}" "${_check}"
 		fi
-		_replacement="${_check_prefix}/${_lib_name}"
 	fi
 
 	echo "${_replacement}"
@@ -296,7 +309,7 @@ fix_rpath_v2() {
 	local _pkgdir="${pkgdir}"
 
 	local _pacman_root="${pacman_root}"
-	local _search_prefix=""
+	local _search_prefixes=()
 
 	local _input_files=()
 
@@ -305,10 +318,10 @@ fix_rpath_v2() {
 		case "$1" in
 			--search-prefix)
 				[ $# -ge 1 ] || { error "Missing value for '--search-prefix' argument"; return 1; }
-				_search_prefix="$2"
+				_search_prefixes+=("$2")
 				shift ;;
 			--search-prefix=*)
-				_search_prefix="${_arg##--search-prefix=}" ;;
+				_search_prefixes+=("${_arg##--search-prefix=}") ;;
 			--pacman-root)
 				[ $# -ge 1 ] || { error "Missing value for '--pacman-root' argument"; return 1; }
 				_pacman_root="$2" ;;
@@ -437,7 +450,8 @@ fix_rpath_v2() {
 
 					if [ -z "${_replacement}" ]; then
 						_replacement=$(_get_fallback_replacement_for_library \
-							"${_file}" "${_lib_name}" "${_rpath_tail}" "${_search_prefix}" "${_pacman_root}" "${_pkgdir}")
+							"${_file}" "${_lib_name}" "${_rpath_tail}" "${_pacman_root}" \
+							"${_pkgdir}" "${_search_prefixes[@]}")
 					fi
 
 					# now clean up the replacement.
@@ -471,7 +485,7 @@ fix_rpath_v2() {
 					# the resolution for this is actually quite similar to the case of it being an @rpath --
 					# just without the initial loop going through $LC_RPATHs.
 					local _replacement=$(_get_fallback_replacement_for_library \
-						"${_file}" "${_lib_name}" "" "${_search_prefix}" "${_pacman_root}" "${_pkgdir}")
+						"${_file}" "${_lib_name}" "" "${_pacman_root}" "${_pkgdir}" "${_search_prefixes[@]}")
 
 					(( ! _have_fixes )) && { msg2 "Fixing ${_final_file_path}:"; _have_fixes=1; }
 					msg3 "Removing reference to \$srcdir; replacing '\$srcdir/%s' -> '%s'" "${_change_target#${_srcdir}/}" "${_replacement}"
