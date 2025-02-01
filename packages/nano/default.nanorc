@@ -1,0 +1,25 @@
+include /opt/pacman/usr/share/nano/*.nanorc
+
+set tabsize 4
+
+set autoindent
+unset backup
+set softwrap
+set mouse
+set constantshow
+set multibuffer
+set smarthome
+set stateflags
+set zap
+
+unbind M-B all
+bind ^P findbracket main
+bind M-F formatter main
+
+bind M-d prevword main
+bind M-c prevword main
+bind M-B prevword main
+bind M-F nextword main
+
+bind M-[ prevbuf main
+bind M-] nextbuf main

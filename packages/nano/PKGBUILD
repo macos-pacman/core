@@ -7,15 +7,17 @@ pkgrel=1
 pkgdesc="Pico editor clone with enhancements"
 arch=('x86_64' 'arm64')
 license=('GPL')
-pkgrel+=".8"
+pkgrel+=".9"
 url="https://www.nano-editor.org"
 depends=('ncurses' 'file' 'sh')
 backup=(${pacman_root#/}/'etc/nanorc')
 source=(https://www.nano-editor.org/dist/v7/${pkgname}-${pkgver}.tar.xz{,.asc}
-        "pkgbuild.nanorc")
+        "pkgbuild.nanorc"
+        "default.nanorc")
 sha256sums=('86f3442768bd2873cec693f83cdf80b4b444ad3cc14760b74361474fc87a4526'
             'SKIP'
-            'e5db7bbe80e046d827c7754d3ce9f3f180dfb734d89bcb09870e559eb772486e')
+            'e5db7bbe80e046d827c7754d3ce9f3f180dfb734d89bcb09870e559eb772486e'
+            '75ef38830c01d5136d1b0a5952963c5be89f582ef84ced8f857d591c3746068f')
 #validpgpkeys=('8DA6FE7BFA7A418AB3CB2354BCB356DF91009FA7') # "Chris Allegretta <chrisa@asty.org>"
 #validpgpkeys=('A7F6A64A67DA09EF92782DD79DF4862AF1175C5B') # "Benno Schulenberg <bensberg@justemail.net>"
 #validpgpkeys=('BFD009061E535052AD0DF2150D28D4D2A0ACE884') # "Benno Schulenberg <bensberg@telfort.nl>"
@@ -36,5 +38,7 @@ package() {
   make DESTDIR="${pkgdir}" install
 
   install -DTm644 ${srcdir}/pkgbuild.nanorc ${pkgdir}/${pacman_root}/usr/share/nano/pkgbuild.nanorc
-  install -DTm644 "${srcdir}"/${pkgname}-${pkgver}/doc/sample.nanorc "${pkgdir}/${pacman_root}"/etc/nanorc
+  install -DTm644 "${srcdir}"/${pkgname}-${pkgver}/doc/sample.nanorc "${pkgdir}/${pacman_root}"/etc/nanorc.sample
+
+  install -DTm644 "${srcdir}"/default.nanorc "${pkgdir}/${pacman_root}"/etc/nanorc
 }
