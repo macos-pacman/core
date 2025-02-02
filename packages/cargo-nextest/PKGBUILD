@@ -2,25 +2,23 @@
 # Contributor: KokaKiwi <kokakiwi+aur at kokakiwi dot net>
 
 pkgname=cargo-nextest
-pkgver=0.9.53
+pkgver=0.9.88
 pkgrel=1
+pkgrel+=".0"
 pkgdesc="A next-generation test runner for Rust."
 arch=('x86_64' 'arm64')
 url="https://github.com/nextest-rs/nextest"
-license=('Apache' 'MIT')
-depends=('gcc-libs')
-makedepends=('cargo')
+license=('Apache-2.0' 'MIT')
+depends=('cargo' 'gcc-libs')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/cargo-nextest-$pkgver.tar.gz")
-sha256sums=('29c7c0c78c57fb14aab2d5651575b203efc51ff1255ce83e0eb32807946bf13f')
-b2sums=('bda896da26b4846e5cc7b0fcd3988a017a9a97003e09d4f463de0cc2c1f457de37440de503a1d98899ac31b58aface17e9cd96d6c4d73707ad60d8f5aecd1ebe')
+sha256sums=('77a6029a409f8ab37e5c8bfc31fccc13bc5ea8475ff3309947a5811fdc758ef4')
+b2sums=('21168cb72a175cd35210520e04507d0616284c20f71dcd81b0f4a0d9347dc7072f1d943ad00a5d1571733a8a526fd9a92cf42b5e8329b4cdaa569fc60a05fdcf')
 options=('!lto')
 
 prepare() {
-  # this doesn't use the cursed cargo-util package, so no patches needed
-
   mv "nextest-$pkgname-$pkgver" "$pkgname-$pkgver"
   cd "$pkgname-$pkgver"
-  cargo fetch --locked --target "${CARCH/arm64/aarch64}-apple-darwin"
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
 }
 
 build() {
@@ -30,7 +28,7 @@ build() {
 
 check() {
   cd "$pkgname-$pkgver"
-  cargo run --package cargo-nextest -- nextest run --profile ci
+  cargo run --release --package cargo-nextest -- nextest run -- --skip test_version_info
 }
 
 package() {

@@ -1,0 +1,12 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8 +8 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -35,3 +38,3 @@
+-  install -Dm 755 "target/release/$pkgname" -t "$pkgdir/usr/bin"
+-  install -Dm 644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
+-  install -Dm 644 LICENSE-MIT -t "$pkgdir/usr/share/licenses/$pkgname"
++  install -Dm 755 "target/release/$pkgname" -t "$pkgdir/${pacman_root}/usr/bin"
++  install -Dm 644 README.md -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname"
++  install -Dm 644 LICENSE-MIT -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
