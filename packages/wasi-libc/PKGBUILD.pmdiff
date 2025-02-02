@@ -1,20 +1,20 @@
 --- PKGBUILD
 +++ PKGBUILD
-@@ -5 +5 @@
--_commit=574b88da481569b65a237cb80daf9a2d5aeaf82d # tags/wasi-sdk-25
-+_commit=9f51a7102085ec6a6ced5778f0864c9af9f50000  # main
-@@ -7 +6,0 @@
+@@ -7 +7 @@
 -epoch=1
-@@ -20,0 +20 @@
++pkgrel+=".1"
+@@ -19 +19,2 @@
+-b2sums=('a90b2fdbc5f5c3de1ef9438a857a54bd39bda7c01a7b22e087960ddd030d62748fd26eb8ebb94383481e47ec952162797b03d9b510878243ca1a481af2875fa3')
++b2sums=('SKIP')
 +
-@@ -28,3 +28,3 @@
+@@ -28,3 +29,3 @@
 -    WASM_CC=/usr/bin/clang
 -    WASM_AR=/usr/bin/llvm-ar
 -    WASM_NM=/usr/bin/llvm-nm
 +    WASM_CC=${pacman_root}/usr/bin/clang
 +    WASM_AR=${pacman_root}/usr/bin/llvm-ar
 +    WASM_NM=${pacman_root}/usr/bin/llvm-nm
-@@ -48,3 +48,4 @@
+@@ -48,3 +49,4 @@
 -  install -dm755 "${pkgdir}"/usr/share
 -  cp -dr --preserve=mode,timestamp sysroot "${pkgdir}"/usr/share/wasi-sysroot
 -  install -Dm644 LICENSE* -t "${pkgdir}"/usr/share/licenses/${pkgname}
@@ -22,6 +22,6 @@
 +  cp -a sysroot "${pkgdir}"/${pacman_root}/usr/share/wasi-sysroot
 +  install -Dm644 LICENSE* -t "${pkgdir}"/${pacman_root}/usr/share/licenses/${pkgname}
 +
-@@ -52,2 +52,0 @@
+@@ -52,2 +53,0 @@
 -
 -# vim:set sw=2 sts=-1 et:
