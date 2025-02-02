@@ -1,17 +1,16 @@
 pkgname=wezterm-git
 pkgver=20240205.070437.39d2b6ca
-pkgrel=1
+pkgrel=2
 pkgdesc="A GPU-accelerated cross-platform terminal emulator and multiplexer"
 arch=('x86_64' 'arm64')
 url="https://wezfurlong.org/wezterm/"
 license=('MIT')
-depends=('fontconfig' 'freetype2' 'harfbuzz' 'openssl' 'libssh2')
+depends=('openssl' 'libssh2')
 makedepends=('rust' 'cargo' 'git' 'cargo-nextest')
 pkgrel+=".6"
 source=("wezterm::git+https://github.com/wez/wezterm.git"
         'https://patch-diff.githubusercontent.com/raw/wez/wezterm/pull/3579.diff' # upstream doesn't even want to comment on this PR
         'alt-click-mouse.patch'   # not even gonna bother to PR this. author seems like they don't care about this feature.
-        'fix-search-close.patch'  # same, why the fuck am i even using this terminal emulator
         'search-from-current-viewport.patch'
         'stop-resetting-the-selection-when-contents-change.patch'
         'hide-scrollbar-in-alt-screen.patch'
@@ -20,7 +19,6 @@ source=("wezterm::git+https://github.com/wez/wezterm.git"
 sha512sums=('SKIP'
             '29ff217648db78ea4faf0708f76de5d38d7789eccd136a61c5d1c9213d626a642fd2058411d12da3d707f52da6c558dc71a0bf60827294e76570b08fbbd1fe05'
             'd3475c13598b76a79966c1a0b426f31befdd0029715ff1db39ac3a89f5dac00c00e237ac5f05e9b5d72c68a3aadc71c4cde1f34cdb374f5d0812c113667b8911'
-            '2c612c24dce2e63942185cf8615d0d3bd9b85fffc9ae61ee7931a082d0f5da5141ab8cf7f1643c9c1537d783d561b6384b47526491686c5605d5c7986c6f6020'
             'e5026f63005ad0aa1af65b2d777c9c6e0836f1274611a43cff0b229821974bc1de7f734beb27315be5b0443b6b5447bbd2a49fc96503b2e74248a65bf01b6f3d'
             '58c0ed47476304e39310e5bf625cb399da5186cb4d4fe501db6588ec45e70ec71afcd3785854c44e52c0b6ea95359ff95956970b7cd3f36077a3011c46e35aaf'
             '83f1026e2d8d159c7dd7534fff6ca50a0533cf7cf5419a8d0b62916102e4247b063b3992af8ce775218a8ffe00c0c7ccd27975a41e28bf6f11396fc23c2b977f'
@@ -28,7 +26,7 @@ sha512sums=('SKIP'
 
 prepare() {
   cd "$srcdir/wezterm"
-  cargo fetch --locked --target "${CARCH/arm64/aarch64}-apple-darwin"
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
 }
 
 pkgver() {
@@ -40,7 +38,6 @@ build() {
   cd wezterm
   git apply --3way -Np1 ../3579.diff
   git apply --3way -Np1 ../alt-click-mouse.patch
-  git apply --3way -Np1 ../fix-search-close.patch
   git apply --3way -Np1 ../search-from-current-viewport.patch
   git apply --3way -Np1 ../hide-scrollbar-in-alt-screen.patch
   git apply --3way -Np1 ../stop-resetting-the-selection-when-contents-change.patch
@@ -51,6 +48,12 @@ build() {
 
 check() {
   cd wezterm
+
+  # for some reason, these two executables use @rpath to find libstd...
+  # and only these two. so fix them.
+  fix_rpath_v2 target/release/deps/wezterm_config_derive-*
+  fix_rpath_v2 target/release/deps/wezterm_dynamic_derive-*
+
   cargo nextest run --all --release --no-fail-fast
 }
 
