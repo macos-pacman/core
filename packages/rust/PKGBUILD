@@ -11,9 +11,8 @@
 
 pkgbase=rust
 pkgname=(rust rust-wasm rust-src)
-pkgver=1.77.2
+pkgver=1.84.1
 pkgrel=1
-pkgrel+=".1"
 pkgdesc="Systems programming language focused on safety, speed and concurrency"
 url=https://www.rust-lang.org/
 arch=('x86_64' 'arm64')
@@ -42,20 +41,19 @@ makedepends=(
   python
   pkg-config
   wasi-libc
+  llvm-project-toolchain
 )
 source=(
   "https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.gz"{,.asc}
   0001-bootstrap-Change-libexec-dir.patch
   0002-bootstrap-Change-bash-completion-dir.patch
-  0003-compiler-Change-LLVM-targets.patch
   0004-compiler-Use-wasm-ld-for-wasm-targets.patch
   disable-time-machine-fuckery.patch
 )
-b2sums=('cf9fd96580d2c696e8d2992a5b4ee285824648bfa721212dd7691d63c876cf8fda1d50e924bec891af2c721e3746c4227fd23a0bed48e0b505fcd328936f5a35'
+b2sums=('c0952f44632813e6ddfd36754bbbc498511cd80a1dd613f41f027b363fbd97bdf825013262438fac56bbc88c53ec557103119b4d60e7be5cd58b3ec51f1fc2c2'
         'SKIP'
         'd3ed7043e288c78ac4007b267448457db0972905037754b67249d81be0889f47c4d93573c24d730907c31ec44e80ce696fbf50f98521eadee92c003d2324a1a3'
         '6afaf5bff729618aa35d84f20b1447694c887b84a406f55344864b9e8dce72f80467412c128b5309d5b962b605ca396b77a52f275dd35681ab50cbedc68f873a'
-        '18ca47c350373d9a095aff9a658c61816a542bb391a2a8ddf582f25795a21e9fc344b3e71a2eed7b094610bb61d9658e5360ef2ace9441fd21e4193746d45be7'
         '23f399d5ea776df5dba1ec42a96020a7ae3b18f5a83121d90ca0256a90027529135bac751373a31480860c0dbad30598833a7da43d1e7f25ce5b6d5d945ce550'
         '6ea472d7d8afd0688dac305decb818b3779277b87058cb8f9207adc01881e7b51474f8c52fc4c21247060ede2614a54183446b0290987db02bb83a0233149b06')
 validpgpkeys=(
@@ -74,9 +72,6 @@ prepare() {
   # Put bash completions where they belong
   patch -Np1 -i ../0002-bootstrap-Change-bash-completion-dir.patch
 
-  # Use our *-pc-linux-gnu targets, making LTO with clang simpler
-  patch -Np1 -i ../0003-compiler-Change-LLVM-targets.patch
-
   # Use our wasm-ld
   patch -Np1 -i ../0004-compiler-Use-wasm-ld-for-wasm-targets.patch
 
@@ -84,15 +79,22 @@ prepare() {
   patch -Np1 -i ../disable-time-machine-fuckery.patch
 
   cat >config.toml <<END
-changelog-seen = 2
+change-id = 131075
 profile = "user"
 
 [llvm]
 link-shared = true
+download-ci-llvm = false
 
 [build]
 host = ["${_arch}"]
-target = ["${_arch}", "wasm32-unknown-unknown", "wasm32-wasi"]
+target = [
+  "${_arch}",
+  "wasm32-unknown-unknown",
+  "wasm32-wasip1",
+  "wasm32-wasip1-threads",
+  "wasm32-wasip2",
+]
 locked-deps = true
 vendor = true
 tools = [
@@ -135,25 +137,67 @@ codegen-units-std = 1
 # musl target produces warnings
 deny-warnings = false
 
+lld = false
+use-lld = "external"
+llvm-bitcode-linker = false
+
 [dist]
 compression-formats = ["gz"]
 
 [target.${_arch}]
 cc = "${pacman_root}/usr/bin/clang"
 cxx = "${pacman_root}/usr/bin/clang++"
-ar = "/usr/bin/ar"
-ranlib = "/usr/bin/ranlib"
+ar = "${pacman_root}/usr/bin/llvm-ar"
+ranlib = "${pacman_root}/usr/bin/llvm-ranlib"
 llvm-config = "${pacman_root}/usr/bin/llvm-config"
 
 
 [target.wasm32-unknown-unknown]
+cc = "${pacman_root}/usr/bin/clang"
+cxx = "${pacman_root}/usr/bin/clang++"
+ar = "${pacman_root}/usr/bin/llvm-ar"
+ranlib = "${pacman_root}/usr/bin/llvm-ranlib"
+linker = "${pacman_root}/usr/bin/wasm-ld"
+llvm-config = "${pacman_root}/usr/bin/llvm-config"
+default-linker = "wasm-ld"
 sanitizers = false
 profiler = false
 
-[target.wasm32-wasi]
+[target.wasm32-wasip1]
+wasi-root = "${pacman_root}/usr/share/wasi-sysroot"
+cc = "${pacman_root}/usr/bin/clang"
+cxx = "${pacman_root}/usr/bin/clang++"
+ar = "${pacman_root}/usr/bin/llvm-ar"
+ranlib = "${pacman_root}/usr/bin/llvm-ranlib"
+linker = "${pacman_root}/usr/bin/wasm-ld"
+llvm-config = "${pacman_root}/usr/bin/llvm-config"
+default-linker = "wasm-ld"
 sanitizers = false
 profiler = false
+
+[target.wasm32-wasip1-threads]
 wasi-root = "${pacman_root}/usr/share/wasi-sysroot"
+cc = "${pacman_root}/usr/bin/clang"
+cxx = "${pacman_root}/usr/bin/clang++"
+ar = "${pacman_root}/usr/bin/llvm-ar"
+ranlib = "${pacman_root}/usr/bin/llvm-ranlib"
+linker = "${pacman_root}/usr/bin/wasm-ld"
+llvm-config = "${pacman_root}/usr/bin/llvm-config"
+default-linker = "wasm-ld"
+sanitizers = false
+profiler = false
+
+[target.wasm32-wasip2]
+wasi-root = "${pacman_root}/usr/share/wasi-sysroot"
+cc = "${pacman_root}/usr/bin/clang"
+cxx = "${pacman_root}/usr/bin/clang++"
+ar = "${pacman_root}/usr/bin/llvm-ar"
+ranlib = "${pacman_root}/usr/bin/llvm-ranlib"
+linker = "${pacman_root}/usr/bin/wasm-ld"
+llvm-config = "${pacman_root}/usr/bin/llvm-config"
+default-linker = "wasm-ld"
+sanitizers = false
+profiler = false
 
 END
 }
@@ -171,6 +215,9 @@ _pick() {
 build() {
   cd rustc-$pkgver-src
 
+  export CFLAGS="${CFLAGS/-march=native/}"
+  export CXXFLAGS="${CXXFLAGS/-march=native/}"
+
   export RUST_BACKTRACE=1
 
   rm -fr "$srcdir/dest-rust"
@@ -182,12 +229,22 @@ build() {
   _root=${pacman_root#/}
 
   # delete unnecessary files, e.g. files only used for the uninstall script
-  rm ${_root}/usr/bin/*.old
-  rm ${_root}/usr/lib/rustlib/{components,install.log,rust-installer-version,uninstall.sh}
-  rm ${_root}/usr/lib/rustlib/manifest-*
+  rm -f ${_root}/usr/bin/*.old
+  rm -f ${_root}/usr/lib/rustlib/{components,install.log,rust-installer-version,uninstall.sh}
+  rm -f ${_root}/usr/lib/rustlib/manifest-*
 
-  mkdir -p ${_root}/usr/share/licenses/rust
-  mv ${_root}/usr/share/doc/rust/{COPYRIGHT,LICENSE*} ${_root}/usr/share/licenses/rust
+  local ldir="${_root}/usr/share/licenses/rust"
+  local f d
+
+  mkdir -p ${ldir}
+  for f in ${_root}/usr/share/doc/*/{COPYRIGHT,LICENSE}*; do
+    d="$(dirname "$f")"
+    case $f in
+      */LICENSE-APACHE) rm -v "$f" ;;
+      *) mv -v "$f" "$ldir/${f##*/}.${d##*/}" ;;
+    esac
+    rmdir -p "$d" || :
+  done
 
   _pick dest-wasm ${_root}/usr/lib/rustlib/wasm32-*
   _pick dest-src  ${_root}/usr/lib/rustlib/src
