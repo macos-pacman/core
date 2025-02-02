@@ -4,7 +4,7 @@
 pkgname=cargo-nextest
 pkgver=0.9.88
 pkgrel=1
-pkgrel+=".0"
+pkgrel+=".1"
 pkgdesc="A next-generation test runner for Rust."
 arch=('x86_64' 'arm64')
 url="https://github.com/nextest-rs/nextest"
@@ -28,7 +28,7 @@ build() {
 
 check() {
   cd "$pkgname-$pkgver"
-  cargo run --release --package cargo-nextest -- nextest run -- --skip test_version_info
+  cargo run --package cargo-nextest -- nextest run -- --skip test_version_info
 }
 
 package() {
