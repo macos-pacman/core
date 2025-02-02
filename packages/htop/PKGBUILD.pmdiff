@@ -1,66 +1,28 @@
 --- PKGBUILD
 +++ PKGBUILD
-@@ -2,2 +2 @@
--# Maintainer: T.J. Townsend <blakkheim@archlinux.org>
--# Contributor: Angel Velasquez <angvp@archlinux.org>
-+# Maintainer: Angel Velasquez <angvp@archlinux.org>
-@@ -7,0 +7 @@
-+_tag='4dbd0b5c87f4225495d6e0591a1d7227f120ead1' # git rev-parse ${pkgver}
-@@ -11 +11 @@
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -11 +12 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
-@@ -14,5 +14,2 @@
+@@ -14,5 +15,2 @@
 -depends=('libcap' 'libcap.so' 'libnl' 'ncurses' 'libncursesw.so')
 -makedepends=('git' 'lm_sensors')
 -optdepends=('lm_sensors: show cpu temperatures'
 -            'lsof: show files opened by a process'
 -            'strace: attach to a running process')
 +depends=('ncurses' 'libncursesw.dylib')
-+makedepends=('git' 'autoconf')
-@@ -22,16 +19,2 @@
--source=("git+https://github.com/htop-dev/htop.git#tag=${pkgver}")
++makedepends=('git' 'autoconf' 'automake')
+@@ -23 +21 @@
 -sha256sums=('a894206ecef4b690b97813d7b1626c98bacc9c82129b372d84680da8f6225761')
--
--_backports=(
--  # Fix the display of number of running tasks
--  'b6b9384678fa111d47a8d3074c31490863619d12'
--  # Undo too-aggressive code collapsing from tree mode refactoring
--  '5d778eaacc78c69d5597b57afb4f98062d8856ef'
--  # Clicking on column headers needs to also update the sort direction arrow
--  '91990b1a34927a4136a85e4ff9adcdbfa500286a'
--  # Disable basename matching for kernel threads
--  '71b099a8df9e8c2bf4361a9a93bebc409f513460'
--)
--
--_reverts=(
--)
-+source=("git+https://github.com/htop-dev/htop.git#tag=${_tag}?signed")
 +sha256sums=('SKIP')
-@@ -42,12 +24,0 @@
--  local _c _l
--  for _c in "${_backports[@]}"; do
--    if [[ "${_c}" == *..* ]]; then _l='--reverse'; else _l='--max-count=1'; fi
--    git log --oneline "${_l}" "${_c}"
--    git cherry-pick --mainline 1 --no-commit "${_c}"
--  done
--  for _c in "${_reverts[@]}"; do
--    if [[ "${_c}" == *..* ]]; then _l='--reverse'; else _l='--max-count=1'; fi
--    git log --oneline "${_l}" "${_c}"
--    git revert --mainline 1 --no-commit "${_c}"
--  done
--
-@@ -55,0 +27 @@
-+
-@@ -61,9 +33,3 @@
+@@ -61,5 +59,2 @@
 -      --prefix=/usr \
 -      --sysconfdir=/etc \
 -      --enable-affinity \
 -      --enable-capabilities \
 -      --enable-delayacct \
--      --enable-openvz \
--      --enable-sensors \
--      --enable-unicode \
--      --enable-vserver
 +      --prefix=${pacman_root}/usr \
 +      --sysconfdir=${pacman_root}/etc \
-+      --enable-unicode
+@@ -67 +61,0 @@
+-      --enable-sensors \
