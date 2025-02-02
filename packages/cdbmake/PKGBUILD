@@ -2,7 +2,7 @@
 
 pkgname=cdbmake
 pkgver=1.0.0
-pkgrel=2
+pkgrel=4
 _commit='57b2294fa0bfaa00566feded42c074c1517415f3'
 pkgdesc="Wrapper for make that generates compile_commands.json"
 url="https://github.com/zhiayang/cdbmake"
