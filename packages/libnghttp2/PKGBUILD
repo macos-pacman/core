@@ -4,24 +4,40 @@
 pkgname=libnghttp2
 pkgver=1.52.0
 pkgrel=1
+pkgrel+=".1"
 pkgdesc='Framing layer of HTTP/2 is implemented as a reusable C library'
 arch=('x86_64' 'arm64')
 url='https://nghttp2.org/'
-license=(MIT)
-depends=(glibc)
-makedepends=('autoconf')
+license=('MIT')
+depends=('glibc')
+provides=('libnghttp2.dylib')
+makedepends=('git' 'autoconf' 'automake' 'libtool' 'pkgconf')
 conflicts=('nghttp2<1.20.0-2')
-source=(https://github.com/nghttp2/nghttp2/releases/download/v$pkgver/nghttp2-$pkgver.tar.xz)
-sha512sums=('3af1ce13270f7afc8652bd3de71200d9632204617fe04d2be7156d60eeb1a5cc415573677791a399ae03577e8e3256939b1b05d27dbd98dee504d09ec5325d56')
+validpgpkeys=('F4F3B91474D1EB29889BD0EF7E8403D5D673C366') # Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+source=("git+https://github.com/nghttp2/nghttp2.git#tag=v${pkgver}?signed"
+        'git+https://github.com/ngtcp2/munit.git'
+        'git+https://github.com/mruby/mruby.git'
+        'git+https://github.com/tatsuhiro-t/neverbleed.git')
+sha512sums=('SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP')
 
 prepare() {
-  cd nghttp2-$pkgver
+  cd nghttp2
+
+  git config --file=.gitmodules submodule.tests/munit.url ../munit/
+  git config --file=.gitmodules submodule.third-party/mruby.url ../mruby/
+  git config --file=.gitmodules submodule.tests/neverbleed.url ../neverbleed/
+
+  git submodule init
+  git -c protocol.file.allow=always submodule update
 
   autoreconf -i
 }
 
 build() {
-  cd nghttp2-$pkgver
+  cd nghttp2
 
   ./configure \
     --prefix=${pacman_root}/usr \
@@ -32,12 +48,12 @@ build() {
 }
 
 check() {
-  cd nghttp2-$pkgver
+  cd nghttp2
   make check
 }
 
 package() {
-  cd nghttp2-$pkgver/lib
+  cd nghttp2/lib
 
   make DESTDIR="$pkgdir" install
   install -Dm644 ../COPYING "$pkgdir/${pacman_root}/usr/share/licenses/libnghttp2/COPYING"
