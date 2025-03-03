@@ -1,0 +1,12 @@
+{
+  "upstream_commit": "af360ad9d91bb089af98117468a7bce60c92e90b",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

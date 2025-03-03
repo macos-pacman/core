@@ -1,0 +1,25 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".1"
+@@ -11 +12 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -20 +21 @@
+-provides=(libcares.so)
++provides=(libcares.dylib)
+@@ -24,2 +25,2 @@
+-sha512sums=('17a50051b73a6690b616fba45da1151c412c3112808c2636533a0b94b94fa8c34ecc0118d8fadaefa88423b6a66c66530bcd36a575aa2a7ae80b4e80c161d96b')
+-b2sums=('3c9f414a842911dca79cb2b550dd12eda073683b91537c2a205311cc0c75c97ed9ea86aa018cdf5909fed7e468d04b6a436700a0a7cbd0bd33c9517c136a3b80')
++sha512sums=('SKIP')
++b2sums=('SKIP')
+@@ -34,2 +35,2 @@
+-    -D CMAKE_INSTALL_PREFIX=/usr
+-    -D CMAKE_BUILD_TYPE=None
++    -D CMAKE_INSTALL_PREFIX=${pacman_root}/usr
++    -D CMAKE_BUILD_TYPE=Release
+@@ -49,2 +50,2 @@
+-  install -vDm 644 $pkgname/LICENSE.md -t "$pkgdir/usr/share/licenses/$pkgname/"
+-  install -vDm 644 $pkgname/{AUTHORS,{CONTRIBUTING,README,RELEASE-NOTES}.md} -t "$pkgdir/usr/share/doc/$pkgname/"
++  install -vDm 644 $pkgname/LICENSE.md -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/"
++  install -vDm 644 $pkgname/{AUTHORS,{CONTRIBUTING,README,RELEASE-NOTES}.md} -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/"
