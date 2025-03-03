@@ -1,0 +1,52 @@
+# Maintainer: kpcyrd <kpcyrd[at]archlinux[dot]org>
+
+pkgname=libngtcp2
+pkgver=1.11.0
+pkgrel=1
+pkgrel+=".1"
+pkgdesc='Implementation of IETF QUIC protocol'
+url='https://github.com/ngtcp2/ngtcp2'
+arch=('x86_64' 'arm64')
+license=('MIT')
+depends=(
+  'glibc'
+  'gnutls'
+)
+makedepends=(
+  'brotli'
+  'pkgconf'
+  'libtool'
+  'autoconf'
+  'automake'
+)
+provides=(
+  'libngtcp2.dylib'
+  'libngtcp2_crypto_gnutls.dylib'
+)
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/ngtcp2/ngtcp2/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('144b169aa98ba2ca1f74cf40ff5e93b90a7bb1292f62b7998a8dd5c2a5eb102a')
+b2sums=('fad891ccecdf0ca5927146c205a7e7095be91c77c17e82bb11f010b35702d1f5a684b2e0d1d1f9da611720e445ce43deb5475d1cfbf91a4cd01599f72b542cab')
+
+prepare() {
+  cd ngtcp2-${pkgver}
+  autoreconf -i
+}
+
+build() {
+  cd ngtcp2-${pkgver}
+  ./configure \
+    --prefix=${pacman_root}/usr \
+    --with-libbrotlienc \
+    --with-libbrotlidec \
+    --with-gnutls \
+    --enable-lib-only
+  make
+}
+
+package() {
+  cd ngtcp2-${pkgver}
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 ./COPYING -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:
