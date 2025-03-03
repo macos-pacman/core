@@ -1,0 +1,15 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -7 +8 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -25,2 +26,2 @@
+-    -DCMAKE_BUILD_TYPE='None' \
+-    -DCMAKE_INSTALL_PREFIX='/usr' \
++    -DCMAKE_BUILD_TYPE='Release' \
++    -DCMAKE_INSTALL_PREFIX="${pacman_root}/usr" \
+@@ -42 +43 @@
+-    --parallel $(nproc)
++    --parallel 4
