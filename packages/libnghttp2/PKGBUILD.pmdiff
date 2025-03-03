@@ -1,0 +1,21 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
+@@ -8 +9 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -12,2 +13,2 @@
+-provides=('libnghttp2.so')
+-makedepends=('git')
++provides=('libnghttp2.dylib')
++makedepends=('git' 'autoconf' 'automake' 'libtool' 'pkgconf')
+@@ -20 +21 @@
+-sha512sums=('d82375c360ac385f47bc94eb730b99a595c3b16c3b41f51594f005e3d93edc05779660fbb7da304998507b7eeb4c9a600520e047e1d23ee591f86b62ac8cd781'
++sha512sums=('SKIP'
+@@ -42 +43 @@
+-    --prefix=/usr \
++    --prefix=${pacman_root}/usr \
+@@ -58 +59 @@
+-  install -Dm644 ../COPYING "$pkgdir/usr/share/licenses/libnghttp2/COPYING"
++  install -Dm644 ../COPYING "$pkgdir/${pacman_root}/usr/share/licenses/libnghttp2/COPYING"
