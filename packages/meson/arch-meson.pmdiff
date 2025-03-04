@@ -1,0 +1,8 @@
+--- arch-meson
++++ arch-meson
+@@ -5 +5 @@
+-  --prefix        /usr \
++  --prefix        $(pacman-root-dir)/usr \
+@@ -8 +8 @@
+-  --buildtype     plain \
++  --buildtype     release \

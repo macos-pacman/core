@@ -1,7 +1,15 @@
 {
   "upstream_commit": "c16f6645e12537154861b1093bc61536f254a996",
-  "diff_files": [],
-  "clean_files": [],
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "arch-meson.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "0001-Skip-broken-tests.patch",
+    "cross-lib32",
+    "native-clang"
+  ],
   "ignore_files": [
     ".SRCINFO"
   ]

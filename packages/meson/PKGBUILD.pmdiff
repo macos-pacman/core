@@ -1,0 +1,34 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -82 +82,0 @@
+-  cross-lib32
+@@ -86,3 +86,2 @@
+-b2sums=('2969a68dced75e7536686e6c13acb19afaf802d8b42a32de28f25d62213b05c1c6b01c843795f71ea3a48ba010b1152db8dd6c69837617da65ebbb7f6df30bc7'
+-        '70f042a7603d1139f6cef33aec028da087cacabe278fd47375e1b2315befbfde1c0501ad1ecc63d04d31b232a04f08c735d61ce59d7244521f3d270e417fb5af'
+-        '9b16477aa77a706492e26fb3ad42e90674b8f0dfe657dd3bd9ba044f921be12ceabeb0050a50a15caee4d999e1ec33ed857bd3bed9e4444d73bb4a4f06381081'
++b2sums=('SKIP'
++        '68c71e8a99b238a671afe3b4c4dc2fb049329b958a04a7a8f366c62a3135b5a8feeb006b2c13a0ec14d12a47e3c243789b6aa217e9008e194c412b0b3259a69d'
+@@ -105 +104 @@
+-  ./meson.py setup docs docs.build --prefix /usr -D html=false
++  ./meson.py setup docs docs.build --prefix ${pacman_root}/usr -D html=false
+@@ -120 +119 @@
+-  install -Dm644 docs.build/reference_manual.json -t "$pkgdir/usr/share/doc/$pkgname"
++  install -Dm644 docs.build/reference_manual.json -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname"
+@@ -122,2 +121,2 @@
+-  install -d "$pkgdir/usr/share/vim/vimfiles"
+-  cp -rt "$pkgdir/usr/share/vim/vimfiles" data/syntax-highlighting/vim/*/
++  install -d "$pkgdir/${pacman_root}/usr/share/vim/vimfiles"
++  cp -r data/syntax-highlighting/vim/*/ "$pkgdir/${pacman_root}/usr/share/vim/vimfiles"
+@@ -125,2 +124,2 @@
+-  install -Dm644 data/shell-completions/bash/* -t "$pkgdir/usr/share/bash-completion/completions"
+-  install -Dm644 data/shell-completions/zsh/*  -t "$pkgdir/usr/share/zsh/site-functions"
++  install -Dm644 data/shell-completions/bash/* -t "$pkgdir/${pacman_root}/usr/share/bash-completion/completions"
++  install -Dm644 data/shell-completions/zsh/*  -t "$pkgdir/${pacman_root}/usr/share/zsh/site-functions"
+@@ -128,4 +127 @@
+-  install -D ../arch-meson -t "$pkgdir/usr/bin"
+-
+-  install -Dm644 ../cross-lib32 "$pkgdir/usr/share/meson/cross/lib32"
+-  install -Dm644 ../native-clang "$pkgdir/usr/share/meson/native/clang"
++  install -D ../arch-meson -t "$pkgdir/${pacman_root}/usr/bin"
