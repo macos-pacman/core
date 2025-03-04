@@ -5,7 +5,7 @@
 pkgname=meson
 pkgver=1.7.0
 pkgrel=1
-pkgrel+=".1"
+pkgrel+=".2"
 pkgdesc="High productivity build system"
 url="https://mesonbuild.com/"
 arch=(any)
@@ -124,7 +124,7 @@ package() {
   install -Dm644 data/shell-completions/bash/* -t "$pkgdir/${pacman_root}/usr/share/bash-completion/completions"
   install -Dm644 data/shell-completions/zsh/*  -t "$pkgdir/${pacman_root}/usr/share/zsh/site-functions"
 
-  install -D ../arch-meson -t "$pkgdir/${pacman_root}/usr/bin"
+  install -D ../arch-meson -m755 -t "$pkgdir/${pacman_root}/usr/bin"
 }
 
 # vim:set sw=2 sts=-1 et:

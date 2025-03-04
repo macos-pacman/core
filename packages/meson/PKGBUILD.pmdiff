@@ -31,4 +31,4 @@
 -
 -  install -Dm644 ../cross-lib32 "$pkgdir/usr/share/meson/cross/lib32"
 -  install -Dm644 ../native-clang "$pkgdir/usr/share/meson/native/clang"
-+  install -D ../arch-meson -t "$pkgdir/${pacman_root}/usr/bin"
++  install -D ../arch-meson -m755 -t "$pkgdir/${pacman_root}/usr/bin"
