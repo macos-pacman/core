@@ -1,16 +1,7 @@
 {
-  "upstream_commit": "1ba45188a330bda51aa17ba89c394f97e12e031f",
-  "diff_files": [
-    "0001-Skip-broken-tests.patch.pmdiff",
-    "PKGBUILD.pmdiff",
-    "arch-meson.pmdiff"
-  ],
-  "clean_files": [
-    "0002-Use-C-17-for-protobuf-tests.patch",
-    "0003-Limit-unittests-workers.patch",
-    "cross-lib32",
-    "native-clang"
-  ],
+  "upstream_commit": "c16f6645e12537154861b1093bc61536f254a996",
+  "diff_files": [],
+  "clean_files": [],
   "ignore_files": [
     ".SRCINFO"
   ]

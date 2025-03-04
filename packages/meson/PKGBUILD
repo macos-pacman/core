@@ -3,18 +3,26 @@
 # Contributor: Anatol Pomozov <anatol dot pomozov at gmail>
 
 pkgname=meson
-pkgver=1.3.1
+pkgver=1.7.0
 pkgrel=1
-pkgrel+=".4"
+pkgrel+=".1"
 pkgdesc="High productivity build system"
 url="https://mesonbuild.com/"
 arch=(any)
-license=(Apache)
-depends=(ninja python python-tqdm python-typing_extensions)
+license=(Apache-2.0)
+depends=(
+  bash
+  ninja
+  python
+  python-tqdm
+)
 makedepends=(
+  git
+  python-aiohttp
   python-build
   python-installer
   python-setuptools
+  python-strictyaml
   python-wheel
 )
 checkdepends=(
@@ -27,6 +35,8 @@ checkdepends=(
   gcc-fortran
   gcc-objc
   git
+  glib2-devel
+  glibc-locales
   gmock
   gnustep-base
   gobject-introspection
@@ -41,6 +51,7 @@ checkdepends=(
   java-environment=8
   ldc
   libelf
+  libpcap
   libwmf
   llvm
   mercurial
@@ -54,58 +65,58 @@ checkdepends=(
   python-pytest-xdist
   qt5-base
   qt5-tools
+  qt6-base
+  qt6-declarative
+  qt6-tools
   rust
   rust-bindgen
   sdl2
   vala
   valgrind
   vulkan-validation-layers
+  wayland-protocols
   wxgtk3
 )
 source=(
-  https://github.com/mesonbuild/meson/releases/download/$pkgver/meson-$pkgver.tar.gz{,.asc}
-  meson-reference-$pkgver.3::https://github.com/mesonbuild/meson/releases/download/$pkgver/meson-reference.3
-  meson-reference-$pkgver.json::https://github.com/mesonbuild/meson/releases/download/$pkgver/reference_manual.json
-  0001-Skip-broken-tests.patch
+  "git+https://github.com/mesonbuild/meson?signed#tag=$pkgver"
   arch-meson
-  0002-Use-C-17-for-protobuf-tests.patch
+  native-clang
+  0001-Skip-broken-tests.patch
 )
-b2sums=(
-  '64d53eddc8cb321a4e2dabaa4b7499798a7b68764b1a7a5182bfa21d081dc07105acab616119b88ff610e5d75504f03d1c0aefee3602ddf538fc491ff3d0204a'
-  'SKIP'
-  '95eff6139275ddc826395192e2e7043d665641260454aeda06dca7e573d34b348c2a935ac1603d8d838f480fe6b57ba2ece51fa90760ab3014e15c70f6d130ea'
-  '82f234701f578f5c85d527a95e6026b5d219fde9b212bead51615f38b43c8b0d129a700e792099778802f5b511250a2b56b5074e55709f4aa1ace64ef8949ff8'
-  '36b41dd2006b52dbe91cb8200e01fa86f33cc41fa4c54d712312d7aa0bb14b780e5e4ccbf431820d7d589bfceb1dd19187e40b73eceb28965baf9cfa91ff4f97'
-  '1a2e1fe1ccc184f3049d5bc81bded36ec03430c232f4914406064398c2ab31cc9dd6a1cb6ff0ac9ad3db4916d53e166ef72957468ed035527f11aae5dc93e737'
-  'c0154434fefb00aebb66b276c3b871b9ec629adc8f3c5b020a21b4662667c0bdaa2c48c6a7498d0c7ab901bb9c3911bd0bb82fbae5e5f3ae2da006e3849e0ff0'
+b2sums=('SKIP'
+        '68c71e8a99b238a671afe3b4c4dc2fb049329b958a04a7a8f366c62a3135b5a8feeb006b2c13a0ec14d12a47e3c243789b6aa217e9008e194c412b0b3259a69d'
+        '7d88929d5a3b49d91c5c9969f19d9b47f3151706526b889515acaeda0141257d5115875ac84832e9ea46f83a7700d673adcc5db84b331cd798c70ae6e90eac1e'
+        '076f1650bf889b79a390da82e2e0a3d3b14e3383cdf4cd81ee06d7b776e070bb3d681295926828af123c16f950ab5cca127236f3030124fa9e8c7787a2c98297')
+validpgpkeys=(
+  19E2D6D9B46D8DAA6288F877C24E631BABB1FE70  # Jussi Pakkanen <jpakkane@gmail.com>
 )
-validpgpkeys=('19E2D6D9B46D8DAA6288F877C24E631BABB1FE70') # Jussi Pakkanen <jpakkane@gmail.com>
 
 prepare() {
-  cd $pkgname-$pkgver
-  patch -Np1 -i ../0001-Skip-broken-tests.patch
-  patch -Np1 -i ../0002-Use-C-17-for-protobuf-tests.patch
+  cd meson
 
-  chmod a+x ../arch-meson
+  # Pass tests
+  patch -Np1 -i ../0001-Skip-broken-tests.patch
 }
 
 build() {
-  unset SOURCE_DATE_EPOCH
-  cd $pkgname-$pkgver
+  cd meson
   python -m build --wheel --no-isolation
+  ./meson.py setup docs docs.build --prefix ${pacman_root}/usr -D html=false
+  ./meson.py compile -C docs.build
 }
 
 check() (
-  # tests are broken
-  cd $pkgname-$pkgver
+  cd meson
   export LC_CTYPE=en_US.UTF-8 CPPFLAGS= CFLAGS= CXXFLAGS= LDFLAGS=
   ./run_tests.py --failfast
 )
 
 package() {
-  unset SOURCE_DATE_EPOCH
-  cd $pkgname-$pkgver
+  cd meson
   python -m installer --destdir="$pkgdir" dist/*.whl
+
+  ./meson.py install -C docs.build --destdir "$pkgdir"
+  install -Dm644 docs.build/reference_manual.json -t "$pkgdir/${pacman_root}/usr/share/doc/$pkgname"
 
   install -d "$pkgdir/${pacman_root}/usr/share/vim/vimfiles"
   cp -r data/syntax-highlighting/vim/*/ "$pkgdir/${pacman_root}/usr/share/vim/vimfiles"
@@ -113,11 +124,7 @@ package() {
   install -Dm644 data/shell-completions/bash/* -t "$pkgdir/${pacman_root}/usr/share/bash-completion/completions"
   install -Dm644 data/shell-completions/zsh/*  -t "$pkgdir/${pacman_root}/usr/share/zsh/site-functions"
 
-  install -Dm644 ../meson-reference-$pkgver.3    "$pkgdir/${pacman_root}/usr/share/man/man3/meson-reference.3"
-  install -Dm644 ../meson-reference-$pkgver.json "$pkgdir/${pacman_root}/usr/share/doc/$pkgname/reference_manual.json"
-
   install -D ../arch-meson -t "$pkgdir/${pacman_root}/usr/bin"
-  chmod a+x $pkgdir/${pacman_root}/usr/bin/arch-meson
 }
 
 # vim:set sw=2 sts=-1 et:
