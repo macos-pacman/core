@@ -1,0 +1,10 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -25 +26 @@
+-b2sums=('411d78f37d5cbc809c95544957904a282b1202c68a76619f00df7b8d9a1e3476b63dd5a7006d85d2a4384621323ca75b72402d439c3cbee5ddaa8a4a7418360c')
++b2sums=('SKIP')
+@@ -35 +36 @@
+-  install -Dm644 LICENSE.txt -t "$pkgdir/usr/share/licenses/$pkgname"
++  install -Dm644 LICENSE.txt -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"

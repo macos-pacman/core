@@ -1,0 +1,39 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Caleb Maclennan <caleb@alerque.com>
+# Contributor: Florian Bruhin (The Compiler) <archlinux.org@the-compiler.org>
+
+pkgname=python-strictyaml
+pkgver=1.7.3
+pkgrel=4
+pkgrel+=".1"
+pkgdesc="Type-safe YAML parser that parses a restricted subset of the YAML specificaton"
+url="http://hitchdev.com/strictyaml"
+arch=(any)
+license=(MIT)
+depends=(
+  python
+  python-dateutil
+  python-ruamel.yaml.clib
+)
+makedepends=(
+  git
+  python-build
+  python-installer
+  python-setuptools
+  python-wheel
+)
+source=("git+https://github.com/crdoconnor/strictyaml#tag=$pkgver")
+b2sums=('SKIP')
+
+build() {
+  cd strictyaml
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd strictyaml
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 LICENSE.txt -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+}
+
+# vim:set sw=2 sts=-1 et:
