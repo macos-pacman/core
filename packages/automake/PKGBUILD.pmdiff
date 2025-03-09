@@ -1,10 +1,13 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -7,0 +8 @@
-+pkgrel+=".2"
++pkgrel+=".3"
 @@ -14 +15 @@
 -checkdepends=('dejagnu' 'gcc-fortran' 'java-environment' 'vala' 'emacs' 'cscope'
 +checkdepends=('dejagnu' 'gcc-fortran' 'vala' 'cscope'
+@@ -21 +22 @@
+-sha512sums=('3084ae543aa3fb5a05104ffb2e66cfa9a53080f2343c44809707fd648516869511500dba50dae67ff10f92a1bf3b5a92b2a0fa01cda30adb69b9da03994d9d88'
++sha512sums=('46aba1c9d64a6368b326020803a2999831c1deaf31eaa1c1dfdcfa5138a7f755643294e82a08b6daab3983b31eee725bdb7b9edc4e9a558374c7d1f1b8e854a7'
 @@ -29 +30 @@
 -	./configure --build=$CHOST --prefix=/usr
 +	./configure --build=$CHOST --prefix=${pacman_root}/usr
