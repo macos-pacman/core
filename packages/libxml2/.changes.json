@@ -1,7 +1,13 @@
 {
   "upstream_commit": "4f719e68bf3fa497a02df80ff2fac70d773e21cb",
-  "diff_files": [],
-  "clean_files": [],
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "0001-meson-Build-fixes.patch",
+    "xml2-config"
+  ],
   "ignore_files": [
     ".SRCINFO"
   ]

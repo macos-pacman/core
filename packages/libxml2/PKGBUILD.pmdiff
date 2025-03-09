@@ -1,0 +1,37 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -13,0 +14 @@
++pkgrel+=".2"
+@@ -16 +17 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -29,0 +31 @@
++  pkgconf
+@@ -35,0 +38 @@
++  0002-find-sys-random.patch
+@@ -37 +40 @@
+-b2sums=('84fd36291960d78ebef4c373c15c29bf4efd17fe59174cca70bad6fe8ac73dd333cdea6ed6f577db2107991fa6b6d6fb20f7551cb640cbbfe38ff696b9a0b9ba'
++b2sums=('SKIP'
+@@ -40 +43,2 @@
+-        'c85651b242884d37d8f23292f3d3f475005f819975a30ab2233f3e2d0adae6ba46eab85d52e46d94940b0f01e8a411460153e8ceeb1e7449cb30c629022b5da4')
++        'c85651b242884d37d8f23292f3d3f475005f819975a30ab2233f3e2d0adae6ba46eab85d52e46d94940b0f01e8a411460153e8ceeb1e7449cb30c629022b5da4'
++        'f545d9eca5b8f9b1c1fedbadcadc07fad7be46517a976470f12394d8b621c9ed2cec5066c6e91ab37d3460e562951b42eeffa28a665e76962c17342c2c58d026')
+@@ -49,0 +54 @@
++  git apply -3 ../0002-find-sys-random.patch
+@@ -70 +75 @@
+-  provides=(libxml2.so)
++  provides=(libxml2.dylib)
+@@ -73 +78 @@
+-  install -D xml2-config -t "$pkgdir/usr/bin"
++  install -D xml2-config -t "$pkgdir/${pacman_root}/usr/bin"
+@@ -76,2 +81,2 @@
+-  mkdir -p doc/usr/share
+-  mv "$pkgdir"/usr/share/{doc,gtk-doc} -t doc/usr/share
++  mkdir -p doc/${pacman_root}/usr/share
++  mv "$pkgdir"/${pacman_root}/usr/share/{doc,gtk-doc} doc/${pacman_root}/usr/share/
+@@ -79 +84 @@
+-  install -Dm644 libxml2/Copyright -t "$pkgdir/usr/share/licenses/$pkgname"
++  install -Dm644 libxml2/Copyright -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+@@ -88 +93 @@
+-  install -Dm644 libxml2/Copyright -t "$pkgdir/usr/share/licenses/$pkgname"
++  install -Dm644 libxml2/Copyright -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
