@@ -1,42 +1,55 @@
-# vim: set ts=2 sw=2 et:
 # Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
 # Maintainer: Morten Linderud <foxboron@archlinux.org>
 
 pkgname=pacman
-pkgver=6.0.2
-pkgrel=9
-pkgrel+=".49"
+pkgver=7.0.0.r6.gc685ae6
+pkgrel=2
+pkgrel+=".6"
+# use annotated tag and patch level commit from release branch (can be empty for no patches)
+_git_tag=7.0.0
+_git_patch_level_commit=c685ae6412af04cae1eaa5d6bda8c277c7ffb8c8
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64' 'arm64')
 url="https://www.archlinux.org/pacman/"
-license=('GPL')
-depends=('bash' 'glibc' 'libarchive' 'curl' 'gpgme' 'fakeroot'
-         'gettext' 'gawk' 'coreutils' 'gnupg' 'grep')
-makedepends=('meson' 'asciidoc' 'doxygen' 'pkg-config')
-checkdepends=('python')
-optdepends=('perl-locale-gettext: translation support in makepkg-template')
+license=('GPL-2.0-or-later')
+depends=(
+  bash
+  coreutils
+  curl
+  gawk
+  gettext
+  glibc
+  gnupg
+  gpgme
+  grep
+  libarchive
+)
+makedepends=(
+  asciidoc
+  doxygen
+  git
+  meson
+  pkgconf
+)
+checkdepends=(
+  python
+)
+optdepends=(
+  'perl-locale-gettext: translation support in makepkg-template'
+)
+options=('!strip')
 provides=('libalpm.dylib')
-_root=${pacman_root#/}
-backup=(${_root}/etc/pacman.conf
-        ${_root}/etc/makepkg.conf)
-options=('strip')
+backup=(${pacman_root#/}/etc/pacman.conf
+        ${pacman_root#/}/etc/makepkg.conf
+        ${pacman_root#/}/etc/makepkg.conf.d/rust.conf)
 validpgpkeys=('6645B0A8C7005E78DB1D7864F99FFE0FEAE999BD'  # Allan McRae <allan@archlinux.org>
               'B8151B117037781095514CA7BBDFFC92306B1121') # Andrew Gregory (pacman) <andrew@archlinux.org>
-source=(https://sources.archlinux.org/other/pacman/$pkgname-$pkgver.tar.xz{,.sig}
-        pacman-always-create-directories-from-debugedit.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/efd0c24c07b86be014a4edb5a8ece021b87e3900.patch
-        pacman-always-create-directories-from-debugedit-fixup.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/86981383a2f4380bda26311831be94cdc743649b.patch
-        pacman-fix-unique-source-paths.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/478af273dfe24ded197ec54ae977ddc3719d74a0.patch
-        pacman-strip-include-o-files-similar-to-kernel-modules.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/de11824527ec4e2561e161ac40a5714ec943543c.patch
-        pacman-fix-compatibility-with-bash-5.2-patsub_replacement.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/0e938f188692c710be36f9dd9ea7b94381aed1b4.patch
-        pacman-fix-order-of-fakechroot-fakeroot-nesting.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/05f283b5ad8f5b8f995076e93a27c8772076f872.patch
-        pacman-change-default-checksum-from-md5-to-sha256.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/aa3a1bc3b50d797fb75278f79a83cd7dde50c66e.patch
-        pacman-sort-debuginfod-repro.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/843bf21e794c79c5b3bcf8a57e45ef9c62312fee.patch
-        pacman-split-off-strip-debug.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/7a4fff3310ba2eadd3d5428cbb92e58eb2ee853b.patch
-        pacman-ignore-a-files.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/00d2b1f90261bf77eaaf262d2504af016562f2ac.patch
-        pacman-early-err-git.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/3aa096a74f717d31650e0eb3cf34e9a5ebadc313.patch
-        pacman-fix-gnupg-binary-data.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/86ec26b2d33372a4b3bda48f22c4a9f226c3ccce.patch
-        pacman-fix-gnupg-newsig-check.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/16a064701a30d7e1175e1185cc6da44238302fab.patch
-        pacman-check-pipes-gnupg.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/f8c2e59ec57c86827b1f1b1c2f6760dc3e59fe40.patch
+source=("git+https://gitlab.archlinux.org/pacman/pacman.git#tag=v${_git_tag}?signed"
+        revertme-makepkg-remove-libdepends-and-libprovides.patch::https://gitlab.archlinux.org/pacman/pacman/-/commit/354a300cd26bb1c7e6551473596be5ecced921de.patch
+        pacman.conf
+        makepkg.conf
+        alpm.sysusers
+        rust.conf
         'macos-bsd-touch-date.patch'
         'macos-no-statvfs.patch'
         'better-purge.patch'
@@ -61,100 +74,108 @@ source=(https://sources.archlinux.org/other/pacman/$pkgname-$pkgver.tar.xz{,.sig
         'fix-makepkg-profile-path.patch'
         'pacman-support-oci-multipart.patch'
         'pacman-support-oci-multipart-p2.patch'
-        'pacman.conf'
-        'makepkg.conf')
-sha256sums=('7d8e3e8c5121aec0965df71f59bedf46052c6cf14f96365c4411ec3de0a4c1a5'
-            'SKIP'
-            '6fed94326b9ecfbb438ab17a4576b5e9d52ecc0f4574f29d46adfde3886dee03'
-            'd2bc104788290e3de829a232590b66ad745cf5b4762a01acc1191ebf70fef114'
-            'f3d4f39ef24e312f610cbb3439fb02bc6b8829e37bcf1a50ae50cd0a69bde5d0'
-            'd87d0c9957c613fda272553bee58140349d151ae399f346ddaf6d75ee5916312'
-            '8641d514ef4cae9e4d1867aadf4b9c850a9e8dc9792c6c559f9d2a0e1713a5a1'
-            'b11f62d4bd9557e9d3e7456bc95f63e9eabab5ecee1368f4a14a84bc94b1c8d1'
-            'cf749ad981e8f3dedd89c05a5e69a9c91d1e58ef9407e8f8e04ba9c183939623'
-            '17e7af22533984924aaf1cf36c74aa26b46b04ad140cd76b65521be906bd3ff7'
-            '94d1f3575d0c3faf8bf11fee8e5ef36c8b339ebfd24868931903ba179ffecf4e'
-            '468837eed9a4ffd3778f159a7e62f89a38a4244f822a3a5b014daa69e3c65d28'
-            '0ac6a34e6fc126a243a642e509f459f6cde20af213ab949791a5cc325cf031f9'
-            'd08d4a56dc3a977fdfd4591c30733fa28976710ffba53786541d98717892dc24'
-            '4a3cdfba490121a20f3648791cd47ba323f3d3d56bf7ced21b9badb1f22d6abc'
-            '94c273f07e4e28125b6002567c62e1f6c65f543597de6a8bd79e8c5bf6e4a125'
+        'pacman-support-oci-multipart-p3.patch'
+)
+sha256sums=('SKIP'
+            'b3bce9d662e189e8e49013b818f255d08494a57e13fc264625f852f087d3def2'
+            'ecdefd7d41ee74c2602a9de8bb28d6377da916d14b4853dc303da0841237ce06'  # pacman.conf
+            'cf34c33dc11169b8def0720836eb06acce902cebffddafe28522a9fe30d279c5'  # makepkg.conf
+            'c8760d7ebb6c9817d508c691c67084be251cd9c8811ee1ccf92c1278bad74c1c'
+            '84d101019d24e6280ede705b04456f088fb13b9fe6afc34de457e0af34ec09d3'  # rust.conf
 
-            '0bc2247ab86f52b43dbf1b7d14b772ba9e5e7bc18aa7b6c434147fc4d9572730'  # macos-bsd-touch-date.patch
+            '5cd2645f982489e55c090716ec695ea0427bbf2bd200374508230cb5287903ae'  # macos-bsd-touch-date.patch
             'ff6c9766bf2e6391df3d581754b1299f3be7461c7e3cd66e10be6e1414ebf1cc'  # macos-no-statvfs.patch
             '22388ffa08d57934f64e93e3ba63675330ca6cc58c3af62e08f5a7a244b7a45e'  # better-purge.patch
             '2f13fe60de9368008e8bed6df0a238e5fff3c8ecb3dadf91e1b168b5ddc755fb'  # writeable-pkg-dir.patch
             '7478cb6c7b22bf9f3cb3224c1ff9571c96a956660409b5e3e96be36d6afff467'  # show-exec-error.patch
             '626376190b48667128cc667e78f20d713c5a708a7dcb711a3ed272ec89aabbd4'  # no-fakeroot.patch
             'cabf1f38abaed55d47f5967b64bf1c169cbfed02843c1f49439cc00932a743b7'  # macos-bsd-wc.patch
-            '595a61c76ec4fd3eaada632d9c35fcf9a6f8450f186eebedec351b958a4f56a4'  # macos-bsd-checksums.patch
+            '66ae375d6186a85e4feaf85b3c0a4a2fe37746c55ceb7134ca5f7a5e9e07d1ce'  # macos-bsd-checksums.patch
             '4f48a60e2035fcdc07032ef7fed1833cf58783bd013d0f8d9d9d7da0bcd82564'  # makepkg-rpath-fixer.patch
             '6b66c29a0a15689952e7ebb79df7b2a39123d9de6d51f150dc4cc48e739814c9'  # makepkg-rpath-check.patch
-            'c22049fba34aa3d019815f48b112c518236a9e696105478dfaaedb15c9d522a4'  # mac_checksums.sh.in
-            'afbacc05d475a2a2ba14dde745186ecb2a72a795164004bb162ff78844dda4bb'  # check_rpath.sh.in
-            '9e9acd585c9b4b84121c56674c4e1e143695cea97706dca8f26c14de74f196c9'  # fix_rpath.sh.in
+            'd9a18c1f9a9595b3ca2be6131eea8448420efaf34fc2e740e8d8ec00571a40e4'  # mac_checksums.sh.in
+            '316e47603a6f8be41acd8d66a13fd682bc8ba84479107b3fc8d471eb1e2f1685'  # check_rpath.sh.in
+            '486f0e618ffb44f1f3277aa18e6cf47f6bd285b97753a7e4f770928ebf4c4419'  # fix_rpath.sh.in
             '69b76b9a2eab66a3d9219d32f379cad426678de6c18485fab132348930f36ac9'  # fix-bin-true.patch
             'dc5e13d965f4c1e12630ba24601a223b908f12fe19d5e3287d7176369acb8fe4'  # fix-test-fakeroot-path.patch
             'fbd50755b9fd9ae11874fd83c94f5f922655e6256b527e4ba61be0e2c6157967'  # macos-bsd-cp.patch
-            '79e2b649ae4a62528ab55f032395e2b113eb0ac3895c5e3d6fc1fc8825b6acd3'  # macos-no-chroot.patch
-            '7370ff221767ac9df2d56184f9f66151de92fd59ba2864e209311d7c54df282e'  # pacman-support-oci.patch
-            'f6db1199753fb09b9d6bbffee67865c65f171dfe61835b0b2ac06e933eac7402'  # pacman-support-oci-fix.patch
-            '74b676305ad6f8b73cb0920f8dba2b07bdb1a24b70ac9f96b5c1c2de542bf4bc'  # makepkg-check-only-option.patch
+            '5e84539f3c0690be6405e4170b35f1c3b3841fef11070b5002b6868218d5bd71'  # macos-no-chroot.patch
+            '411f0ca9d469f2638143885e39bd29458161c9c000915cfb02e3146567b4c701'  # pacman-support-oci.patch
+            '6382cc91cd21d78fe64497cadbfd446346726e35d1e09aaa88a5a75804b7bf4e'  # pacman-support-oci-fix.patch
+            '223f4d6c5b8c2b99abaa8cf23a2f181e6ad2979e40fd21d85643153ff4d98c7f'  # makepkg-check-only-option.patch
             'ba2ff8714768ddd5870a4e8c16f647f490a2bb7db03e7ca41650b504ffadf3bb'  # makepkg-msg3-etc.patch
-            '11040e2bf80a031d51a4c2ec1b3c954b3b788308ce732bedda70ab6923002faf'  # fix-makepkg-profile-path.patch
-            '530b0a25106075f0fdda5dd789b55ca4e6938cb772bcfeb2177e2c9c47fb5aaa'  # pacman-support-oci-multipart.patch
-            '7a24658deb1cee4d394826b6800c81202fcca732fd06f4e9664ead6a4ddd6678'  # pacman-support-oci-multipart-p2.patch
-            'b11689f2502a881ab908d64a8c30d442e6713b2a27a78ce3d7ed692390246ef8'  # pacman.conf
-            'b3aa595f3c22813075ba15161a3df9b87f4477455913e8b290323a038d29e5c7'  # makepkg.conf
+            '581fe381088a9a226638e8570700ff99809d1035a2a402af058beb0c9e40625c'  # fix-makepkg-profile-path.patch
+            '3c66170a3974c6ac32a2f7a0624de31ef5cdabd89d414ee65a5b0ae9640e14e5'  # pacman-support-oci-multipart.patch
+            '5001c17ba032b21c24f34c55e8b4f453385eff617ce8f9a83d157a9651f096d7'  # pacman-support-oci-multipart-p2.patch
+            'e2a30b6b9a9780d63cda36b27e97271b593056257623c5dd3bf595e2cb0abeb0'  # pacman-support-oci-multipart-p3.patch
 )
 
+pkgver() {
+  cd "$pkgname"
+  git describe --abbrev=7 --match 'v*' | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
 prepare() {
-  cd "${pkgname}-${pkgver}"
+  cd "$pkgname"
+
+  # apply patch level commits on top of annotated tag
+  if [[ -n ${_git_patch_level_commit} ]]; then
+    if [[ v${_git_tag} != $(git describe --tags --abbrev=0 "${_git_patch_level_commit}") ]] then
+      error "patch level commit ${_git_patch_level_commit} is not a descendant of v${_git_tag}"
+      exit 1
+    fi
+    git rebase "${_git_patch_level_commit}"
+  fi
+
+  # handle patches
+  local -a patches
+  patches=($(printf '%s\n' "${source[@]}" | grep '.patch'))
+  patches=("${patches[@]%%::*}")
+  patches=("${patches[@]##*/}")
+
+  if (( ${#patches[@]} != 0 )); then
+    for patch in "${patches[@]}"; do
+      if [[ $patch =~ revertme-* ]]; then
+        msg2 "Reverting patch $patch..."
+        patch -RNp1 < "../$patch"
+      else
+        msg2 "Applying patch $patch..."
+        patch -Np1 < "../$patch"
+      fi
+    done
+  fi
 
   # patch is dumb
   cp ../fix_rpath.sh.in scripts/libmakepkg/util/
   cp ../mac_checksums.sh.in scripts/libmakepkg/util/
   cp ../check_rpath.sh.in scripts/libmakepkg/lint_package/
-
-  # we backport way too often in pacman
-  # lets at least make it more convenient
-  local src
-  for src in "${source[@]}"; do
-    src="${src%%::*}"
-    src="${src##*/}"
-    [[ $src = *.patch ]] && [ $src != "no-fakeroot.patch" ] || continue
-    msg2 "Applying patch $src..."
-    patch -Np1 < "../$src"
-  done
 }
 
 build() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname"
 
-  meson setup --prefix=${pacman_root}/usr \
+  meson --prefix=${pacman_root}/usr \
         --localstatedir=${pacman_root}/var \
         --sysconfdir=${pacman_root}/etc \
-        --buildtype=release \
         --default-library=static \
         --prefer-static \
-        -Di18n=false \
-        -Ddoc=enabled \
-        -Ddoxygen=enabled \
+        --buildtype=release \
+        -Ddoc=disabled \
+        -Ddoxygen=disabled \
         -Dscriptlet-shell=${pacman_root}/usr/bin/bash \
         build
 
-  meson compile -C build
+  meson compile --verbose -C build
 }
 
 check() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname"
 
-  # nope
-  MESON_TESTTHREADS=1 meson test -C build --print-errorlogs || :
+  meson test -C build || :
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname"
 
   DESTDIR="$pkgdir" meson install -C build
 
@@ -162,4 +183,7 @@ package() {
   install -dm755 "$pkgdir/${pacman_root}/etc"
   install -m644 "$srcdir/pacman.conf" "$pkgdir/${pacman_root}/etc"
   install -m644 "$srcdir/makepkg.conf" "$pkgdir/${pacman_root}/etc"
+  install -m644 "$srcdir/rust.conf" "$pkgdir/${pacman_root}/etc/makepkg.conf.d"
 }
+
+# vim: set ts=2 sw=2 et:

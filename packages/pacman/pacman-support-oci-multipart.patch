@@ -2,7 +2,7 @@ diff --git a/lib/libalpm/be_local.c b/lib/libalpm/be_local.c
 index 7940c31..93191ba 100644
 --- a/lib/libalpm/be_local.c
 +++ b/lib/libalpm/be_local.c
-@@ -761,6 +761,8 @@ static int local_db_read(alpm_pkg_t *info, int inforeq)
+@@ -782,6 +782,8 @@ static int local_db_read(alpm_pkg_t *info, int inforeq)
  				READ_AND_STORE(info->url);
  			} else if(strcmp(line, "%OCI_NAME%") == 0) {
  				READ_AND_STORE(info->oci_name);
@@ -11,7 +11,7 @@ index 7940c31..93191ba 100644
  			} else if(strcmp(line, "%LICENSE%") == 0) {
  				READ_AND_STORE_ALL(info->licenses);
  			} else if(strcmp(line, "%ARCH%") == 0) {
-@@ -1030,6 +1032,14 @@ int _alpm_local_db_write(alpm_db_t *db, alpm_pkg_t *info, int inforeq)
+@@ -1068,6 +1070,14 @@ int _alpm_local_db_write(alpm_db_t *db, alpm_pkg_t *info, int inforeq)
  			}
  			fputc('\n', fp);
  		}
@@ -30,7 +30,7 @@ diff --git a/lib/libalpm/be_sync.c b/lib/libalpm/be_sync.c
 index 2ea8460..bdfa3f6 100644
 --- a/lib/libalpm/be_sync.c
 +++ b/lib/libalpm/be_sync.c
-@@ -603,6 +603,8 @@ static int sync_db_read(alpm_db_t *db, struct archive *archive,
+@@ -633,6 +633,8 @@ static int sync_db_read(alpm_db_t *db, struct archive *archive,
  				READ_AND_STORE(pkg->url);
  			} else if(strcmp(line, "%OCI_NAME%") == 0) {
  				READ_AND_STORE(pkg->oci_name);
@@ -39,7 +39,7 @@ index 2ea8460..bdfa3f6 100644
  			} else if(strcmp(line, "%LICENSE%") == 0) {
  				READ_AND_STORE_ALL(pkg->licenses);
  			} else if(strcmp(line, "%ARCH%") == 0) {
-@@ -679,6 +681,11 @@ static int sync_db_read(alpm_db_t *db, struct archive *archive,
+@@ -726,6 +728,11 @@ static int sync_db_read(alpm_db_t *db, struct archive *archive,
  		_alpm_log(db->handle, ALPM_LOG_DEBUG, "unknown database file: %s\n", filename);
  	}
  
@@ -55,18 +55,7 @@ diff --git a/lib/libalpm/dload.c b/lib/libalpm/dload.c
 index b2dabaf..bc4c4ba 100644
 --- a/lib/libalpm/dload.c
 +++ b/lib/libalpm/dload.c
-@@ -49,6 +49,10 @@
- #include "util.h"
- #include "handle.h"
- 
-+#ifndef HAVE_LIBCURL
-+	#error "libcurl is required for this to work"
-+#endif
-+
- #ifdef HAVE_LIBCURL
- 
- /* RFC1123 states applications should support this length */
-@@ -148,7 +152,7 @@ static int prepare_download_url(alpm_handle_t* handle, char** ret_fileurl,
+@@ -73,7 +77,7 @@ static int prepare_download_url(alpm_handle_t* handle, char** ret_fileurl,
  		download the database, but OCI+digests to download packages"
  	*/
  	if(strncmp(server, "oci://", 6) == 0) {
@@ -75,7 +64,7 @@ index b2dabaf..bc4c4ba 100644
  			/* ok, now convert this a bit. */
  			size_t prefix_len = strlen("oci://github.com/");
  
-@@ -173,7 +177,7 @@ static int prepare_download_url(alpm_handle_t* handle, char** ret_fileurl,
+@@ -98,7 +102,7 @@ static int prepare_download_url(alpm_handle_t* handle, char** ret_fileurl,
  					(int) remote_org_len, org_start,
  					payload->oci_database,
  					payload->oci_pkg_name,
@@ -84,15 +73,7 @@ index b2dabaf..bc4c4ba 100644
  				);
  
  				*ret_fileurl = download_url;
-@@ -474,6 +478,7 @@ static FILE *create_tempfile(struct dload_payload *payload, const char *localpat
- 	return fp;
- }
- 
-+
- /* Return 0 if retry was successful, -1 otherwise */
- static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload *payload)
- {
-@@ -532,7 +537,31 @@ static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload
+@@ -557,7 +562,31 @@ static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload
  	return 0;
  }
  
@@ -125,7 +106,7 @@ index b2dabaf..bc4c4ba 100644
   * Returns 1 if the file is up-to-date
   * Returns 0 if current payload is completed successfully
   * Returns -1 if an error happened for a required file
-@@ -597,6 +626,20 @@ static int curl_check_finished_download(CURLM *curlm, CURLMsg *msg,
+@@ -620,6 +649,20 @@ static int curl_check_finished_download(CURLM *curlm, CURLMsg *msg,
  					payload->unlink_on_fail = 1;
  					goto cleanup;
  				}
@@ -146,7 +127,7 @@ index b2dabaf..bc4c4ba 100644
  			}
  			break;
  		case CURLE_ABORTED_BY_CALLBACK:
-@@ -688,7 +731,7 @@ static int curl_check_finished_download(CURLM *curlm, CURLMsg *msg,
+@@ -685,7 +728,7 @@ static int curl_check_finished_download(CURLM *curlm, CURLMsg *msg,
  	*/
  	if(!payload->signature &&
  		payload->download_signature &&
@@ -155,17 +136,15 @@ index b2dabaf..bc4c4ba 100644
  		curlerr == CURLE_OK &&
  		payload->respcode < 400)
  	{
-@@ -850,6 +893,8 @@ static int curl_add_payload(alpm_handle_t *handle, CURLM *curlm,
- 		ASSERT(payload->filepath, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, cleanup));
+@@ -844,5 +887,6 @@ static int curl_add_payload(alpm_handle_t *handle, CURLM *curlm,
  
- 		server = payload->servers->data;
+ 		ASSERT(server, GOTO_ERR(handle, ALPM_ERR_SERVER_NONE, cleanup));
+ 		ASSERT(payload->filepath, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, cleanup));
 +		payload->used_server = server;
-+
- 		payload->servers = payload->servers->next;
  
  		if(prepare_download_url(handle, &payload->fileurl, server, payload) != 0) {
-@@ -1183,5 +1228,6 @@ void _alpm_dload_payload_reset(struct dload_payload *payload)
- 	FREE(payload->content_disp_name);
+@@ -1492,5 +1537,6 @@ void _alpm_dload_payload_reset(struct dload_payload *payload)
+ 	FREE(payload->destfile_name);
  	FREE(payload->fileurl);
  	FREE(payload->filepath);
 +	alpm_list_free(payload->oci_digest);
@@ -175,8 +154,8 @@ diff --git a/lib/libalpm/dload.h b/lib/libalpm/dload.h
 index 80962d3..df0abc0 100644
 --- a/lib/libalpm/dload.h
 +++ b/lib/libalpm/dload.h
-@@ -58,9 +58,12 @@ struct dload_payload {
- #endif
+@@ -62,9 +62,12 @@ struct dload_payload {
+ 	FILE *localf; /* temp download file */
  
  	/* new fields for supporting container-registry downloads */
 +	const char* used_server;
@@ -193,7 +172,7 @@ diff --git a/lib/libalpm/package.h b/lib/libalpm/package.h
 index 3a042c3..521cc1b 100644
 --- a/lib/libalpm/package.h
 +++ b/lib/libalpm/package.h
-@@ -142,6 +142,8 @@ struct __alpm_pkg_t {
+@@ -146,6 +146,8 @@ struct __alpm_pkg_t {
  	int infolevel;
  	/* Bitfield from alpm_pkgvalidation_t */
  	int validation;
@@ -206,15 +185,7 @@ diff --git a/lib/libalpm/sync.c b/lib/libalpm/sync.c
 index 379fb15..90bdfa3 100644
 --- a/lib/libalpm/sync.c
 +++ b/lib/libalpm/sync.c
-@@ -763,7 +763,6 @@ static int find_dl_candidates(alpm_handle_t *handle, alpm_list_t **files)
- 	return 0;
- }
- 
--
- static int prepare_download_payload(alpm_handle_t* handle, alpm_pkg_t* pkg, struct dload_payload** out_payload)
- {
- 	struct dload_payload *payload = NULL;
-@@ -797,13 +796,14 @@ static int prepare_download_payload(alpm_handle_t* handle, alpm_pkg_t* pkg, stru
+@@ -803,13 +803,14 @@ static int prepare_download_payload(alpm_handle_t* handle, alpm_pkg_t* pkg, stru
  		return -1;
  	);
  
@@ -235,15 +206,15 @@ diff --git a/scripts/repo-add.sh.in b/scripts/repo-add.sh.in
 index dedfa6a..2733cfc 100644
 --- a/scripts/repo-add.sh.in
 +++ b/scripts/repo-add.sh.in
-@@ -42,6 +42,7 @@ LOCKFILE=
- CLEAN_LOCK=0
- USE_COLOR='y'
+@@ -44,6 +44,7 @@ LOCKFILE=
  PREVENT_DOWNGRADE=0
+ INCLUDE_SIGS=0
+ DB_MODIFIED=0
 +OCI_DIGEST_LIST=()
  
  # Import libmakepkg
- source "$LIBRARY"/util/compress.sh
-@@ -62,9 +63,10 @@ repo-add will update a package database by reading a package file.\n\
+ source "$MAKEPKG_LIBRARY"/util/compress.sh
+@@ -65,9 +66,10 @@ repo-add will update a package database by reading a package file.\n\
  Multiple packages to add can be specified on the command line.\n")"
  		printf -- "\n"
  		printf -- "$(gettext "Options:\n")"
@@ -268,7 +239,7 @@ index dedfa6a..2733cfc 100644
  	} >'desc'
  
  	popd >/dev/null
-@@ -625,6 +631,10 @@ while (( $# )); do
+@@ -639,6 +645,10 @@ while (( $# )); do
  			shift
  			OCI_NAME="$1"
  			;;
@@ -279,7 +250,7 @@ index dedfa6a..2733cfc 100644
  		-v|--verify)
  			VERIFY=1
  			;;
-@@ -680,8 +690,8 @@ fi
+@@ -700,8 +696,8 @@ fi
  
  prepare_repo_db
  

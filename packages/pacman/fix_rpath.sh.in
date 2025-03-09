@@ -6,10 +6,10 @@
 [[ -n "$LIBMAKEPKG_UTIL_FIX_RPATH_SH" ]] && return
 LIBMAKEPKG_UTIL_FIX_RPATH_SH=1
 
-LIBRARY=${LIBRARY:-'@libmakepkgdir@'}
+MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'@libmakepkgdir@'}
 
-source "$LIBRARY/util/util.sh"
-source "$LIBRARY/util/message.sh"
+source "$MAKEPKG_LIBRARY/util/util.sh"
+source "$MAKEPKG_LIBRARY/util/message.sh"
 
 # yes... we use python here. *BUT* macOS always comes with python (at least 3.6, for sure)
 # and this is a pain in the butt to do in pure bash; macOS `readlink` doesn't come with the `-m` option.

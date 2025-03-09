@@ -1,10 +1,6 @@
 {
-  "upstream_commit": "5fc0f6312b17abf707318c6909275721dab75a54",
-  "diff_files": [
-    "PKGBUILD.pmdiff",
-    "makepkg.conf.pmdiff",
-    "pacman.conf.pmdiff"
-  ],
+  "upstream_commit": "9c28a1f7134e150203f8fbb0e97b48b42c0c79e8",
+  "diff_files": [],
   "clean_files": [],
   "ignore_files": [
     ".SRCINFO"

@@ -1,6 +1,6 @@
 --- a/lib/libalpm/dload.c	2023-06-10 22:21:54.659480923 +0800
 +++ b/lib/libalpm/dload.c	2023-06-11 03:18:44.174720887 +0800
-@@ -140,6 +140,71 @@ static const char *get_filename(const ch
+@@ -65,6 +65,71 @@ static const char *get_filename(const ch
  	return url;
  }
  
@@ -69,10 +69,10 @@
 +	return 0;
 +}
 +
- static char *get_fullpath(const char *path, const char *filename,
- 		const char *suffix)
+ /* prefix to avoid possible future clash with getumask(3) */
+ static mode_t _getumask(void)
  {
-@@ -342,6 +407,9 @@ static void curl_set_handle_opts(CURL *c
+@@ -402,6 +467,9 @@ static void curl_set_handle_opts(CURL *c
  	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
  	curl_easy_setopt(curl, CURLOPT_PRIVATE, (void *)payload);
  
@@ -82,30 +82,31 @@
  	_alpm_log(handle, ALPM_LOG_DEBUG, "%s: url is %s\n",
  		payload->remote_name, payload->fileurl);
  
-@@ -410,7 +478,6 @@ static FILE *create_tempfile(struct dloa
+@@ -438,7 +508,6 @@ static FILE *create_tempfile(struct dloa
  static int curl_retry_next_server(CURLM *curlm, CURL *curl, struct dload_payload *payload)
  {
- 	const char *server;
+ 	const char *server = NULL;
 -	size_t len;
  	struct stat st;
  	alpm_handle_t *handle = payload->handle;
  
-@@ -427,10 +494,10 @@ static int curl_retry_next_server(CURLM
+@@ -450,12 +517,12 @@ static int curl_retry_next_server(CURLM
  
  	/* regenerate a new fileurl */
  	FREE(payload->fileurl);
 -	len = strlen(server) + strlen(payload->filepath) + 2;
 -	MALLOC(payload->fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
 -	snprintf(payload->fileurl, len, "%s/%s", server, payload->filepath);
- 
 +	if(prepare_download_url(handle, &payload->fileurl, server, payload) != 0) {
 +		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
 +	}
+ 	_alpm_log(handle, ALPM_LOG_DEBUG,
+ 			"%s: retrying from %s\n",
+ 			payload->remote_name, payload->fileurl);
  
  	fflush(payload->localf);
  
-@@ -614,7 +681,17 @@ static int curl_check_finished_download(
- 	}
+@@ -612,6 +679,16 @@ static int curl_check_finished_download(
  
  	/* Let's check if client requested downloading accompanion *.sig file */
 -	if(!payload->signature && payload->download_signature && curlerr == CURLE_OK && payload->respcode < 400) {
@@ -123,17 +124,17 @@
  		struct dload_payload *sig = NULL;
  		char *url = payload->fileurl;
  		char *_effective_filename;
-@@ -753,7 +830,6 @@ cleanup:
+@@ -751,7 +828,6 @@ cleanup:
  static int curl_add_payload(alpm_handle_t *handle, CURLM *curlm,
- 		struct dload_payload *payload, const char *localpath)
+ 		struct dload_payload *payload)
  {
 -	size_t len;
  	CURL *curl = NULL;
  	char hostname[HOSTNAME_SIZE];
  	int ret = -1;
-@@ -776,9 +852,9 @@ static int curl_add_payload(alpm_handle_
- 		server = payload->servers->data;
- 		payload->servers = payload->servers->next;
+@@ -769,9 +845,9 @@ static int curl_add_payload(alpm_handle_
+ 		ASSERT(server, GOTO_ERR(handle, ALPM_ERR_SERVER_NONE, cleanup));
+ 		ASSERT(payload->filepath, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, cleanup));
  
 -		len = strlen(server) + strlen(payload->filepath) + 2;
 -		MALLOC(payload->fileurl, len, GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
@@ -144,28 +145,33 @@
  	}
  
  	payload->tempfile_openmode = "wb";
-@@ -967,11 +1043,11 @@ int _alpm_download(alpm_handle_t *handle
- 			} else {
- 				for(s = payload->servers; s && ret == -1; s = s->next) {
- 					const char *server = s->data;
--					char *fileurl;
-+					char* fileurl;
+@@ -1068,16 +1169,16 @@
+ static int payload_download_fetchcb(struct dload_payload *payload,
+ 		const char *server, const char *localpath)
+ {
+ 	int ret;
+ 	char *fileurl;
+ 	alpm_handle_t *handle = payload->handle;
  
--					size_t len = strlen(server) + strlen(payload->filepath) + 2;
--					MALLOC(fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
--					snprintf(fileurl, len, "%s/%s", server, payload->filepath);
-+					if((ret = prepare_download_url(handle, &fileurl, server, payload)) != 0) {
-+						return ret;
-+					}
- 
- 					ret = handle->fetchcb(handle->fetchcb_ctx, fileurl, localpath, payload->force);
- 					free(fileurl);
+-	size_t len = strlen(server) + strlen(payload->filepath) + 2;
+-	MALLOC(fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+-	snprintf(fileurl, len, "%s/%s", server, payload->filepath);
++	if((ret = prepare_download_url(handle, &fileurl, server, payload)) != 0) {
++		return ret;
++	}
+
+ 	ret = handle->fetchcb(handle->fetchcb_ctx, fileurl, localpath, payload->force);
+ 	free(fileurl);
+
+ 	return ret;
+ }
 --- a/lib/libalpm/dload.h	2023-06-10 22:21:54.663200016 +0800
 +++ b/lib/libalpm/dload.h	2023-06-11 02:11:29.497973433 +0800
-@@ -56,6 +56,11 @@ struct dload_payload {
- 	FILE *localf; /* temp download file */
+@@ -59,6 +59,11 @@ struct dload_payload {
  	int signature; /* specifies if this payload is for a signature file */
+ 	int request_errors_ok; /* per-request errors-ok */
  #endif
+ 	FILE *localf; /* temp download file */
 +
 +	/* new fields for supporting container-registry downloads */
 +	char* oci_database;
@@ -176,7 +182,7 @@
  void _alpm_dload_payload_reset(struct dload_payload *payload);
 --- a/lib/libalpm/sync.c	2023-06-10 22:21:54.672113496 +0800
 +++ b/lib/libalpm/sync.c	2023-06-11 02:11:25.365792628 +0800
-@@ -763,6 +763,52 @@ static int find_dl_candidates(alpm_handl
+@@ -769,7 +769,52 @@ static int find_dl_candidates(alpm_handl
  	return 0;
  }
  
@@ -225,11 +231,11 @@
 +	*out_payload = payload;
 +	return 0;
 +}
-+
+ 
  static int download_files(alpm_handle_t *handle)
  {
  	const char *cachedir;
-@@ -814,21 +860,10 @@ static int download_files(alpm_handle_t
+@@ -827,29 +873,10 @@ static int download_files(alpm_handle_t
  
  		EVENT(handle, &event);
  		for(i = files; i; i = i->next) {
@@ -240,9 +246,17 @@
 -			CALLOC(payload, 1, sizeof(*payload), GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
 -			STRDUP(payload->remote_name, pkg->filename, FREE(payload); GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
 -			STRDUP(payload->filepath, pkg->filename,
--				FREE(payload->remote_name); FREE(payload);
+-				_alpm_dload_payload_reset(payload); FREE(payload);
 -				GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
+-			payload->destfile_name = _alpm_get_fullpath(temporary_cachedir, payload->remote_name, "");
+-			payload->tempfile_name = _alpm_get_fullpath(temporary_cachedir, payload->remote_name, ".part");
+-			if(!payload->destfile_name || !payload->tempfile_name) {
+-				_alpm_dload_payload_reset(payload);
+-				FREE(payload);
+-				GOTO_ERR(handle, ALPM_ERR_MEMORY, finish);
+-			}
 -			payload->max_size = pkg->size;
+-			payload->cache_servers = pkg->origin_data.db->cache_servers;
 -			payload->servers = pkg->origin_data.db->servers;
 -			payload->handle = handle;
 -			payload->allow_resume = 1;

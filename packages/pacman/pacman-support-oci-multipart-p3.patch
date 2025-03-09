@@ -1,0 +1,36 @@
+diff --git a/lib/libalpm/dload.c b/lib/libalpm/dload.c
+index bc4c4ba..e08a3c4 100644
+--- a/lib/libalpm/dload.c
++++ b/lib/libalpm/dload.c
+@@ -917,6 +917,20 @@
+ 	}
+ 
+ 	if(payload->localf == NULL) {
++		if(payload->tempfile_name == NULL) {
++			const char *cachedir = _alpm_filecache_setup(handle);
++			char *temp_cachedir = _alpm_temporary_download_dir_setup(cachedir, handle->sandboxuser);
++
++			size_t path_len = strlen(temp_cachedir) + strlen(payload->remote_name) + 2;
++			MALLOC(payload->tempfile_name, path_len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
++
++			snprintf(payload->tempfile_name, path_len, "%s/%s", temp_cachedir, payload->remote_name);
++		}
++
++		if(payload->tempfile_openmode == NULL) {
++			payload->tempfile_openmode = "wb";
++		}
++
+ 		payload->localf = fopen(payload->tempfile_name, payload->tempfile_openmode);
+ 		if(payload->localf == NULL) {
+ 			_alpm_log(handle, ALPM_LOG_ERROR,
+--- a/scripts/repo-add.sh.in	2025-03-10 03:19:37.017079835 +0800
++++ b/scripts/repo-add.sh.in	2025-03-10 03:19:49.640852409 +0800
+@@ -618,7 +618,7 @@
+ 
+ OPT_SHORT="k:npqRsv"
+ OPT_LONG=('include-sigs' 'key:' 'new' 'nocolor' 'quiet' 'prevent-downgrade' 'remove'
+-          'sign' 'verify')
++          'sign' 'verify' 'oci-name:' 'oci-digest:')
+ if ! parseopts "$OPT_SHORT" "${OPT_LONG[@]}" -- "$@"; then
+ 	exit 1 # E_INVALID_OPTION
+ fi
