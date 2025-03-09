@@ -1,7 +1,15 @@
 {
   "upstream_commit": "9c28a1f7134e150203f8fbb0e97b48b42c0c79e8",
-  "diff_files": [],
-  "clean_files": [],
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "makepkg.conf.pmdiff",
+    "pacman.conf.pmdiff",
+    "rust.conf.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "alpm.sysusers"
+  ],
   "ignore_files": [
     ".SRCINFO"
   ]

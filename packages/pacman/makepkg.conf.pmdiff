@@ -1,0 +1,78 @@
+--- makepkg.conf
++++ makepkg.conf
+@@ -5 +5 @@
+-# /etc/makepkg.conf
++# /opt/pacman/etc/makepkg.conf
+@@ -6,0 +7,16 @@
++
++export COMMAND_MODE=unix2003
++export pacman_root=$(pacman-root-dir)
++
++export XDG_DATA_DIRS=$(pacman-root-dir)/usr/share:${XDG_DATA_DIRS}
++export XDG_CONFIG_DIRS=$(pacman-root-dir)/etc/xdg:${XDG_CONFIG_DIRS}
++
++export MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
++export MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
++
++export MACOSX_DEPLOYMENT_TARGET="${MACOS_MAJOR}.0"
++
++_GetPythonPlatformPath() {
++  local _script="import sys, sysconfig; print(f\"lib.{sysconfig.get_platform()}-cpython-{''.join(map(str, sys.version_info[:2]))}\")"
++  python -c "${_script}"
++}
+@@ -38,2 +54,2 @@
+-CARCH="x86_64"
+-CHOST="x86_64-pc-linux-gnu"
++CARCH=$(uname -m)
++CHOST="$(uname -m)-apple-darwin$(uname -r)"
+@@ -41,0 +58,5 @@
++export CC=clang
++export CXX=clang++
++export OBJC=clang
++export OBJCXX=clang++
++
+@@ -43,8 +64,3 @@
+-CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe -fno-plt -fexceptions \
+-        -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \
+-        -fstack-clash-protection -fcf-protection \
+-        -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"
+-CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"
+-LDFLAGS="-Wl,-O1 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now \
+-         -Wl,-z,pack-relative-relocs"
+-LTOFLAGS="-flto=auto"
++CFLAGS="-O2 -pipe -march=native"
++CXXFLAGS="-O2 -pipe -march=native"
++
+@@ -52 +68 @@
+-#MAKEFLAGS="-j2"
++MAKEFLAGS="-j6"
+@@ -98 +114 @@
+-OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge debug lto)
++OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge !debug lto)
+@@ -103 +119 @@
+-STRIP_BINARIES="--strip-all"
++STRIP_BINARIES=""
+@@ -105 +121 @@
+-STRIP_SHARED="--strip-unneeded"
++STRIP_SHARED="-s"
+@@ -107 +123 @@
+-STRIP_STATIC="--strip-debug"
++STRIP_STATIC="-s"
+@@ -109 +125 @@
+-MAN_DIRS=({usr{,/local}{,/share},opt/*}/{man,info})
++MAN_DIRS=({${pacman_root#/}/usr{,/local}{,/share},opt/*}/{man,info})
+@@ -111 +127 @@
+-DOC_DIRS=(usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc})
++DOC_DIRS=(${pacman_root#/}/usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc})
+@@ -113 +129 @@
+-PURGE_TARGETS=(usr/{,share}/info/dir .packlist *.pod)
++PURGE_TARGETS=(${pacman_root#/}/usr/{,share}/info/dir .packlist *.pod)
+@@ -115 +131 @@
+-DBGSRCDIR="/usr/src/debug"
++DBGSRCDIR="${pacman_root#/}/usr/src/debug"
+@@ -117 +133 @@
+-LIB_DIRS=('lib:usr/lib' 'lib32:usr/lib32')
++LIB_DIRS=('lib:${pacman_root#/}/usr/lib' 'lib32:${pacman_root#/}/usr/lib32')
+@@ -121,0 +138,2 @@
++PKGDEST=$(pacman-root-dir)/pkgs
++SRCPKGDEST=$(pacman-root-dir)/srcs

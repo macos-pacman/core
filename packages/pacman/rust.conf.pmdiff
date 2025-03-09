@@ -1,0 +1,5 @@
+--- rust.conf
++++ rust.conf
+@@ -5 +5 @@
+-# /etc/makepkg.conf.d/rust.conf
++# /opt/pacman/etc/makepkg.conf.d/rust.conf

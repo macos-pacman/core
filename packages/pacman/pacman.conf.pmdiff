@@ -1,0 +1,78 @@
+--- pacman.conf
++++ pacman.conf
+@@ -2 +2 @@
+-# /etc/pacman.conf
++# /opt/pacman/etc/pacman.conf
+@@ -18 +18 @@
+-HoldPkg     = pacman glibc
++HoldPkg     = pacman glibc macos-system
+@@ -33 +33 @@
+-#Color
++Color
+@@ -38 +38 @@
+-DownloadUser = alpm
++#DownloadUser = alpm
+@@ -41,35 +41,3 @@
+-# By default, pacman accepts packages signed by keys that its local keyring
+-# trusts (see pacman-key and its man page), as well as unsigned packages.
+-SigLevel    = Required DatabaseOptional
+-LocalFileSigLevel = Optional
+-#RemoteFileSigLevel = Required
+-
+-# NOTE: You must run `pacman-key --init` before first using pacman; the local
+-# keyring can then be populated with the keys of all official Arch Linux
+-# packagers with `pacman-key --populate archlinux`.
+-
+-#
+-# REPOSITORIES
+-#   - can be defined here or included from another file
+-#   - pacman will search repositories in the order defined here
+-#   - local/custom mirrors can be added here or in separate files
+-#   - repositories listed first will take precedence when packages
+-#     have identical names, regardless of version number
+-#   - URLs will have $repo replaced by the name of the current repo
+-#   - URLs will have $arch replaced by the name of the architecture
+-#
+-# Repository entries are of the format:
+-#       [repo-name]
+-#       Server = ServerName
+-#       Include = IncludePath
+-#
+-# The header [repo-name] is crucial - it must be present and
+-# uncommented to enable the repo.
+-#
+-
+-# The testing repositories are disabled by default. To enable, uncomment the
+-# repo name header and Include lines. You can add preferred servers immediately
+-# after the header, and they will be used before the default mirrors.
+-
+-#[core-testing]
+-#Include = /etc/pacman.d/mirrorlist
++#SigLevel = Optional
++#LocalFileSigLevel = Optional
++#RemoteFileSigLevel = Optiona
+@@ -78,22 +46,2 @@
+-Include = /etc/pacman.d/mirrorlist
+-
+-#[extra-testing]
+-#Include = /etc/pacman.d/mirrorlist
+-
+-[extra]
+-Include = /etc/pacman.d/mirrorlist
+-
+-# If you want to run 32 bit applications on your x86_64 system,
+-# enable the multilib repositories as required here.
+-
+-#[multilib-testing]
+-#Include = /etc/pacman.d/mirrorlist
+-
+-#[multilib]
+-#Include = /etc/pacman.d/mirrorlist
+-
+-# An example of a custom package repository.  See the pacman manpage for
+-# tips on creating your own repositories.
+-#[custom]
+-#SigLevel = Optional TrustAll
+-#Server = file:///home/custompkgs
++SigLevel = Optional
++Server = oci://github.com/macos-pacman/$repo/releases/download/pkg-db-$arch/

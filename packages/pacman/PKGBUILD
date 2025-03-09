@@ -165,7 +165,7 @@ build() {
         -Dscriptlet-shell=${pacman_root}/usr/bin/bash \
         build
 
-  meson compile --verbose -C build
+  meson compile -C build
 }
 
 check() {

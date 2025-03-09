@@ -1,0 +1,135 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".6"
+@@ -11 +12 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -25,2 +25,0 @@
+-  pacman-mirrorlist
+-  systemd
+@@ -32,0 +32 @@
++  pkgconf
+@@ -35 +34,0 @@
+-  fakechroot
+@@ -39 +37,0 @@
+-  'base-devel: required to use makepkg'
+@@ -42,4 +40,5 @@
+-provides=('libalpm.so')
+-backup=(etc/pacman.conf
+-        etc/makepkg.conf
+-        etc/makepkg.conf.d/rust.conf)
++options=('!strip')
++provides=('libalpm.dylib')
++backup=(${pacman_root#/}/etc/pacman.conf
++        ${pacman_root#/}/etc/makepkg.conf
++        ${pacman_root#/}/etc/makepkg.conf.d/rust.conf)
+@@ -53,2 +52,28 @@
+-        rust.conf)
+-sha256sums=('06d082c3ce6f0811ca728515aa82d69d372800bd3ada99f5c445ef9429b6e3a6'
++        rust.conf
++        'macos-bsd-touch-date.patch'
++        'macos-no-statvfs.patch'
++        'better-purge.patch'
++        'writeable-pkg-dir.patch'
++        'show-exec-error.patch'
++        'no-fakeroot.patch'
++        'macos-bsd-wc.patch'
++        'macos-bsd-checksums.patch'
++        'makepkg-rpath-fixer.patch'
++        'makepkg-rpath-check.patch'
++        'mac_checksums.sh.in'
++        'check_rpath.sh.in'
++        'fix_rpath.sh.in'
++        'fix-bin-true.patch'
++        'fix-test-fakeroot-path.patch'
++        'macos-bsd-cp.patch'
++        'macos-no-chroot.patch'
++        'pacman-support-oci.patch'
++        'pacman-support-oci-fix.patch'
++        'makepkg-check-only-option.patch'
++        'makepkg-msg3-etc.patch'
++        'fix-makepkg-profile-path.patch'
++        'pacman-support-oci-multipart.patch'
++        'pacman-support-oci-multipart-p2.patch'
++        'pacman-support-oci-multipart-p3.patch'
++)
++sha256sums=('SKIP'
+@@ -56,2 +81,2 @@
+-            'bc80e9d0439caddd29b99a69b5060b5589cad2398c23abc5b2b8b990fae6ad8c'
+-            'd99c1f9608362fff9ab3a2ca0a3096a317927b42a6725bc86599da6849c9c67c'
++            'ecdefd7d41ee74c2602a9de8bb28d6377da916d14b4853dc303da0841237ce06'  # pacman.conf
++            'cf34c33dc11169b8def0720836eb06acce902cebffddafe28522a9fe30d279c5'  # makepkg.conf
+@@ -59 +84,28 @@
+-            '59a8bbdc32830c90dbce5ead9f90074a2bb31cd85ec92bc5f92251bb4bcf8a1d')
++            '84d101019d24e6280ede705b04456f088fb13b9fe6afc34de457e0af34ec09d3'  # rust.conf
++
++            '5cd2645f982489e55c090716ec695ea0427bbf2bd200374508230cb5287903ae'  # macos-bsd-touch-date.patch
++            'ff6c9766bf2e6391df3d581754b1299f3be7461c7e3cd66e10be6e1414ebf1cc'  # macos-no-statvfs.patch
++            '22388ffa08d57934f64e93e3ba63675330ca6cc58c3af62e08f5a7a244b7a45e'  # better-purge.patch
++            '2f13fe60de9368008e8bed6df0a238e5fff3c8ecb3dadf91e1b168b5ddc755fb'  # writeable-pkg-dir.patch
++            '7478cb6c7b22bf9f3cb3224c1ff9571c96a956660409b5e3e96be36d6afff467'  # show-exec-error.patch
++            '626376190b48667128cc667e78f20d713c5a708a7dcb711a3ed272ec89aabbd4'  # no-fakeroot.patch
++            'cabf1f38abaed55d47f5967b64bf1c169cbfed02843c1f49439cc00932a743b7'  # macos-bsd-wc.patch
++            '66ae375d6186a85e4feaf85b3c0a4a2fe37746c55ceb7134ca5f7a5e9e07d1ce'  # macos-bsd-checksums.patch
++            '4f48a60e2035fcdc07032ef7fed1833cf58783bd013d0f8d9d9d7da0bcd82564'  # makepkg-rpath-fixer.patch
++            '6b66c29a0a15689952e7ebb79df7b2a39123d9de6d51f150dc4cc48e739814c9'  # makepkg-rpath-check.patch
++            'd9a18c1f9a9595b3ca2be6131eea8448420efaf34fc2e740e8d8ec00571a40e4'  # mac_checksums.sh.in
++            '316e47603a6f8be41acd8d66a13fd682bc8ba84479107b3fc8d471eb1e2f1685'  # check_rpath.sh.in
++            '486f0e618ffb44f1f3277aa18e6cf47f6bd285b97753a7e4f770928ebf4c4419'  # fix_rpath.sh.in
++            '69b76b9a2eab66a3d9219d32f379cad426678de6c18485fab132348930f36ac9'  # fix-bin-true.patch
++            'dc5e13d965f4c1e12630ba24601a223b908f12fe19d5e3287d7176369acb8fe4'  # fix-test-fakeroot-path.patch
++            'fbd50755b9fd9ae11874fd83c94f5f922655e6256b527e4ba61be0e2c6157967'  # macos-bsd-cp.patch
++            '5e84539f3c0690be6405e4170b35f1c3b3841fef11070b5002b6868218d5bd71'  # macos-no-chroot.patch
++            '411f0ca9d469f2638143885e39bd29458161c9c000915cfb02e3146567b4c701'  # pacman-support-oci.patch
++            '6382cc91cd21d78fe64497cadbfd446346726e35d1e09aaa88a5a75804b7bf4e'  # pacman-support-oci-fix.patch
++            '223f4d6c5b8c2b99abaa8cf23a2f181e6ad2979e40fd21d85643153ff4d98c7f'  # makepkg-check-only-option.patch
++            'ba2ff8714768ddd5870a4e8c16f647f490a2bb7db03e7ca41650b504ffadf3bb'  # makepkg-msg3-etc.patch
++            '581fe381088a9a226638e8570700ff99809d1035a2a402af058beb0c9e40625c'  # fix-makepkg-profile-path.patch
++            '3c66170a3974c6ac32a2f7a0624de31ef5cdabd89d414ee65a5b0ae9640e14e5'  # pacman-support-oci-multipart.patch
++            '5001c17ba032b21c24f34c55e8b4f453385eff617ce8f9a83d157a9651f096d7'  # pacman-support-oci-multipart-p2.patch
++            'e2a30b6b9a9780d63cda36b27e97271b593056257623c5dd3bf595e2cb0abeb0'  # pacman-support-oci-multipart-p3.patch
++)
+@@ -94,0 +147,5 @@
++
++  # patch is dumb
++  cp ../fix_rpath.sh.in scripts/libmakepkg/util/
++  cp ../mac_checksums.sh.in scripts/libmakepkg/util/
++  cp ../check_rpath.sh.in scripts/libmakepkg/lint_package/
+@@ -100,6 +157,9 @@
+-  meson --prefix=/usr \
+-        --buildtype=plain \
+-        -Ddoc=enabled \
+-        -Ddoxygen=enabled \
+-        -Dscriptlet-shell=/usr/bin/bash \
+-        -Dldconfig=/usr/bin/ldconfig \
++  meson --prefix=${pacman_root}/usr \
++        --localstatedir=${pacman_root}/var \
++        --sysconfdir=${pacman_root}/etc \
++        --default-library=static \
++        --prefer-static \
++        --buildtype=release \
++        -Ddoc=disabled \
++        -Ddoxygen=disabled \
++        -Dscriptlet-shell=${pacman_root}/usr/bin/bash \
+@@ -114 +174 @@
+-  meson test -C build
++  meson test -C build || :
+@@ -123,13 +183,4 @@
+-  install -dm755 "$pkgdir/etc"
+-  install -m644 "$srcdir/pacman.conf" "$pkgdir/etc"
+-  install -m644 "$srcdir/makepkg.conf" "$pkgdir/etc"
+-  install -D -m644 "$srcdir/alpm.sysusers" "${pkgdir}"/usr/lib/sysusers.d/alpm.conf
+-  install -m644 "$srcdir/rust.conf" "$pkgdir/etc/makepkg.conf.d"
+-
+-  local wantsdir="$pkgdir/usr/lib/systemd/system/sockets.target.wants"
+-  install -dm755 "$wantsdir"
+-
+-  local unit
+-  for unit in dirmngr gpg-agent gpg-agent-{browser,extra,ssh} keyboxd; do
+-    ln -s "../${unit}@.socket" "$wantsdir/${unit}@etc-pacman.d-gnupg.socket"
+-  done
++  install -dm755 "$pkgdir/${pacman_root}/etc"
++  install -m644 "$srcdir/pacman.conf" "$pkgdir/${pacman_root}/etc"
++  install -m644 "$srcdir/makepkg.conf" "$pkgdir/${pacman_root}/etc"
++  install -m644 "$srcdir/rust.conf" "$pkgdir/${pacman_root}/etc/makepkg.conf.d"
