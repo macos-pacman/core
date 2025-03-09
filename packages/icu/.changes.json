@@ -1,0 +1,14 @@
+{
+  "upstream_commit": "cf70a1eb2d513d0286fb975fb06abb20442a4358",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "ICU-22132.patch",
+    "LICENSE"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
