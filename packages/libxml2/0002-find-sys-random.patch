@@ -1,0 +1,10 @@
+--- a/meson.build	2025-03-04 21:13:59.253865097 +0800
++++ b/meson.build	2025-03-04 21:24:03.322641588 +0800
+@@ -300,6 +300,7 @@
+     'dl.h',
+     'dlfcn.h',
+     'glob.h',
++    'sys/random.h',
+ ]
+ 
+ foreach header : xml_check_headers

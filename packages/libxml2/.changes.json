@@ -1,0 +1,8 @@
+{
+  "upstream_commit": "4f719e68bf3fa497a02df80ff2fac70d773e21cb",
+  "diff_files": [],
+  "clean_files": [],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
