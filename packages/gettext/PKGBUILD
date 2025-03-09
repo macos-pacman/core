@@ -1,70 +1,67 @@
-# Maintainer:
+# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
 
 pkgname=gettext
-pkgver=0.21.1
-pkgrel=2
+pkgver=0.24
+pkgrel=1
+pkgrel+=".1"
 pkgdesc="GNU internationalization library"
 url="https://www.gnu.org/software/gettext/"
-arch=(x86_64 arm64)
-license=(GPL)
-groups=(base-devel)
-depends=(gcc-libs acl sh libunistring libxml2)
-makedepends=(git)
+arch=('x86_64' 'arm64')
+license=(
+  GFDL-1.2-only
+  GPL-2.0-only
+  GPL-2.0-or-later
+  LGPL-2.0-only
+)
+depends=(
+  acl
+  gcc-libs
+  libunistring
+  libxml2
+  ncurses
+  sh
+)
+makedepends=(
+)
 optdepends=('git: for autopoint infrastructure updates')
 options=(!docs)
-source=(https://ftp.gnu.org/pub/gnu/gettext/$pkgname-$pkgver.tar.gz{,.sig}
-        gettext-0.21-disable-libtextstyle.patch
-        test-execute.patch)
-sha256sums=('e8c3650e1d8cee875c4f355642382c1df83058bd5a11ee8555c0cf276d646d45'
-            'SKIP'
-            '544ce0589e9c70f4f75d77c76fd36f88d009ac9cfecb4812a67f878e38ac6418'
-            'c8e306c426f7eae1c93139b483617410a95622a16b6bc9d0edb9dbabfaea87f0')
+source=(
+  https://ftp.gnu.org/pub/gnu/gettext/$pkgname-$pkgver.tar.gz{,.sig}
+)
+b2sums=('c318b4f39bd2c3e467029df806fe97f084c22d56b5a77b66cfbafdd7b666bd971625669c26aa3e0aa06dcbf4a6823cc12441c05431d83a215027438848d53fc4'
+        'SKIP')
 validpgpkeys=('462225C3B46F34879FC8496CD605848ED7E69871'  # Daiki Ueno
               '68D94D8AAEEAD48AE7DC5B904F494A942E4616C2'
-              '9001B85AF9E1B83DF1BDA942F5BE8B267C6A406D') # Bruno Haible (Open Source Development)
-
-pacman_root=$(pacman-root-dir)
-
-prepare() {
-  cd $pkgname-$pkgver
-
-  # Do not build libtextstyle, as it depends on libcroco
-  # which is now unmaintained and has known security bugs.
-  # patch from Fedora
-  patch -p1 -i $srcdir/gettext-0.21-disable-libtextstyle.patch
-
-  # fix test-execute.sh on macos
-  patch -Np1 -i $srcdir/test-execute.patch
-}
+              '9001B85AF9E1B83DF1BDA942F5BE8B267C6A406D'  # Bruno Haible
+              'E0FFBD975397F77A32AB76ECB6301D9E1BBEAC08') # Bruno Haible (Open Source Development)
 
 build() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
 
   # note: we use --with-included-gettext here, so that
   # we include `libintl.h`; this is provided by glibc on linux systems,
   # but it needs to come from gettext on macos.
   ./configure \
     --prefix=${pacman_root}/usr \
-    --disable-java \
+    --libexecdir=${pacman_root}/usr/lib \
     --disable-csharp \
+    --disable-java \
     --enable-rpath \
+    --enable-nls \
     --with-xz \
     --with-included-gettext \
-    --with-included-glib \
-    --without-libiconv-prefix \
-
+    --without-included-libunistring
   sed -e 's/ -shared / -Wl,-O1,--as-needed\0/g' \
-      -i.bak gettext-{tools,runtime,runtime/libasprintf}/libtool
-
+      -i gettext-{tools,runtime,runtime/libasprintf}/libtool
   make
 }
 
 check() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
   make check
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
   make DESTDIR="$pkgdir" install
 }
