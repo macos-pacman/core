@@ -1,0 +1,30 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -8 +9 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -17 +17,0 @@
+-  attr
+@@ -19 +18,0 @@
+-  gnulib-l10n
+@@ -26 +24,0 @@
+-  emacs
+@@ -41,0 +40,4 @@
++
++  # note: we use --with-included-gettext here, so that
++  # we include `libintl.h`; this is provided by glibc on linux systems,
++  # but it needs to come from gettext on macos.
+@@ -43,3 +45,5 @@
+-    --prefix=/usr \
+-    --libexecdir=/usr/lib \
+-    --enable-csharp \
++    --prefix=${pacman_root}/usr \
++    --libexecdir=${pacman_root}/usr/lib \
++    --disable-csharp \
++    --disable-java \
++    --enable-rpath \
+@@ -48 +52 @@
+-    --without-included-gettext \
++    --with-included-gettext \
