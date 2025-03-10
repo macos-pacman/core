@@ -1,0 +1,28 @@
+--- docbook-xsl.install
++++ docbook-xsl.install
+@@ -2 +2,2 @@
+-  xmlcatalog --noout "$@" etc/xml/catalog
++  local _e=$(pacman-root-dir)
++  xmlcatalog --noout "$@" ${_e#/}/etc/xml/catalog
+@@ -6 +7,2 @@
+-  [[ -f etc/xml/catalog ]] || _xmlcatalog --create
++  local _e=$(pacman-root-dir)
++  [[ -f ${_e#/}/etc/xml/catalog ]] || _xmlcatalog --create
+@@ -13 +15 @@
+-        /usr/share/xml/docbook/xsl-stylesheets-$new
++        $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$new
+@@ -16 +18 @@
+-        /usr/share/xml/docbook/xsl-stylesheets-$new-nons
++        $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$new-nons
+@@ -19 +21 @@
+-        /usr/share/xml/docbook/xsl-stylesheets-$new
++        $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$new
+@@ -22 +24 @@
+-        /usr/share/xml/docbook/xsl-stylesheets-$new-nons
++        $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$new-nons
+@@ -34 +36 @@
+-  _xmlcatalog --del /usr/share/xml/docbook/xsl-stylesheets-$old
++  _xmlcatalog --del $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$old
+@@ -36 +38 @@
+-    _xmlcatalog --del /usr/share/xml/docbook/xsl-stylesheets-$old-nons
++    _xmlcatalog --del $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$old-nons

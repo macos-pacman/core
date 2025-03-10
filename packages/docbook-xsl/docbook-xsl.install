@@ -1,25 +1,27 @@
 _xmlcatalog() {
-  xmlcatalog --noout "$@" /opt/pacman/etc/xml/catalog
+  local _e=$(pacman-root-dir)
+  xmlcatalog --noout "$@" ${_e#/}/etc/xml/catalog
 }
 
 post_install() {
-  [[ -f /opt/pacman/etc/xml/catalog ]] || _xmlcatalog --create
+  local _e=$(pacman-root-dir)
+  [[ -f ${_e#/}/etc/xml/catalog ]] || _xmlcatalog --create
 
   local ver x new=${1%-*}
 
   for ver in $new current; do
     for x in rewriteSystem rewriteURI; do
       _xmlcatalog --add $x http://cdn.docbook.org/release/xsl/$ver \
-        /opt/pacman/usr/share/xml/docbook/xsl-stylesheets-$new
+        $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$new
 
       _xmlcatalog --add $x http://cdn.docbook.org/release/xsl-nons/$ver \
-        /opt/pacman/usr/share/xml/docbook/xsl-stylesheets-$new-nons
+        $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$new-nons
 
       _xmlcatalog --add $x http://docbook.sourceforge.net/release/xsl-ns/$ver \
-        /opt/pacman/usr/share/xml/docbook/xsl-stylesheets-$new
+        $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$new
 
       _xmlcatalog --add $x http://docbook.sourceforge.net/release/xsl/$ver \
-        /opt/pacman/usr/share/xml/docbook/xsl-stylesheets-$new-nons
+        $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$new-nons
     done
   done
 }
@@ -31,9 +33,9 @@ post_upgrade() {
 
 post_remove() {
   local old=${1%-*}
-  _xmlcatalog --del /opt/pacman/usr/share/xml/docbook/xsl-stylesheets-$old
+  _xmlcatalog --del $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$old
   if (( $(vercmp $1 1.79.2-5) >= 0 )); then
-    _xmlcatalog --del /opt/pacman/usr/share/xml/docbook/xsl-stylesheets-$old-nons
+    _xmlcatalog --del $(pacman-root-dir)/usr/share/xml/docbook/xsl-stylesheets-$old-nons
   fi
 }
 

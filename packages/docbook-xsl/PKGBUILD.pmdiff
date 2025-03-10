@@ -1,0 +1,13 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -9,0 +10 @@
++pkgrel+=".2"
+@@ -36 +37 @@
+-    pkgroot="$pkgdir/usr/share/xml/docbook/xsl-stylesheets-$pkgver$ns"
++    pkgroot="$pkgdir/${pacman_root}/usr/share/xml/docbook/xsl-stylesheets-$pkgver$ns"
+@@ -50 +51 @@
+-  ln -s xsl-stylesheets-$pkgver$ns "$pkgdir"/usr/share/xml/docbook/xsl-stylesheets$ns
++  ln -s xsl-stylesheets-$pkgver$ns "$pkgdir"/${pacman_root}/usr/share/xml/docbook/xsl-stylesheets$ns
+@@ -53 +54 @@
+-  install -Dm644 $dir/COPYING -t "$pkgdir"/usr/share/licenses/$pkgname
++  install -Dm644 $dir/COPYING -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname

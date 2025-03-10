@@ -1,0 +1,14 @@
+{
+  "upstream_commit": "7890f7ec69d2264e95966b6af7844ec876eb371c",
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "docbook-xsl.install.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "765567_non-recursive_string_subst.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

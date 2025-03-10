@@ -6,21 +6,18 @@
 
 pkgname=docbook-xsl
 pkgver=1.79.2
-pkgrel=7
+pkgrel=9
+pkgrel+=".2"
 pkgdesc='XML stylesheets for Docbook-xml transformations'
 url='https://docbook.org/'
 arch=(any)
-license=(custom)
+license=(LicenseRef-docbook-XSL)
 install=$pkgname.install
 source=(https://github.com/docbook/xslt10-stylesheets/releases/download/release%2F$pkgver/docbook-xsl{,-nons}-$pkgver.tar.gz
-        765567_non-recursive_string_subst.patch
-        "docbook-xsl.install"
-        "docbook-xsl.install.in")
+        765567_non-recursive_string_subst.patch)
 sha256sums=('966188d7c05fc76eaca115a55893e643dd01a3486f6368733c9ad974fcee7a26'
             'f89425b44e48aad24319a2f0d38e0cb6059fdc7dbaf31787c8346c748175ca8e'
-            '193ec26dcb37bdf12037ed4ea98d68bd550500c8e96b719685d76d7096c3f9b3'
-            'SKIP'
-            'af74b9b611803a341f1362ef71fcad1d445da4f1703babe14cdfcbe4dcc794ad')
+            '193ec26dcb37bdf12037ed4ea98d68bd550500c8e96b719685d76d7096c3f9b3')
 
 prepare() {
   cd $pkgname-$pkgver
@@ -28,13 +25,12 @@ prepare() {
 
   cd ../$pkgname-nons-$pkgver
   patch -Np2 -i ../765567_non-recursive_string_subst.patch
-
-  cd ..
-  sed -e "s|%%PACMAN_ROOT%%|${pacman_root}|g" docbook-xsl.install.in > ../docbook-xsl.install
 }
 
 package() {
-  depends=(libxml2 libxslt docbook-xml)
+  depends=(docbook-xml
+           libxml2
+           libxslt)
 
   local pkgroot ns dir
   for ns in -nons ''; do
@@ -52,10 +48,8 @@ package() {
         install -Dt "$pkgroot/$fn" -m644 $dir/$fn/*.{xml,xsl,dtd,ent}
       done
     )
+  ln -s xsl-stylesheets-$pkgver$ns "$pkgdir"/${pacman_root}/usr/share/xml/docbook/xsl-stylesheets$ns
   done
 
-  install -d "$pkgdir/${pacman_root}/etc/xml"
-  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 $dir/COPYING
+  install -Dm644 $dir/COPYING -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
 }
-
-# vim:set sw=2 et:
