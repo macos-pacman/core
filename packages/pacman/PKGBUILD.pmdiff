@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -6,0 +7 @@
-+pkgrel+=".6"
++pkgrel+=".7"
 @@ -11 +12 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
@@ -24,7 +24,7 @@
 +backup=(${pacman_root#/}/etc/pacman.conf
 +        ${pacman_root#/}/etc/makepkg.conf
 +        ${pacman_root#/}/etc/makepkg.conf.d/rust.conf)
-@@ -53,2 +52,28 @@
+@@ -53,2 +52,29 @@
 -        rust.conf)
 -sha256sums=('06d082c3ce6f0811ca728515aa82d69d372800bd3ada99f5c445ef9429b6e3a6'
 +        rust.conf
@@ -53,14 +53,15 @@
 +        'pacman-support-oci-multipart.patch'
 +        'pacman-support-oci-multipart-p2.patch'
 +        'pacman-support-oci-multipart-p3.patch'
++        'makepkg-dylib-provides.patch'
 +)
 +sha256sums=('SKIP'
-@@ -56,2 +81,2 @@
+@@ -56,2 +82,2 @@
 -            'bc80e9d0439caddd29b99a69b5060b5589cad2398c23abc5b2b8b990fae6ad8c'
 -            'd99c1f9608362fff9ab3a2ca0a3096a317927b42a6725bc86599da6849c9c67c'
 +            'ecdefd7d41ee74c2602a9de8bb28d6377da916d14b4853dc303da0841237ce06'  # pacman.conf
 +            'cf34c33dc11169b8def0720836eb06acce902cebffddafe28522a9fe30d279c5'  # makepkg.conf
-@@ -59 +84,28 @@
+@@ -59 +85,29 @@
 -            '59a8bbdc32830c90dbce5ead9f90074a2bb31cd85ec92bc5f92251bb4bcf8a1d')
 +            '84d101019d24e6280ede705b04456f088fb13b9fe6afc34de457e0af34ec09d3'  # rust.conf
 +
@@ -89,14 +90,15 @@
 +            '3c66170a3974c6ac32a2f7a0624de31ef5cdabd89d414ee65a5b0ae9640e14e5'  # pacman-support-oci-multipart.patch
 +            '5001c17ba032b21c24f34c55e8b4f453385eff617ce8f9a83d157a9651f096d7'  # pacman-support-oci-multipart-p2.patch
 +            'e2a30b6b9a9780d63cda36b27e97271b593056257623c5dd3bf595e2cb0abeb0'  # pacman-support-oci-multipart-p3.patch
++            '3d49f017f5ebe775d02e774e6472ca2301a01adfca63295d761c5e9da743f759'  # makepkg-dylib-provides.patch
 +)
-@@ -94,0 +147,5 @@
+@@ -94,0 +149,5 @@
 +
 +  # patch is dumb
 +  cp ../fix_rpath.sh.in scripts/libmakepkg/util/
 +  cp ../mac_checksums.sh.in scripts/libmakepkg/util/
 +  cp ../check_rpath.sh.in scripts/libmakepkg/lint_package/
-@@ -100,6 +157,9 @@
+@@ -100,6 +159,9 @@
 -  meson --prefix=/usr \
 -        --buildtype=plain \
 -        -Ddoc=enabled \
@@ -112,10 +114,10 @@
 +        -Ddoc=disabled \
 +        -Ddoxygen=disabled \
 +        -Dscriptlet-shell=${pacman_root}/usr/bin/bash \
-@@ -114 +174 @@
+@@ -114 +176 @@
 -  meson test -C build
 +  meson test -C build || :
-@@ -123,13 +183,4 @@
+@@ -123,13 +185,4 @@
 -  install -dm755 "$pkgdir/etc"
 -  install -m644 "$srcdir/pacman.conf" "$pkgdir/etc"
 -  install -m644 "$srcdir/makepkg.conf" "$pkgdir/etc"

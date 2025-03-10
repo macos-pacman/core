@@ -1,0 +1,101 @@
+--- a/scripts/makepkg.sh.in	2025-03-10 14:40:27.674584012 +0800
++++ b/scripts/makepkg.sh.in	2025-03-10 16:09:39.416143327 +0800
+@@ -483,7 +483,7 @@
+ 
+ 	sodepends=0
+ 	for d in "${depends[@]}"; do
+-		if [[ $d = *.so ]]; then
++		if [[ $d = *.so ]] || [[ $d = *.dylib ]]; then
+ 			sodepends=1
+ 			break
+ 		fi
+@@ -499,23 +499,28 @@
+ 
+ 	while IFS= read -rd '' filename; do
+ 		# get architecture of the file; if soarch is empty it's not an ELF binary
+-		soarch=$(LC_ALL=C readelf -h "$filename" 2>/dev/null | sed -n 's/.*Class.*ELF\(32\|64\)/\1/p')
++		soarch=$(LC_ALL=C otool -h -v "$filename" 2>/dev/null | sed -n 's/.*MH_MAGIC_(32|64)/\1/p')
+ 		[[ -n "$soarch" ]] || continue
+ 
+ 		# process all libraries needed by the binary
+-		for sofile in $(LC_ALL=C readelf -d "$filename" 2>/dev/null | sed -nr 's/.*Shared library: \[(.*)\].*/\1/p')
++		for sofile in $(LC_ALL=C otool -L "$filename" 2>/dev/null | sed -nr 's/\s+([^ \t]+).*/\1/p')
+ 		do
+-			# extract the library name: libfoo.so
+-			soname="${sofile%.so?(+(.+([0-9])))}".so
+-			# extract the major version: 1
+-			soversion="${sofile##*\.so\.}"
++			# extract the library name: libfoo.dylib
++			soname="${sofile%%.+(+([0-9]).)dylib}".dylib
++			# extract the major version
++			local _soprefix=${soname%%dylib}
++			soversion="${sofile##$_soprefix}"
++			soversion="${soversion%%.*dylib}"
++			if [[ -z $soversion ]] || [ ${soversion} = "dylib" ]; then
++				continue
++			fi
+ 
+ 			if [[ ${libdeps[$soname]} ]]; then
+-				if [[ ${libdeps[$soname]} != *${soversion}-${soarch}* ]]; then
+-					libdeps[$soname]+=" ${soversion}-${soarch}"
++				if [[ ${libdeps[$soname]} != *${soversion}* ]]; then
++					libdeps[$soname]+=" ${soversion}"
+ 				fi
+ 			else
+-				libdeps[$soname]="${soversion}-${soarch}"
++				libdeps[$soname]="${soversion}"
+ 			fi
+ 		done
+ 	done < <(find "$pkgdir" -type f -perm -u+x -print0)
+@@ -523,7 +528,7 @@
+ 	local libdepends v
+ 	for d in "${depends[@]}"; do
+ 		case "$d" in
+-			*.so)
++			*.dylib)
+ 				if [[ ${libdeps[$d]} ]]; then
+ 					for v in ${libdeps[$d]}; do
+ 						libdepends+=("$d=$v")
+@@ -548,28 +553,31 @@
+ 	for p in "${provides[@]}"; do
+ 		missing=0
+ 		versioned_provides=()
++
++		# automatically change `.so` to `.dylib` so we edit PKGBUILDs less
++		if [[ "$p" = *.so ]]; then
++			p="${p/%.so/.dylib}"
++		fi
+ 		case "$p" in
+-			*.so)
++			*.dylib)
+ 				mapfile -t filename < <(find "$pkgdir" -type f -name $p\* | LC_ALL=C sort)
+ 				if [[ $filename ]]; then
+ 					# packages may provide multiple versions of the same library
+ 					for fn in "${filename[@]}"; do
+ 						# check if we really have a shared object
+-						if LC_ALL=C readelf -h "$fn" 2>/dev/null | grep -q '.*Type:.*DYN (Shared object file).*'; then
++						if LC_ALL=C file "$fn" 2>/dev/null | grep -q 'shared library'; then
+ 							# get the string binaries link to (e.g. libfoo.so.1.2 -> libfoo.so.1)
+-							local sofile=$(LC_ALL=C readelf -d "$fn" 2>/dev/null | sed -n 's/.*Library soname: \[\(.*\)\].*/\1/p')
+-							if [[ -z "$sofile" ]]; then
++							local compatver=$(otool -L "$fn" | awk 'NR==2' | sed -nr 's/.*compatibility version ([0-9.]+).*/\1/p')
++							local currentver=$(otool -L "$fn" | awk 'NR==2' | sed -nr 's/.*current version ([0-9.]+).*/\1/p')
++							if [[ -z "$compatver" ]]; then
+ 								warning "$(gettext "Library listed in %s is not versioned: %s")" "'provides'" "$p"
+ 								continue
+ 							fi
+ 
+-							# get the library architecture (32 or 64 bit)
+-							local soarch=$(LC_ALL=C readelf -h "$fn" | sed -n 's/.*Class.*ELF\(32\|64\)/\1/p')
+-
+-							# extract the library major version
+-							local soversion="${sofile##*\.so\.}"
+-
+-							versioned_provides+=("${p}=${soversion}-${soarch}")
++							# provide both the compatibility and current version.
++							# remove as many trailing '.0's as there are
++							versioned_provides+=("${p}=${compatver%%+(.0)}")
++							versioned_provides+=("${p}=${currentver%%+(.0)}")
+ 						else
+ 							warning "$(gettext "Library listed in %s is not a shared object: %s")" "'provides'" "$p"
+ 						fi
