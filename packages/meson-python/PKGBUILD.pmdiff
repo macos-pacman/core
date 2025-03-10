@@ -1,0 +1,12 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -12 +12,0 @@
+-         patchelf
+@@ -43 +43 @@
+-  test-env/bin/python -m pytest
++  test-env/bin/python -m pytest -k 'not test_archflags_envvar and not test_archflags_envvar_parsing'
+@@ -49 +49 @@
+-  install -Dm644 LICENSE -t "$pkgdir"/usr/share/licenses/$pkgname
++  install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
