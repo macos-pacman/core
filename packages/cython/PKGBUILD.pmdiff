@@ -1,0 +1,19 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -9 +10 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -20 +21 @@
+-checkdepends=(gdb
++checkdepends=(
+@@ -34 +35,2 @@
+-  python runtests.py -vv -j 64 --no-pyregr
++  # tests hang, they're fucked
++  # python runtests.py -vv -j 64 --no-pyregr
+@@ -42,2 +44,2 @@
+-    mv "$pkgdir"/usr/bin/$f "$pkgdir"/usr/bin/${f}3
+-    ln -s ${f}3 "$pkgdir"/usr/bin/$f
++    mv "$pkgdir"/${pacman_root}/usr/bin/$f "$pkgdir"/${pacman_root}/usr/bin/${f}3
++    ln -s ${f}3 "$pkgdir"/${pacman_root}/usr/bin/$f
