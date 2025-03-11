@@ -14,12 +14,12 @@
  	while IFS= read -rd '' filename; do
  		# get architecture of the file; if soarch is empty it's not an ELF binary
 -		soarch=$(LC_ALL=C readelf -h "$filename" 2>/dev/null | sed -n 's/.*Class.*ELF\(32\|64\)/\1/p')
-+		soarch=$(LC_ALL=C otool -h -v "$filename" 2>/dev/null | sed -n 's/.*MH_MAGIC_(32|64)/\1/p')
++		soarch=$(LC_ALL=C otool -h -v "$filename" 2>/dev/null | sed -En 's/.*MH_MAGIC_(32|64)/\1/p')
  		[[ -n "$soarch" ]] || continue
  
  		# process all libraries needed by the binary
 -		for sofile in $(LC_ALL=C readelf -d "$filename" 2>/dev/null | sed -nr 's/.*Shared library: \[(.*)\].*/\1/p')
-+		for sofile in $(LC_ALL=C otool -L "$filename" 2>/dev/null | sed -nr 's/\s+([^ \t]+).*/\1/p')
++		for sofile in $(LC_ALL=C otool -L "$filename" 2>/dev/null | sed -En 's/\s+([^ \t]+).*/\1/p')
  		do
 -			# extract the library name: libfoo.so
 -			soname="${sofile%.so?(+(.+([0-9])))}".so
@@ -78,8 +78,8 @@
  							# get the string binaries link to (e.g. libfoo.so.1.2 -> libfoo.so.1)
 -							local sofile=$(LC_ALL=C readelf -d "$fn" 2>/dev/null | sed -n 's/.*Library soname: \[\(.*\)\].*/\1/p')
 -							if [[ -z "$sofile" ]]; then
-+							local compatver=$(otool -L "$fn" | awk 'NR==2' | sed -nr 's/.*compatibility version ([0-9.]+).*/\1/p')
-+							local currentver=$(otool -L "$fn" | awk 'NR==2' | sed -nr 's/.*current version ([0-9.]+).*/\1/p')
++							local compatver=$(otool -L "$fn" | awk 'NR==2' | sed -En 's/.*compatibility version ([0-9.]+).*/\1/p')
++							local currentver=$(otool -L "$fn" | awk 'NR==2' | sed -En 's/.*current version ([0-9.]+).*/\1/p')
 +							if [[ -z "$compatver" ]]; then
  								warning "$(gettext "Library listed in %s is not versioned: %s")" "'provides'" "$p"
  								continue
