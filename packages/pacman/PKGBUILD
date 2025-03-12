@@ -4,7 +4,7 @@
 pkgname=pacman
 pkgver=7.0.0.r6.gc685ae6
 pkgrel=2
-pkgrel+=".8"
+pkgrel+=".9"
 # use annotated tag and patch level commit from release branch (can be empty for no patches)
 _git_tag=7.0.0
 _git_patch_level_commit=c685ae6412af04cae1eaa5d6bda8c277c7ffb8c8
@@ -76,6 +76,7 @@ source=("git+https://gitlab.archlinux.org/pacman/pacman.git#tag=v${_git_tag}?sig
         'pacman-support-oci-multipart-p2.patch'
         'pacman-support-oci-multipart-p3.patch'
         'makepkg-dylib-provides.patch'
+        'makepkg-dylib-provides-p2.patch'
 )
 sha256sums=('SKIP'
             'b3bce9d662e189e8e49013b818f255d08494a57e13fc264625f852f087d3def2'
@@ -110,6 +111,7 @@ sha256sums=('SKIP'
             '5001c17ba032b21c24f34c55e8b4f453385eff617ce8f9a83d157a9651f096d7'  # pacman-support-oci-multipart-p2.patch
             'e2a30b6b9a9780d63cda36b27e97271b593056257623c5dd3bf595e2cb0abeb0'  # pacman-support-oci-multipart-p3.patch
             'e77fc8dc1d413acd29b0937a7fe4c98491cb75dcf380add09561cdb442683cf6'  # makepkg-dylib-provides.patch
+            'b17cda747f6c9b43246d155a9c517547305dd85083f6bb05da7b308f1a9235d9'  # makepkg-dylib-provides-p2.patch
 )
 
 pkgver() {

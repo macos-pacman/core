@@ -1,0 +1,33 @@
+--- a/scripts/makepkg.sh.in	2025-03-12 16:40:48.885810805 +0800
++++ b/scripts/makepkg.sh.in	2025-03-12 16:47:00.213968756 +0800
+@@ -321,15 +321,28 @@
+ 	local R_DEPS_SATISFIED=0
+ 	local R_DEPS_MISSING=1
+ 
++	local dydeps=()
++	local d; for d in "${@}"; do
++		if [[ "$d" = *.so ]]; then
++			dydeps+=("${d/%.so/.dylib}")
++		elif [[ "$d" = *.so.* ]]; then
++			local v="${d##*\.so\.}"
++			local n="${d%.so?(+(.+([0-9])))}"
++			dydeps+=("${d}.${v}.dylib")
++		else
++			dydeps+=("$d")
++		fi
++	done
++
+ 	# deplist cannot be declared like this: local deplist=$(foo)
+ 	# Otherwise, the return value will depend on the assignment.
+ 	local deplist
+-	deplist=($(check_deps "$@")) || exit $E_INSTALL_DEPS_FAILED
++	deplist=($(check_deps "${dydeps[@]}")) || exit $E_INSTALL_DEPS_FAILED
+ 	[[ -z $deplist ]] && return $R_DEPS_SATISFIED
+ 
+ 	if handle_deps "${deplist[@]}"; then
+ 		# check deps again to make sure they were resolved
+-		deplist=$(check_deps "$@")
++		deplist=$(check_deps "${dydeps[@]}")
+ 		[[ -z $deplist ]] && return $R_DEPS_SATISFIED
+ 	fi
+ 
