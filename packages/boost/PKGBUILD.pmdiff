@@ -1,0 +1,54 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -15,0 +16 @@
++pkgrel+=".6"
+@@ -18 +19 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -47 +48 @@
+-  ./bootstrap.sh --with-toolset=gcc --with-icu --with-python=python3
++  ./bootstrap.sh --with-toolset=clang --with-icu --with-python=python3
+@@ -63 +64 @@
+-    toolset=gcc \
++    toolset=clang \
+@@ -66,2 +67,2 @@
+-    cflags="$CPPFLAGS $CFLAGS -fPIC -O3 -ffat-lto-objects" \
+-    cxxflags="$CPPFLAGS $CXXFLAGS -fPIC -O3 -ffat-lto-objects" \
++    cflags="$CPPFLAGS $CFLAGS -fPIC -O3" \
++    cxxflags="$CPPFLAGS $CXXFLAGS -fPIC -O3" \
+@@ -69,0 +71 @@
++    --debug-configuration \
+@@ -84,9 +86,2 @@
+-  install -d "$pkgdir"/usr/lib
+-  cp -a fakeinstall/lib/*.{a,so} "$pkgdir"/usr/lib/
+-  cp -a fakeinstall/lib/cmake "$pkgdir"/usr/lib/
+-  cp -a fakeinstall/{bin,include,share} "$pkgdir"/usr/
+-
+-  # https://github.com/boostorg/python/issues/203#issuecomment-391477685
+-  for _lib in python numpy; do
+-    ln -srL "$pkgdir"/usr/lib/libboost_${_lib}{${python_version/.},${python_version%.*}}.so
+-  done
++  install -d "$pkgdir"/${pacman_root}/usr/lib
++  cp -a fakeinstall/{bin,include,share} "$pkgdir"/${pacman_root}/usr/
+@@ -139 +134 @@
+-    libboost_stacktrace_from_exception.so
++    # libboost_stacktrace_from_exception.so - doesn't seem to be supported on arm64
+@@ -151,2 +146,10 @@
+-  install -dm755 "$pkgdir"/usr/lib
+-  cp -a fakeinstall/lib/*.so.* "$pkgdir"/usr/lib/
++  install -dm755 "$pkgdir"/${pacman_root}/usr/lib
++  cp -a fakeinstall/lib/*.{a,dylib} "$pkgdir"/${pacman_root}/usr/lib/
++  cp -a fakeinstall/lib/cmake "$pkgdir"/${pacman_root}/usr/lib/
++
++  # https://github.com/boostorg/python/issues/203#issuecomment-391477685
++  pushd $pkgdir/${pacman_root}/usr/lib
++  for _lib in python numpy; do
++    ln -sf libboost_${_lib}${python_version/.}.dylib libboost_${_lib}${python_version%.*}.dylib
++  done
++  popd
+@@ -159,0 +163,5 @@
++
++
++  local _f; for _f in $(find "${pkgdir}/${pacman_root}/usr/lib" -iname "*.dylib" -or -iname "*.so"); do
++    fix_rpath_v2 "${_f}"
++  done
