@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -6,0 +7 @@
-+pkgrel+=".9"
++pkgrel+=".15"
 @@ -11 +12 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
@@ -24,7 +24,7 @@
 +backup=(${pacman_root#/}/etc/pacman.conf
 +        ${pacman_root#/}/etc/makepkg.conf
 +        ${pacman_root#/}/etc/makepkg.conf.d/rust.conf)
-@@ -53,2 +52,30 @@
+@@ -53,2 +52,31 @@
 -        rust.conf)
 -sha256sums=('06d082c3ce6f0811ca728515aa82d69d372800bd3ada99f5c445ef9429b6e3a6'
 +        rust.conf
@@ -55,14 +55,15 @@
 +        'pacman-support-oci-multipart-p3.patch'
 +        'makepkg-dylib-provides.patch'
 +        'makepkg-dylib-provides-p2.patch'
++        'meson-fix-linking.patch'
 +)
 +sha256sums=('SKIP'
-@@ -56,2 +83,2 @@
+@@ -56,2 +84,2 @@
 -            'bc80e9d0439caddd29b99a69b5060b5589cad2398c23abc5b2b8b990fae6ad8c'
 -            'd99c1f9608362fff9ab3a2ca0a3096a317927b42a6725bc86599da6849c9c67c'
 +            'ecdefd7d41ee74c2602a9de8bb28d6377da916d14b4853dc303da0841237ce06'  # pacman.conf
 +            'cf34c33dc11169b8def0720836eb06acce902cebffddafe28522a9fe30d279c5'  # makepkg.conf
-@@ -59 +86,30 @@
+@@ -59 +87,31 @@
 -            '59a8bbdc32830c90dbce5ead9f90074a2bb31cd85ec92bc5f92251bb4bcf8a1d')
 +            '84d101019d24e6280ede705b04456f088fb13b9fe6afc34de457e0af34ec09d3'  # rust.conf
 +
@@ -91,30 +92,26 @@
 +            '3c66170a3974c6ac32a2f7a0624de31ef5cdabd89d414ee65a5b0ae9640e14e5'  # pacman-support-oci-multipart.patch
 +            '5001c17ba032b21c24f34c55e8b4f453385eff617ce8f9a83d157a9651f096d7'  # pacman-support-oci-multipart-p2.patch
 +            'e2a30b6b9a9780d63cda36b27e97271b593056257623c5dd3bf595e2cb0abeb0'  # pacman-support-oci-multipart-p3.patch
-+            'e77fc8dc1d413acd29b0937a7fe4c98491cb75dcf380add09561cdb442683cf6'  # makepkg-dylib-provides.patch
++            '5410218e0560ea87193a3bb13d0d1bf9bfb991623029c3b3f57eb1f5d7bfe62c'  # makepkg-dylib-provides.patch
 +            'b17cda747f6c9b43246d155a9c517547305dd85083f6bb05da7b308f1a9235d9'  # makepkg-dylib-provides-p2.patch
++            '82f79fb2923b287142542f609227b69e61957ffaf0f13fcd4cd411dc7f555637'  # meson-fix-linking.patch
 +)
-@@ -94,0 +151,5 @@
+@@ -94,0 +153,5 @@
 +
 +  # patch is dumb
 +  cp ../fix_rpath.sh.in scripts/libmakepkg/util/
 +  cp ../mac_checksums.sh.in scripts/libmakepkg/util/
 +  cp ../check_rpath.sh.in scripts/libmakepkg/lint_package/
-@@ -100,6 +161,9 @@
+@@ -100,2 +163,4 @@
 -  meson --prefix=/usr \
 -        --buildtype=plain \
--        -Ddoc=enabled \
--        -Ddoxygen=enabled \
--        -Dscriptlet-shell=/usr/bin/bash \
--        -Dldconfig=/usr/bin/ldconfig \
 +  meson --prefix=${pacman_root}/usr \
 +        --localstatedir=${pacman_root}/var \
 +        --sysconfdir=${pacman_root}/etc \
-+        --default-library=static \
-+        --prefer-static \
 +        --buildtype=release \
-+        -Ddoc=disabled \
-+        -Ddoxygen=disabled \
+@@ -104,2 +169 @@
+-        -Dscriptlet-shell=/usr/bin/bash \
+-        -Dldconfig=/usr/bin/ldconfig \
 +        -Dscriptlet-shell=${pacman_root}/usr/bin/bash \
 @@ -114 +178 @@
 -  meson test -C build

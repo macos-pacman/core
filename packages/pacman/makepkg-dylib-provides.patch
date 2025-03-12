@@ -56,7 +56,7 @@
  				if [[ ${libdeps[$d]} ]]; then
  					for v in ${libdeps[$d]}; do
  						libdepends+=("$d=$v")
-@@ -548,28 +553,31 @@
+@@ -548,28 +553,33 @@
  	for p in "${provides[@]}"; do
  		missing=0
  		versioned_provides=()
@@ -68,7 +68,10 @@
  		case "$p" in
 -			*.so)
 +			*.dylib)
- 				mapfile -t filename < <(find "$pkgdir" -type f -name $p\* | LC_ALL=C sort)
+-				mapfile -t filename < <(find "$pkgdir" -type f -name $p\* | LC_ALL=C sort)
++				# we need to find versioned dylibs -- libfoo.dylib should correctly find libfoo.1.dylib, which is
++				# an issue because if libfoo.dylib exists but is a symlink, `find -type f` won't see it.
++				mapfile -t filename < <(find "$pkgdir" -type f -name "$p" -or -name "${p/%.dylib/}.*.dylib" | LC_ALL=C sort)
  				if [[ $filename ]]; then
  					# packages may provide multiple versions of the same library
  					for fn in "${filename[@]}"; do

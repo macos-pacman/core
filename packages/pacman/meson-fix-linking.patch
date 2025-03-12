@@ -1,0 +1,26 @@
+--- a/meson.build	2025-03-12 18:38:31.291281444 +0800
++++ b/meson.build	2025-03-12 18:39:07.747910643 +0800
+@@ -365,6 +365,7 @@
+   link_with : [libalpm, libcommon],
+   dependencies : [libarchive],
+   install : true,
++  link_args: ['-Wl,-undefined,dynamic_lookup'],
+ )
+ 
+ executable(
+@@ -374,6 +375,7 @@
+   link_with : [libalpm, libcommon],
+   dependencies : [libarchive],
+   install : true,
++  link_args: ['-Wl,-undefined,dynamic_lookup'],
+ )
+ 
+ executable(
+@@ -383,6 +385,7 @@
+   link_with : [libalpm],
+   dependencies : [libarchive],
+   install : true,
++  link_args: ['-Wl,-undefined,dynamic_lookup'],
+ )
+ 
+ executable(
