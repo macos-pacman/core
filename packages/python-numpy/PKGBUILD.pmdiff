@@ -1,0 +1,35 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8,0 +9 @@
++pkgrel+=".2"
+@@ -10 +11 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -13,3 +14,2 @@
+-depends=('cblas' 'lapack' 'python')
+-optdepends=('blas-openblas: faster linear algebra')
+-makedepends=('python-build' 'python-installer' 'meson-python' 'cmake' 'gcc-fortran' 'cython')
++depends=('python')
++makedepends=('python-build' 'python-installer' 'meson-python' 'cmake' 'cython' 'pkgconf')
+@@ -22,2 +22,3 @@
+-  CFLAGS+=" -ffat-lto-objects" \
+-  CXXFLAGS+=" -ffat-lto-objects" \
++
++  # numpy specifically wants >= 13.3 to be able to use accelerate.
++  export MACOSX_DEPLOYMENT_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
+@@ -25,2 +26,4 @@
+-    -Csetup-args="-Dblas=cblas" \
+-    -Csetup-args="-Dlapack=lapack"
++    -Csetup-args="-Dblas-order=accelerate" \
++    -Csetup-args="-Dlapack-order=accelerate" \
++    -Csetup-args="-Dallow-noblas=false" \
++    -Cbuilddir=build
+@@ -35 +38 @@
+-  PATH="$PWD/usr/bin:$PATH" PYTHONPATH="$PWD/$site_packages:$PYTHONPATH" python -c 'import numpy; numpy.test()'
++  PATH="$PWD/${pacman_root}/usr/bin:$PATH" PYTHONPATH="$PWD/$site_packages:$PYTHONPATH" python -c 'import numpy; numpy.test()'
+@@ -44 +47 @@
+-  install -d "$pkgdir"/usr/share/licenses/$pkgname
++  install -d "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
+@@ -46 +49 @@
+-    "$pkgdir"/usr/share/licenses/$pkgname/LICENSE.txt
++    "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE.txt

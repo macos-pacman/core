@@ -1,66 +1,50 @@
 # Maintainer: Felix Yan <felixonmars@archlinux.org>
 # Contributor: Jan de Groot <jgc@archlinux.org>
 # Contributor: Douglas Soares de Andrade <dsa@aur.archlinux.org>
-# Contributor: Angel 'angvp' Velasquez <angvp[at]archlinux.com.ve> 
+# Contributor: Angel 'angvp' Velasquez <angvp[at]archlinux.com.ve>
 
 pkgname=python-numpy
-pkgver=1.24.3
+pkgver=2.2.3
 pkgrel=1
+pkgrel+=".2"
 pkgdesc="Scientific tools for Python"
 arch=('x86_64' 'arm64')
 license=('custom')
 url="https://www.numpy.org/"
-depends=('cblas' 'lapack' 'python')
-optdepends=('openblas: faster linear algebra')
-makedepends=('python-setuptools' 'gcc-fortran' 'cython')
+depends=('python')
+makedepends=('python-build' 'python-installer' 'meson-python' 'cmake' 'cython' 'pkgconf')
 checkdepends=('python-pytest' 'python-hypothesis')
-options=('staticlibs')
-source=("https://github.com/numpy/numpy/releases/download/v$pkgver/numpy-$pkgver.tar.gz"
-        "site.cfg"
-        "fix-macos-f2py.patch"
-        "fix-macos-threads.patch")
-sha512sums=('d4b5841cbe68ee6653f99018e4e0182f2e5519a1cd69c14e0a95aa180f878e6a6786ccf0a7c78bf0d511c53e7535d7144fee428572dec7a4b60b25c8a1c0c9e1'
-            'f0f1e45e83bbccc5c62a1f3bccb01212861b0c0cde395e4f1a80db8fcbd97e6415b85cbc555d5d314343b2bb62c49ce57889852f37971f1642157201bfbadd57'
-            'f18afbd9a6f3b3d5526efd1d4b7f59931cc93903e2ff48e6d39cf74621323c2bee46d4e1f08a4a925dc4b470218136dbe8ff127b5999a62e21668158a42ea02a'
-            '56acd5f052c79baa0f5b30baf309c12ababc680f83f844a201f8de6b99ce36445d077d82af8b3a690ad3c496105a547b0d9f194c451baa3b65a9546aa1cc9d0c')
-
-prepare() {
-	cd numpy-$pkgver
-	cp ../site.cfg ./
-
-	patch -Np1 -i ../fix-macos-f2py.patch
-	patch -Np1 -i ../fix-macos-threads.patch
-}
-
-export CC=gcc
-export CXX=g++
-export FC=gfortran
-
-export BLAS="openblas"
-export LAPACK="openblas"
-export ATLAS="None"
-
-export NPY_BLAS_LIBS="-lopenblas"
-export NPY_CBLAS_LIBS="-lopenblas"
-export NPY_LAPACK_LIBS="-lopenblas"
+source=("https://github.com/numpy/numpy/releases/download/v$pkgver/numpy-$pkgver.tar.gz")
+sha512sums=('78c876d8ecc13aa0f802460f6c1462b53162dfdf85c658e32f1cf9823eeef829b6f1af8285a6c0c75719f5a2e05ff8b987dab88a416df6a8371c16fd032f5e6a')
 
 build() {
   cd numpy-$pkgver
-  python setup.py build --parallel=4 --fcompiler=gfortran
+
+  # numpy specifically wants >= 13.3 to be able to use accelerate.
+  export MACOSX_DEPLOYMENT_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
+  python -m build --wheel --no-isolation \
+    -Csetup-args="-Dblas-order=accelerate" \
+    -Csetup-args="-Dlapack-order=accelerate" \
+    -Csetup-args="-Dallow-noblas=false" \
+    -Cbuilddir=build
 }
 
 check() {
   local site_packages=$(python -c "import site; print(site.getsitepackages()[0])")
 
   cd numpy-$pkgver
-  python setup.py install --root="$PWD/tmp_install" --optimize=1
+  python -m installer --destdir="$PWD/tmp_install" dist/*.whl
   cd "$PWD/tmp_install"
-  PATH="$PWD/${pacman_root}/usr/bin:$PATH" PYTHONPATH="$PWD/$site_packages:$PYTHONPATH" python -c 'import numpy; numpy.test(verbose=2)'
+  PATH="$PWD/${pacman_root}/usr/bin:$PATH" PYTHONPATH="$PWD/$site_packages:$PYTHONPATH" python -c 'import numpy; numpy.test()'
 }
 
 package() {
   cd numpy-$pkgver
-  python setup.py install --root="$pkgdir" --optimize=1
+  python -m installer --destdir="$pkgdir" dist/*.whl
 
-  install -D -m644 LICENSE.txt -t "$pkgdir"/${pacman_root}/usr/share/licenses/python-numpy/
+  # Symlink license file
+  local site_packages=$(python -c "import site; print(site.getsitepackages()[0])")
+  install -d "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
+  ln -s "$site_packages"/numpy-$pkgver.dist-info/LICENSE.txt \
+    "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE.txt
 }
