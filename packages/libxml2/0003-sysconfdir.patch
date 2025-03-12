@@ -1,0 +1,18 @@
+--- a/meson.build	2025-03-12 15:54:13.877932144 +0800
++++ b/meson.build	2025-03-12 15:54:54.475327026 +0800
+@@ -27,6 +27,7 @@
+ dir_data = dir_prefix / get_option('datadir')
+ dir_doc = dir_data / 'doc' / meson.project_name()
+ dir_locale = dir_prefix / get_option('localedir')
++dir_sysconf = get_option('sysconfdir')
+ 
+ # host
+ 
+@@ -281,6 +282,7 @@
+ config_h.set_quoted('PACKAGE_LIB_DIR', dir_lib)
+ config_h.set_quoted('PACKAGE_DATA_DIR', dir_data)
+ config_h.set_quoted('LOCALEDIR', dir_locale)
++config_h.set_quoted('SYSCONFDIR', dir_sysconf)
+ 
+ # header files
+ xml_check_headers = [

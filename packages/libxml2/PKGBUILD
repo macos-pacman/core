@@ -11,7 +11,7 @@ pkgname=(
 )
 pkgver=2.13.6
 pkgrel=3
-pkgrel+=".5"
+pkgrel+=".6"
 pkgdesc="XML C parser and toolkit"
 url="https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home"
 arch=('x86_64' 'arm64')
@@ -36,12 +36,14 @@ source=(
   0001-meson-Build-fixes.patch
   xml2-config
   0002-find-sys-random.patch
+  0003-sysconfdir.patch
 )
-b2sums=('SKIP'
+b2sums=('84fd36291960d78ebef4c373c15c29bf4efd17fe59174cca70bad6fe8ac73dd333cdea6ed6f577db2107991fa6b6d6fb20f7551cb640cbbfe38ff696b9a0b9ba'
         '63a47bc69278ef510cd0b3779aed729e1b309e30efa0015d28ed051cc03f9dfddb447ab57b07b3393e8f47393d15473b0e199c34cb1f5f746b15ddfaa55670be'
         '15438434f5f2fa450c3ff92b552bc3029cb1dc42e7a3d607af5690ded6e10bd0119275d447018e9083d3bf9d07c96c6c3d6b01bf69d2b6d4e5c385bbb3c74416'
         'c85651b242884d37d8f23292f3d3f475005f819975a30ab2233f3e2d0adae6ba46eab85d52e46d94940b0f01e8a411460153e8ceeb1e7449cb30c629022b5da4'
-        'f545d9eca5b8f9b1c1fedbadcadc07fad7be46517a976470f12394d8b621c9ed2cec5066c6e91ab37d3460e562951b42eeffa28a665e76962c17342c2c58d026')
+        'f545d9eca5b8f9b1c1fedbadcadc07fad7be46517a976470f12394d8b621c9ed2cec5066c6e91ab37d3460e562951b42eeffa28a665e76962c17342c2c58d026'
+        'cee3ee540caa15b514c01373d6facc8d5ef4a9897b5a82b779469232f1a5741795848ea63dae86fc03c67227ec3e317fd9f586a47d4ff148ef051c2a1e55a276')
 
 prepare() {
   cd libxml2
@@ -52,6 +54,7 @@ prepare() {
   # Meson fixes
   git apply -3 ../0001-meson-Build-fixes.patch
   git apply -3 ../0002-find-sys-random.patch
+  git apply -3 ../0003-sysconfdir.patch
 }
 
 build() {
@@ -60,6 +63,7 @@ build() {
     -D http=true
     -D legacy=true
     -D python=true
+    -D sysconfdir=${pacman_root}/etc
   )
 
   arch-meson libxml2 build "${meson_options[@]}"
