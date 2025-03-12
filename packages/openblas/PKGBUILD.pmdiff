@@ -1,0 +1,71 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8,0 +9 @@
++pkgrel+=".1"
+@@ -11 +12 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -19,0 +21,9 @@
++  local _target_cpu
++  if [ "${CARCH}" = "x86_64" ]; then
++    _target_cpu="HASWELL"
++  else
++    # apple m1+
++    _target_cpu="VORTEX"
++    export NO_SVE="1"
++  fi
++
+@@ -25,0 +36,2 @@
++  CFLAGS="${CFLAGS} -Wno-unused-function -Wno-unused-variable" \
++  LDFLAGS="${LDFLAGS} -lto_library ${pacman_root}/usr/lib/lto/libLTO.dylib" \
+@@ -27 +39 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+@@ -33 +45 @@
+-    -DTARGET=CORE2 \
++    -DTARGET=${_target_cpu} \
+@@ -37,0 +50,2 @@
++  CFLAGS="${CFLAGS} -Wno-unused-function -Wno-unused-variable" \
++  LDFLAGS="${LDFLAGS} -lto_library ${pacman_root}/usr/lib/lto/libLTO.dylib" \
+@@ -39 +53 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
+@@ -45 +59 @@
+-    -DTARGET=CORE2 \
++    -DTARGET=${_target_cpu} \
+@@ -62 +76 @@
+-  install -Dm644 $_pkgname/LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
++  install -Dm644 $_pkgname/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+@@ -68,4 +82,4 @@
+-  install -Dm644 $_pkgname/LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+- 
+-  cd "$pkgdir"/usr/lib/
+-  ln -s libopenblas_64.so.${pkgver%.*} libopenblas64_.so # Needed by julia
++  install -Dm644 $_pkgname/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
++
++  cd "$pkgdir"/${pacman_root}/usr/lib/
++  ln -s libopenblas_64.${pkgver%.*}.dylib libopenblas64_.dylib # Needed by julia
+@@ -81,2 +95,2 @@
+-  mkdir -p "$pkgdir"/usr/lib/pkgconfig
+-  cd "$pkgdir"/usr/lib/
++  mkdir -p "$pkgdir"/${pacman_root}/usr/lib/pkgconfig
++  cd "$pkgdir"/${pacman_root}/usr/lib/
+@@ -84,3 +98,3 @@
+-    ln -s libopenblas.so.${pkgver%.*} lib${_lib}.so
+-    ln -s libopenblas.so.${pkgver%.*} lib${_lib}.so.3
+-    ln -s openblas.pc "$pkgdir"/usr/lib/pkgconfig/${_lib}.pc
++    ln -s libopenblas.${pkgver%.*}.dylib lib${_lib}.dylib
++    ln -s libopenblas.${pkgver%.*}.dylib lib${_lib}.3.dylib
++    ln -s openblas.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/${_lib}.pc
+@@ -96,2 +110,2 @@
+-  mkdir -p "$pkgdir"/usr/lib/pkgconfig
+-  cd "$pkgdir"/usr/lib/
++  mkdir -p "$pkgdir"/${pacman_root}/usr/lib/pkgconfig
++  cd "$pkgdir"/${pacman_root}/usr/lib/
+@@ -99,3 +113,3 @@
+-    ln -s libopenblas_64.so.${pkgver%.*} lib${_lib}.so
+-    ln -s libopenblas_64.so.${pkgver%.*} lib${_lib}.so.3
+-    ln -s openblas64.pc "$pkgdir"/usr/lib/pkgconfig/${_lib}.pc
++    ln -s libopenblas_64.${pkgver%.*}.dylib lib${_lib}.dylib
++    ln -s libopenblas_64.${pkgver%.*}.dylib lib${_lib}.3.dylib
++    ln -s openblas64.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/${_lib}.pc

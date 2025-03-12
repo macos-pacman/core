@@ -2,20 +2,20 @@
 # Contributor: Giuseppe Borzi <gborzi _AT_ ieee _DOT_ org>
 
 pkgbase=openblas
-pkgname=(openblas openblas64)
+pkgname=(openblas openblas64 blas-openblas blas64-openblas)
 _pkgname=OpenBLAS
-pkgver=0.3.23
+pkgver=0.3.29
 pkgrel=1
-_blasver=3.9.0
+pkgrel+=".1"
+_blasver=3.12.0
 pkgdesc="An optimized BLAS library based on GotoBLAS2 1.13 BSD"
 arch=('x86_64' 'arm64')
 url="https://www.openblas.net/"
 license=('BSD')
 depends=('gcc-libs')
-makedepends=('cmake' 'perl' 'gcc-fortran')
-#checkdepends=('cblas')
-source=(${_pkgname}-v${pkgver}.tar.gz::https://github.com/xianyi/OpenBLAS/archive/v${pkgver}.tar.gz)
-sha512sums=('ea64c693e57eb63cc2a88e4d6ab2d8cf9ab84ae6a15048fb12090a3570dd41053e62e99c1ff9d3e02dd67ca93233591ab41b8c017d06585d0a69222e1ad3023f')
+makedepends=('git' 'cmake' 'perl' 'gcc-fortran')
+source=(git+https://github.com/xianyi/OpenBLAS#tag=v$pkgver)
+sha512sums=('1b6e5e4807f7a9531663294bf083ac709eb669ef37923875995d7cad6390e19e9ed8718ae11d3f52b2a9f0e3661dbe8988986cae52828cada13a726a6642255c')
 
 build() {
   local _target_cpu
@@ -24,73 +24,96 @@ build() {
   else
     # apple m1+
     _target_cpu="VORTEX"
+    export NO_SVE="1"
   fi
 
-  export CC=gcc
-  export GXX=g++
-  cmake -B build -S $_pkgname-$pkgver \
+  # Setting FC manually to avoid picking up f95 and breaking the cmake build
+  # https://github.com/xianyi/OpenBLAS/issues/4072#issuecomment-1576388332
+
+  # Setting ASM flags for CET support.  Setting FFLAGS for CET support.
+  # Remove ` -Wformat -Werror=format-security` not supported by gcc-fortran.
+
+  CFLAGS="${CFLAGS} -Wno-unused-function -Wno-unused-variable" \
+  LDFLAGS="${LDFLAGS} -lto_library ${pacman_root}/usr/lib/lto/libLTO.dylib" \
+  ASMFLAGS=$CFLAGS FFLAGS=${CFLAGS/ -Wformat -Werror=format-security/} FC=gfortran cmake -B build -S $_pkgname \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
     -DBUILD_SHARED_LIBS=ON \
-    -DBUILD_WITHOUT_LAPACK=ON \
-    -DBUILD_WITHOUT_CBLAS=ON \
     -DBUILD_TESTING=OFF \
     -DNO_AFFINITY=ON \
     -DUSE_OPENMP=1 \
     -DNO_WARMUP=1 \
     -DTARGET=${_target_cpu} \
     -DNUM_THREADS=64 \
-    -DDYNAMIC_ARCH=OFF
+    -DDYNAMIC_ARCH=ON
   cmake --build build
 
-  cmake -B build64 -S $_pkgname-$pkgver \
+  CFLAGS="${CFLAGS} -Wno-unused-function -Wno-unused-variable" \
+  LDFLAGS="${LDFLAGS} -lto_library ${pacman_root}/usr/lib/lto/libLTO.dylib" \
+  ASMFLAGS=$CFLAGS FFLAGS=${CFLAGS/ -Wformat -Werror=format-security/} FC=gfortran cmake -B build64 -S $_pkgname \
     -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
     -DBUILD_SHARED_LIBS=ON \
-    -DBUILD_WITHOUT_LAPACK=ON \
-    -DBUILD_WITHOUT_CBLAS=ON \
     -DBUILD_TESTING=OFF \
     -DNO_AFFINITY=ON \
     -DUSE_OPENMP=1 \
     -DNO_WARMUP=1 \
     -DTARGET=${_target_cpu} \
     -DNUM_THREADS=64 \
-    -DINTERFACE64=1 \
-    -DDYNAMIC_ARCH=OFF
-
+    -DDYNAMIC_ARCH=ON \
+    -DINTERFACE64=1
   cmake --build build64
 }
 
 check() {
-  cd $_pkgname-$pkgver
-  # TODO
-  #make CFLAGS="$CPPFLAGS $CFLAGS -lcblas" TARGET=CORE2 tests
+  cd "$srcdir"/build
+  ctest
+
+  cd "$srcdir"/build64
+  ctest
 }
 
 package_openblas() {
-  provides=("blas=$_blasver")
-  conflicts=('blas')
-
   DESTDIR="$pkgdir" cmake --install build
-  install -Dm644 $_pkgname-$pkgver/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
-
-  cd "$pkgdir"/${pacman_root}//usr/lib/
-  ln -s libopenblas.${pkgver%.*}.dylib libblas.dylib
-  ln -s libopenblas.${pkgver%.*}.dylib libblas.3.dylib
-  ln -s openblas.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/blas.pc
+  install -Dm644 $_pkgname/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
 }
 
 package_openblas64() {
   pkgdesc+=" (64-bit integers)"
-  provides=("blas64=$_blasver")
-  conflicts=('blas64')
-
   DESTDIR="$pkgdir" cmake --install build64
-  install -Dm644 $_pkgname-$pkgver/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+  install -Dm644 $_pkgname/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
 
   cd "$pkgdir"/${pacman_root}/usr/lib/
-  ln -s libopenblas_64.${pkgver%.*}.dylib libblas64.dylib
-  ln -s libopenblas_64.${pkgver%.*}.dylib libblas64.3.dylib
   ln -s libopenblas_64.${pkgver%.*}.dylib libopenblas64_.dylib # Needed by julia
-  ln -s openblas64.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/blas64.pc
+}
+
+package_blas-openblas() {
+  pkgdesc+=" (Provides BLAS/CBLAS/LAPACK/LAPACKE system-wide)"
+  depends=('openblas')
+  provides=("blas=$_blasver" "cblas=$_blasver" "lapack=$_blasver" "lapacke=$_blasver" "openblas-lapack=$pkgver")
+  conflicts=('blas' 'cblas' 'lapack' 'lapacke' 'openblas-lapack')
+  replaces=('openblas-lapack')
+
+  mkdir -p "$pkgdir"/${pacman_root}/usr/lib/pkgconfig
+  cd "$pkgdir"/${pacman_root}/usr/lib/
+  for _lib in blas cblas lapack lapacke; do
+    ln -s libopenblas.${pkgver%.*}.dylib lib${_lib}.dylib
+    ln -s libopenblas.${pkgver%.*}.dylib lib${_lib}.3.dylib
+    ln -s openblas.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/${_lib}.pc
+  done
+}
+
+package_blas64-openblas() {
+  pkgdesc+=" (64-bit integers, provides BLAS/CBLAS/LAPACK/LAPACKE system-wide)"
+  depends=('openblas64')
+  provides=("blas64=$_blasver" "cblas64=$_blasver" "lapack64=$_blasver" "lapacke64=$_blasver")
+  conflicts=('blas64' 'cblas64' 'lapack64' 'lapacke64')
+
+  mkdir -p "$pkgdir"/${pacman_root}/usr/lib/pkgconfig
+  cd "$pkgdir"/${pacman_root}/usr/lib/
+  for _lib in blas64 cblas64 lapack64 lapacke64; do
+    ln -s libopenblas_64.${pkgver%.*}.dylib lib${_lib}.dylib
+    ln -s libopenblas_64.${pkgver%.*}.dylib lib${_lib}.3.dylib
+    ln -s openblas64.pc "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/${_lib}.pc
+  done
 }
 
 # vim:set ts=2 sw=2 et:
