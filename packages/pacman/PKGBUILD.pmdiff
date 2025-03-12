@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -6,0 +7 @@
-+pkgrel+=".15"
++pkgrel+=".16"
 @@ -11 +12 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
@@ -93,7 +93,7 @@
 +            '5001c17ba032b21c24f34c55e8b4f453385eff617ce8f9a83d157a9651f096d7'  # pacman-support-oci-multipart-p2.patch
 +            'e2a30b6b9a9780d63cda36b27e97271b593056257623c5dd3bf595e2cb0abeb0'  # pacman-support-oci-multipart-p3.patch
 +            '5410218e0560ea87193a3bb13d0d1bf9bfb991623029c3b3f57eb1f5d7bfe62c'  # makepkg-dylib-provides.patch
-+            'b17cda747f6c9b43246d155a9c517547305dd85083f6bb05da7b308f1a9235d9'  # makepkg-dylib-provides-p2.patch
++            '38124bba30d67b9412b95be58bf20a180d904bbe96fb2506190db4f56182cfb7'  # makepkg-dylib-provides-p2.patch
 +            '82f79fb2923b287142542f609227b69e61957ffaf0f13fcd4cd411dc7f555637'  # meson-fix-linking.patch
 +)
 @@ -94,0 +153,5 @@

@@ -1,5 +1,5 @@
 --- a/scripts/makepkg.sh.in	2025-03-12 16:40:48.885810805 +0800
-+++ b/scripts/makepkg.sh.in	2025-03-12 16:47:00.213968756 +0800
++++ b/scripts/makepkg.sh.in	2025-03-13 00:13:01.173544188 +0800
 @@ -321,15 +321,28 @@
  	local R_DEPS_SATISFIED=0
  	local R_DEPS_MISSING=1
@@ -31,3 +31,15 @@
  		[[ -z $deplist ]] && return $R_DEPS_SATISFIED
  	fi
  
+@@ -528,7 +541,10 @@
+ 	local libdepends v
+ 	for d in "${depends[@]}"; do
+ 		case "$d" in
+-			*.dylib)
++			*.so | *.dylib)
++				if [[ $d = *.so ]]; then
++					d="${d/%.so/.dylib}"
++				fi
+ 				if [[ ${libdeps[$d]} ]]; then
+ 					for v in ${libdeps[$d]}; do
+ 						libdepends+=("$d=$v")
