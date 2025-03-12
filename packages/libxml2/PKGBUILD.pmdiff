@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -13,0 +14 @@
-+pkgrel+=".3"
++pkgrel+=".5"
 @@ -16 +17 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
