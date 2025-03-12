@@ -1,4 +1,5 @@
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
 # Contributor: Jan de Groot <jgc@archlinux.org>
 
 pkgbase=harfbuzz
@@ -9,38 +10,43 @@ pkgname=(
   harfbuzz-utils
   harfbuzz-docs
 )
-pkgver=7.2.0
+pkgver=10.4.0
 pkgrel=1
+pkgrel+=".7"
 pkgdesc="OpenType text shaping engine"
-url="https://www.freedesktop.org/wiki/Software/HarfBuzz"
+url="https://harfbuzz.github.io/"
 arch=('x86_64' 'arm64')
 license=(MIT)
+depends=(
+  freetype2
+  glib2
+  glibc
+  graphite
+)
 makedepends=(
   cairo
   chafa
-  freetype2
   git
-  glib2
   gobject-introspection
-  graphite
   gtk-doc
   icu
   meson
   python
   ragel
+  pkgconf
 )
 checkdepends=(
   python-fonttools
   python-setuptools
 )
-_commit=a321c4fee56b15247c10f9aa3db7e7ccb3b8173b  # tags/7.2.0^0
-source=("git+https://github.com/harfbuzz/harfbuzz#commit=$_commit")
-b2sums=('SKIP')
-
-pkgver() {
-  cd harfbuzz
-  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
-}
+source=("git+https://github.com/harfbuzz/harfbuzz?signed#tag=$pkgver")
+b2sums=('9b229ea977041e91eac26b415cf68b291135d34969e7a2df48b8db112940fe705f3f626917a7488769c3c84e1eed3a86114f4c393f7728a5c4eb289cfd3b4465')
+validpgpkeys=(
+  053D20F17CCCA9651B2C6FCB9AB24930C0B997A2 # Khaled Hosny <khaled@aliftype.com> (@khaledhosny)
+  9F377DDB6D3153A48EB3EB1E63CC496475267693 # Caleb Maclennan <caleb@alerque.com> (@alerque)
+  2277650A4E8BDFE4B7F6BE419FEE04E5D3531115 # Ebrahim Byagowi <ebrahim@gnu.org> (@ebraminio)
+  EACF64F53455E2771BA661A4803B21859F015E4E # Behdad Esfahbod <behdad@behdad.org> (@behdad)
+)
 
 prepare() {
   cd harfbuzz
@@ -48,11 +54,10 @@ prepare() {
 
 build() {
   local meson_options=(
+    -D cpp_std=c++17
     -D graphite2=enabled
-    -D coretext=enabled
-    -D chafa=enabled
-    -D cairo=enabled
   )
+
   # Harfbuzz wants no exceptions
   CFLAGS="${CFLAGS/-fexceptions/}"
   CXXFLAGS="${CXXFLAGS/-fexceptions/}"
@@ -73,19 +78,18 @@ _pick() {
     d="$srcdir/$p/${f#$pkgdir/}"
     mkdir -p "$(dirname "$d")"
     mv "$f" "$d"
-    rmdir -p "$(dirname "$f")" || true
+    rmdir -p "$(dirname "$f")" || :
   done
 }
 
 package_harfbuzz() {
-  depends=(
-    libfreetype.dylib
-    libglib-2.0.dylib
-    libgobject-2.0.dylib
-    libgraphite2.dylib
+  depends+=(
+    libfreetype.so
+    libgraphite2.so
+    libg{lib,object}-2.0.so
   )
   optdepends=('harfbuzz-utils: utilities')
-  provides=(libharfbuzz{,-subset,-gobject}.dylib)
+  provides=(libharfbuzz{,-subset,-gobject}.so)
 
   meson install -C build --destdir "$pkgdir"
 
@@ -110,10 +114,16 @@ package_harfbuzz() {
 package_harfbuzz-cairo() {
   pkgdesc+=" - Cairo integration"
   depends=(
-    libcairo.dylib
-    libharfbuzz.dylib
+    cairo
+    freetype2
+    glib2
+    glibc
+    graphite
+    harfbuzz
+    libcairo.so
+    libharfbuzz.so
   )
-  provides=(libharfbuzz-cairo.dylib)
+  provides=(libharfbuzz-cairo.so)
 
   mv hb-cairo/* "$pkgdir"
 
@@ -123,10 +133,13 @@ package_harfbuzz-cairo() {
 package_harfbuzz-icu() {
   pkgdesc+=" - ICU integration"
   depends=(
-    libharfbuzz.dylib
-    libicuuc.dylib
+    glibc
+    harfbuzz
+    icu
+    libharfbuzz.so
+    libicuuc.so
   )
-  provides=(libharfbuzz-icu.dylib)
+  provides=(libharfbuzz-icu.so)
 
   mv hb-icu/* "$pkgdir"
 
@@ -136,17 +149,22 @@ package_harfbuzz-icu() {
 package_harfbuzz-utils() {
   pkgdesc+=" - Utilities"
   depends=(
+    cairo
+    chafa
+    freetype2
+    glib2
+    glibc
     harfbuzz
     harfbuzz-cairo
-    libcairo.dylib
-    libchafa.dylib
-    libfreetype.dylib
-    libglib-2.0.dylib
-    libgobject-2.0.dylib
-    libharfbuzz-cairo.dylib
-    libharfbuzz-gobject.dylib
-    libharfbuzz-subset.dylib
-    libharfbuzz.dylib
+    libcairo.so
+    libchafa.so
+    libfreetype.so
+    libglib-2.0.so
+    libgobject-2.0.so
+    libharfbuzz-cairo.so
+    libharfbuzz-gobject.so
+    libharfbuzz-subset.so
+    libharfbuzz.so
   )
 
   mv hb-utils/* "$pkgdir"
