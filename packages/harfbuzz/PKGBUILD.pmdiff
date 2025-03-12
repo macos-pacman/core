@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -14,0 +15 @@
-+pkgrel+=".7"
++pkgrel+=".8"
 @@ -17 +18 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
@@ -9,41 +9,43 @@
 -  glib2-devel
 @@ -35,0 +36 @@
 +  pkgconf
-@@ -80 +81 @@
+@@ -57,0 +59 @@
++    -D coretext=enabled
+@@ -80 +82 @@
 -    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
 +    rmdir -p "$(dirname "$f")" || :
-@@ -97,3 +98,3 @@
+@@ -97,3 +99,3 @@
 -    _pick hb-cairo usr/lib/libharfbuzz-cairo*
 -    _pick hb-cairo usr/lib/pkgconfig/harfbuzz-cairo.pc
 -    _pick hb-cairo usr/include/harfbuzz/hb-cairo.h
 +    _pick hb-cairo ${pacman_root#/}/usr/lib/libharfbuzz-cairo*
 +    _pick hb-cairo ${pacman_root#/}/usr/lib/pkgconfig/harfbuzz-cairo.pc
 +    _pick hb-cairo ${pacman_root#/}/usr/include/harfbuzz/hb-cairo.h
-@@ -101,3 +102,3 @@
+@@ -101,3 +103,3 @@
 -    _pick hb-icu usr/lib/libharfbuzz-icu*
 -    _pick hb-icu usr/lib/pkgconfig/harfbuzz-icu.pc
 -    _pick hb-icu usr/include/harfbuzz/hb-icu.h
 +    _pick hb-icu ${pacman_root#/}/usr/lib/libharfbuzz-icu*
 +    _pick hb-icu ${pacman_root#/}/usr/lib/pkgconfig/harfbuzz-icu.pc
 +    _pick hb-icu ${pacman_root#/}/usr/include/harfbuzz/hb-icu.h
-@@ -105 +106 @@
+@@ -105 +107 @@
 -    _pick hb-utils usr/bin
 +    _pick hb-utils ${pacman_root#/}/usr/bin
-@@ -107 +108 @@
+@@ -107 +109 @@
 -    _pick hb-docs usr/share/gtk-doc
 +    _pick hb-docs ${pacman_root#/}/usr/share/gtk-doc
-@@ -110 +111 @@
+@@ -110 +112 @@
 -  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
 +  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
-@@ -129 +130 @@
+@@ -129 +131 @@
 -  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
 +  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
-@@ -145 +146 @@
+@@ -145 +147 @@
 -  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
 +  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
-@@ -171 +172 @@
+@@ -171 +173 @@
 -  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
 +  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
-@@ -180 +181 @@
+@@ -180 +182 @@
 -  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
 +  install -Dt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname" -m644 harfbuzz/COPYING
