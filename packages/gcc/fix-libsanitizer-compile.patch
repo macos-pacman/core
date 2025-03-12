@@ -1,0 +1,11 @@
+--- a/libsanitizer/sanitizer_common/sanitizer_stackdepot.cpp      2024-03-03 00:25:05
++++ b/libsanitizer/sanitizer_common/sanitizer_stackdepot.cpp     2024-03-03 00:24:56
+@@ -27,7 +27,7 @@
+   u32 link;
+   StackStore::Id store_id;
+
+-  static const u32 kTabSizeLog = SANITIZER_ANDROID ? 16 : 20;
++  static const u32 kTabSizeLog = SANITIZER_ANDROID ? 16 : 24;
+
+   typedef StackTrace args_type;
+   bool eq(hash_type hash, const args_type &args) const {
