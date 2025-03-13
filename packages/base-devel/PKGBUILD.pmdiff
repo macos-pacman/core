@@ -1,0 +1,25 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
+@@ -13 +13,0 @@
+-  archlinux-keyring
+@@ -16 +15,0 @@
+-  binutils
+@@ -18,4 +16,0 @@
+-  debugedit
+-  fakeroot
+-  file
+-  findutils
+@@ -24 +18,0 @@
+-  gcc
+@@ -26 +19,0 @@
+-  grep
+@@ -31,3 +23,0 @@
+-  make
+-  pacman
+-  patch
+@@ -36 +25,0 @@
+-  sudo
+@@ -38 +26,0 @@
+-  which
