@@ -1,0 +1,13 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
+@@ -8 +9 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -23 +24 @@
+-    --prefix=/usr \
++    --prefix=${pacman_root}/usr \
+@@ -31 +32 @@
+-  install -D -m644 libraqm/COPYING "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
++  install -D -m644 libraqm/COPYING "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
