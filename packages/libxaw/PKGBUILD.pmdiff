@@ -1,0 +1,16 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
+@@ -8 +9 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -17 +18 @@
+-makedepends=('xorg-util-macros')
++makedepends=('xorg-util-macros' 'pkgconf')
+@@ -27 +28 @@
+-  ./configure --prefix=/usr --sysconfdir=/etc --disable-static
++  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc --disable-static
+@@ -35 +36 @@
+-  install -Dm644 COPYING "${pkgdir}/usr/share/licenses/${pkgname}/COPYING"
++  install -Dm644 COPYING "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/COPYING"
