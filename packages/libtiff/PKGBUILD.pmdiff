@@ -1,0 +1,23 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -6,0 +7 @@
++pkgrel+=".1"
+@@ -9 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -30,2 +31,2 @@
+-    --prefix=/usr
+-    --sysconfdir=/etc
++    --prefix=${pacman_root}/usr
++    --sysconfdir=${pacman_root}/etc
+@@ -33,2 +34,2 @@
+-    --mandir=/usr/share/man
+-    --with-docdir=/usr/share/doc/${pkgname}
++    --mandir=${pacman_root}/usr/share/man
++    --with-docdir=${pacman_root}/usr/share/doc/${pkgname}
+@@ -39 +40 @@
+-  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
++  # sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+@@ -51 +52 @@
+-  install -Dm 644 LICENSE.md -t "${pkgdir}/usr/share/licenses/${pkgname}/"
++  install -Dm 644 LICENSE.md -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/"
