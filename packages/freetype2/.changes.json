@@ -1,0 +1,18 @@
+{
+  "upstream_commit": "5c4433ebb0f88b9bfeda4a997ff1963523323285",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "0001-Enable-table-validation-modules.patch",
+    "0001-meson.build-Add-missing-math_dep-for-SVG-support.patch",
+    "0002-Enable-subpixel-rendering.patch",
+    "0003-Enable-long-PCF-family-names.patch",
+    "freetype2.install",
+    "freetype2.sh"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
