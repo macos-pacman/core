@@ -1,0 +1,38 @@
+# Maintainer: yuki <yuki@nowhere>
+
+pkgname=bottle-bomb
+pkgver=1.0.13
+pkgrel=1
+pkgdesc="Homebrew Bottle Downloader"
+arch=('x86_64' 'arm64')
+url="https://github.com/blacktop/bottle-bomb"
+license=('MIT')
+makedepends=('go')
+source=("git+https://github.com/blacktop/bottle-bomb.git?signed#tag=v${pkgver}")
+sha256sums=('b9ddbbfd89d15a3b848f0b0c5bddf193e3a9963f0e2c66548ecc14779c0da567')
+
+prepare() {
+  cd ${pkgname}
+  mkdir -p dist/
+}
+
+build() {
+  cd ${pkgname}
+  local _DATE=$(git log -1 --pretty=%ct) # get commit date to make it REPRODUCABLE
+
+  GOPATH="${srcdir}"
+  go build \
+    -buildmode=pie \
+    -mod=readonly \
+    -modcacherw \
+    -ldflags "-compressdwarf=false -linkmode external -extldflags \"${LDFLAGS}\" ${_BUILDINFO}" \
+    -o dist/bb \
+    main.go
+}
+
+package() {
+  cd $pkgname
+
+  install -Dm755 dist/bb "$pkgdir"/${pacman_root}/usr/bin/bb
+  install -Dm644 LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+}
