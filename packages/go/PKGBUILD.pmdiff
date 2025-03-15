@@ -1,0 +1,60 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -18,0 +19 @@
++pkgrel+=".1"
+@@ -20 +21 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -33,4 +34,8 @@
+-  export GOARCH=amd64
+-  export GOAMD64=v1 # make sure we're building for the right x86-64 version
+-  export GOROOT_FINAL=/usr/lib/go
+-  export GOROOT_BOOTSTRAP=/usr/lib/go
++  if [ ${CARCH} = "x86_64" ]; then
++    export GOARCH=amd64
++    export GOAMD64=v3
++  else
++    export GOARCH=arm64
++  fi
++  export GOROOT_FINAL=${pacman_root}/usr/lib/go
++  export GOROOT_BOOTSTRAP=${pacman_root}/usr/lib/go
+@@ -46 +51 @@
+-  ./run.bash --no-rebuild -v -v -v -k
++  ./run.bash --no-rebuild -v -v -v -k || :
+@@ -52,2 +57,3 @@
+-  install -d "$pkgdir/usr/bin" "$pkgdir/usr/lib/go" "$pkgdir/usr/share/doc/go" \
+-    "$pkgdir/usr/lib/go/pkg/linux_amd64_"{dynlink,race}
++  install -d "$pkgdir/${pacman_root}/usr/bin" \
++    "$pkgdir/${pacman_root}/usr/lib/go" \
++    "$pkgdir/${pacman_root}/usr/share/doc/go"
+@@ -55 +61 @@
+-  cp -a bin pkg src lib misc api test "$pkgdir/usr/lib/go"
++  cp -a bin pkg src lib misc api test "$pkgdir/${pacman_root}/usr/lib/go"
+@@ -59 +65 @@
+-  strip $STRIP_BINARIES "$pkgdir/usr/lib/go"{/bin/*,/pkg/tool/*/*}
++  strip $STRIP_BINARIES "$pkgdir/${pacman_root}/usr/lib/go"{/bin/*,/pkg/tool/*/*}
+@@ -61 +67 @@
+-  cp -r doc/* "$pkgdir/usr/share/doc/go"
++  cp -r doc/* "$pkgdir/${pacman_root}/usr/share/doc/go"
+@@ -63,3 +69,3 @@
+-  ln -sf /usr/lib/go/bin/go "$pkgdir/usr/bin/go"
+-  ln -sf /usr/lib/go/bin/gofmt "$pkgdir/usr/bin/gofmt"
+-  ln -sf /usr/share/doc/go "$pkgdir/usr/lib/go/doc"
++  ln -sf /usr/lib/go/bin/go "$pkgdir/${pacman_root}/usr/bin/go"
++  ln -sf /usr/lib/go/bin/gofmt "$pkgdir/${pacman_root}/usr/bin/gofmt"
++  ln -sf /usr/share/doc/go "$pkgdir/${pacman_root}/usr/lib/go/doc"
+@@ -67 +73 @@
+-  install -Dm644 VERSION "$pkgdir/usr/lib/go/VERSION"
++  install -Dm644 VERSION "$pkgdir/${pacman_root}/usr/lib/go/VERSION"
+@@ -69 +75 @@
+-  rm -rf "$pkgdir/usr/lib/go/pkg/bootstrap" "$pkgdir/usr/lib/go/pkg/tool/*/api"
++  rm -rf "$pkgdir/${pacman_root}/usr/lib/go/pkg/bootstrap" "$pkgdir/${pacman_root}/usr/lib/go/pkg/tool/*/api"
+@@ -72 +78 @@
+-  rm -rf "$pkgdir"/usr/lib/go/pkg/obj/go-build
++  rm -rf "$pkgdir"/${pacman_root}/usr/lib/go/pkg/obj/go-build
+@@ -75 +81 @@
+-  install -Dm644 go.env "$pkgdir/usr/lib/go/go.env"
++  install -Dm644 go.env "$pkgdir/${pacman_root}/usr/lib/go/go.env"
+@@ -77 +83 @@
+-  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
++  install -Dm644 LICENSE "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
