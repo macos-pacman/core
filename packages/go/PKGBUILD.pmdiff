@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -18,0 +19 @@
-+pkgrel+=".1"
++pkgrel+=".2"
 @@ -20 +21 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
@@ -40,9 +40,9 @@
 -  ln -sf /usr/lib/go/bin/go "$pkgdir/usr/bin/go"
 -  ln -sf /usr/lib/go/bin/gofmt "$pkgdir/usr/bin/gofmt"
 -  ln -sf /usr/share/doc/go "$pkgdir/usr/lib/go/doc"
-+  ln -sf /usr/lib/go/bin/go "$pkgdir/${pacman_root}/usr/bin/go"
-+  ln -sf /usr/lib/go/bin/gofmt "$pkgdir/${pacman_root}/usr/bin/gofmt"
-+  ln -sf /usr/share/doc/go "$pkgdir/${pacman_root}/usr/lib/go/doc"
++  ln -sf ${pacman_root}/usr/lib/go/bin/go "$pkgdir/${pacman_root}/usr/bin/go"
++  ln -sf ${pacman_root}/usr/lib/go/bin/gofmt "$pkgdir/${pacman_root}/usr/bin/gofmt"
++  ln -sf ${pacman_root}/usr/share/doc/go "$pkgdir/${pacman_root}/usr/lib/go/doc"
 @@ -67 +73 @@
 -  install -Dm644 VERSION "$pkgdir/usr/lib/go/VERSION"
 +  install -Dm644 VERSION "$pkgdir/${pacman_root}/usr/lib/go/VERSION"
