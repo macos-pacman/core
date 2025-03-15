@@ -4,7 +4,7 @@
 pkgname=base-devel
 pkgver=1
 pkgrel=2
-pkgrel+=".1"
+pkgrel+=".2"
 pkgdesc='Basic tools to build Arch Linux packages'
 url='https://www.archlinux.org'
 arch=('any')
@@ -24,6 +24,7 @@ depends=(
   pkgconf
   sed
   texinfo
+  system-toolchain
 )
 
 # vim: ts=2 sw=2 et:

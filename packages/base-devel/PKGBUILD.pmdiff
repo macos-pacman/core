@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -6,0 +7 @@
-+pkgrel+=".1"
++pkgrel+=".2"
 @@ -13 +13,0 @@
 -  archlinux-keyring
 @@ -16 +15,0 @@
@@ -21,5 +21,6 @@
 -  patch
 @@ -36 +25,0 @@
 -  sudo
-@@ -38 +26,0 @@
+@@ -38 +27 @@
 -  which
++  system-toolchain
