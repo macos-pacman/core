@@ -1,7 +1,13 @@
 --- PKGBUILD
 +++ PKGBUILD
-@@ -14,0 +15 @@
-+pkgrel+=".1"
+@@ -12,3 +12,4 @@
+-_rev=74526
+-
+-
++_rev=74612
++
++
++pkgrel+=".2"
 @@ -23 +24 @@
 -        svn://tug.org/texlive/tags/texlive-$pkgver/Master/bin/x86_64-linux#revision=$_rev
 +        svn://tug.org/texlive/tags/texlive-$pkgver/Master/bin/universal-darwin#revision=$_rev

@@ -12,7 +12,7 @@ done
 _rev=74612
 pkgver=2025.1
 pkgrel=1
-pkgrel+=".1"
+pkgrel+=".2"
 pkgdesc='TeX Live - '
 license=(GPL)
 arch=(any)
