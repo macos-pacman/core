@@ -6,7 +6,7 @@
 pkgname=(texlive-bin libsynctex)
 pkgver=2025.1
 pkgrel=1
-pkgrel+=".3"
+pkgrel+=".1"
 license=(GPL-2.0-or-later)
 arch=('x86_64' 'arm64')
 makedepends=(bash
@@ -61,19 +61,6 @@ prepare() {
   sed -i s/SELFAUTOPARENT/TEXMFROOT/ texk/tex4htk/t4ht.c
 # remove spurious ptex "guessed encoding" print
   patch -p1 -i ../ptex-debug-print.patch
-
-  # the relver is the unix timestamp, eg. 1742119845
-  # take digits 3-5, so '421'.
-  local rv=$(cat libs/luajit/LuaJIT-src/.relver | awk '{print substr($0,3,3)}')
-  echo "${rv}" > libs/luajit/LuaJIT-src/.relver
-
-  # god fucking dammit
-  local f; for f in libs/luajit/{version.ac,configure,native/configure}; do
-    sed -i -e "s/\b81742\b/${rv}/g" "$f"
-  done
-
-  # yeet the .git folder to force luajit to use the relver file.
-  rm -rf .git
 }
 
 build() {
@@ -190,7 +177,7 @@ package_texlive-bin() {
 
   cd builddir
   make DESTDIR="$pkgdir" texmf="$pkgdir"/${pacman_root}/usr/share/texmf install
-  DYLD_FALLBACK_LIBRARY_PATH="$pkgdir"/${pacman_root}/usr/lib/ \
+  DYLD_FALLBACK_LIBRARY_PATH="$pkgdir"/${pacman_root}/usr/lib/libkpathsea.dylib \
   make DESTDIR="$pkgdir" texlinks
 
 # remove stuff included in texlive-texmf
