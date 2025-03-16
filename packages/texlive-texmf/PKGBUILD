@@ -9,8 +9,8 @@ _collections=( basic bibtexextra binextra context fontsextra fontsrecommended fo
 for _coll in ${_collections[@]}; do
   pkgname+=(texlive-$_coll)
 done
-_rev=74526
-pkgver=2025.0
+_rev=74612
+pkgver=2025.1
 pkgrel=1
 pkgrel+=".1"
 pkgdesc='TeX Live - '
