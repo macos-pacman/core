@@ -26,15 +26,18 @@
  
  % Per-user texmf tree(s) -- organized per the TDS, as usual.  To define
  % more than one per-user tree, set this to a list of directories in
-@@ -87,10 +87,10 @@
- TEXMFHOME = ~/Library/texmf
+@@ -85,12 +85,12 @@
+ % braces, as described above.  (This used to be HOMETEXMF.)  ~ expands
+ % to %USERPROFILE% on Windows, $HOME otherwise
+-TEXMFHOME = ~/texmf
++TEXMFHOME = ~/Library/texmf
  
  % TEXMFVAR, where texconfig/updmap/fmtutil store cached runtime data.
--TEXMFVAR = ~/.texlive2023/texmf-var
+-TEXMFVAR = ~/.texlive2025/texmf-var
 +TEXMFVAR = ~/Library/texlive/texmf-var
  
  % TEXMFCONFIG, where texconfig/updmap/fmtutil store configuration data.
--TEXMFCONFIG = ~/.texlive2023/texmf-config
+-TEXMFCONFIG = ~/.texlive2025/texmf-config
 +TEXMFCONFIG = ~/Library/texlive/texmf-config
  
  % This is the value manipulated by tlmgr's auxtrees subcommand in the
@@ -58,4 +61,4 @@
 +MAILCAPLIBDIR = %%PACMAN_ROOT%%/etc
  
  % Default settings for the fontconfig library as used by the Windows
- % versions of xetex/xdvipdfmx.  Not used by xetex on Unixish systems.
+ % versions of xetex/xdvipdfmx.  Not used by xetex itself on Unixish systems,

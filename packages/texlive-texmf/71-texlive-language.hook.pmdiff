@@ -1,0 +1,12 @@
+--- 71-texlive-language.hook
++++ 71-texlive-language.hook
+@@ -6,3 +6,3 @@
+-Target = var/lib/texmf/arch/installedpkgs/*.dat
+-Target = var/lib/texmf/arch/installedpkgs/*.dat.lua
+-Target = var/lib/texmf/arch/installedpkgs/*.def
++Target = %%PACMAN_ROOT_REL%%/var/lib/texmf/arch/installedpkgs/*.dat
++Target = %%PACMAN_ROOT_REL%%/var/lib/texmf/arch/installedpkgs/*.dat.lua
++Target = %%PACMAN_ROOT_REL%%/var/lib/texmf/arch/installedpkgs/*.def
+@@ -13 +13 @@
+-Exec = /usr/share/libalpm/scripts/texlive-language
++Exec = %%PACMAN_ROOT%%/usr/share/libalpm/scripts/texlive-language

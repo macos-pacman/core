@@ -1,0 +1,19 @@
+--- texlive-updmap.script
++++ texlive-updmap.script
+@@ -3,2 +3 @@
+-UPDMAP="etc/texmf/web2c/updmap.cfg"
+-UPDMAPLOCAL="etc/texmf/web2c/updmap-local.cfg"
++pmd=$(pacman-root-dir)
+@@ -6,2 +5,5 @@
+-cp usr/share/texmf-dist/web2c/updmap-hdr.cfg $UPDMAP
+-cat var/lib/texmf/arch/installedpkgs/*.maps >> $UPDMAP
++UPDMAP="${pmd#/}/etc/texmf/web2c/updmap.cfg"
++UPDMAPLOCAL="${pmd#/}/etc/texmf/web2c/updmap-local.cfg"
++
++cp ${pmd#/}/usr/share/texmf-dist/web2c/updmap-hdr.cfg $UPDMAP
++cat ${pmd#/}/var/lib/texmf/arch/installedpkgs/*.maps >> $UPDMAP
+@@ -13,2 +15,2 @@
+-/usr/bin/mktexlsr
+-/usr/bin/updmap-sys --quiet --nohash
++$(pacman-root-dir)/usr/bin/mktexlsr
++$(pacman-root-dir)/usr/bin/updmap-sys --quiet --nohash

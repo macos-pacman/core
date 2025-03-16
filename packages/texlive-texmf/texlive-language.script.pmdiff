@@ -1,0 +1,26 @@
+--- texlive-language.script
++++ texlive-language.script
+@@ -3,3 +3,5 @@
+-LANGUAGE_DAT="etc/texmf/tex/generic/config/language.dat"
+-LANGUAGE_DAT_LUA="etc/texmf/tex/generic/config/language.dat.lua"
+-LANGUAGE_DEF="etc/texmf/tex/generic/config/language.def"
++pmd=$(pacman-root-dir)
++
++LANGUAGE_DAT="${pmd#/}/etc/texmf/tex/generic/config/language.dat"
++LANGUAGE_DAT_LUA="${pmd#/}/etc/texmf/tex/generic/config/language.dat.lua"
++LANGUAGE_DEF="${pmd#/}/etc/texmf/tex/generic/config/language.def"
+@@ -9,2 +11,2 @@
+-cp usr/share/texmf-dist/tex/generic/config/language.us $LANGUAGE_DAT
+-for file in var/lib/texmf/arch/installedpkgs/*.dat; do
++cp ${pmd#/}/usr/share/texmf-dist/tex/generic/config/language.us $LANGUAGE_DAT
++for file in ${pmd#/}/var/lib/texmf/arch/installedpkgs/*.dat; do
+@@ -16,2 +18,2 @@
+-cp usr/share/texmf-dist/tex/generic/config/language.us.lua $LANGUAGE_DAT_LUA
+-for file in var/lib/texmf/arch/installedpkgs/*.dat.lua; do
++cp ${pmd#/}/usr/share/texmf-dist/tex/generic/config/language.us.lua $LANGUAGE_DAT_LUA
++for file in ${pmd#/}/var/lib/texmf/arch/installedpkgs/*.dat.lua; do
+@@ -24,2 +26,2 @@
+-cp usr/share/texmf-dist/tex/generic/config/language.us.def $LANGUAGE_DEF
+-for file in var/lib/texmf/arch/installedpkgs/*.def; do
++cp ${pmd#/}/usr/share/texmf-dist/tex/generic/config/language.us.def $LANGUAGE_DEF
++for file in ${pmd#/}/var/lib/texmf/arch/installedpkgs/*.def; do

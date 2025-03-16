@@ -1,0 +1,17 @@
+#!/bin/bash
+
+pmd=$(pacman-root-dir)
+
+UPDMAP="${pmd#/}/etc/texmf/web2c/updmap.cfg"
+UPDMAPLOCAL="${pmd#/}/etc/texmf/web2c/updmap-local.cfg"
+
+cp ${pmd#/}/usr/share/texmf-dist/web2c/updmap-hdr.cfg $UPDMAP
+cat ${pmd#/}/var/lib/texmf/arch/installedpkgs/*.maps >> $UPDMAP
+if [[ -f "$UPDMAPLOCAL" ]]; then
+    cat "$UPDMAPLOCAL" >> $UPDMAP
+fi
+
+# Run mktexlsr since /etc/texmf/web2c/updmap.cfg can be a new file
+$(pacman-root-dir)/usr/bin/mktexlsr
+$(pacman-root-dir)/usr/bin/updmap-sys --quiet --nohash
+

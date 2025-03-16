@@ -1,0 +1,16 @@
+--- texlive-fmtutil.script
++++ texlive-fmtutil.script
+@@ -3,2 +3,3 @@
+-FMTUTIL="etc/texmf/web2c/fmtutil.cnf"
+-FMTUTILLOCAL="etc/texmf/web2c/fmtutil-local.cnf"
++pmd=$(pacman-root-dir)
++FMTUTIL="${pmd#/}/etc/texmf/web2c/fmtutil.cnf"
++FMTUTILLOCAL="${pmd#/}/etc/texmf/web2c/fmtutil-local.cnf"
+@@ -6,2 +7,2 @@
+-cp usr/share/texmf-dist/web2c/fmtutil-hdr.cnf $FMTUTIL
+-for file in var/lib/texmf/arch/installedpkgs/*.fmts; do
++cp ${pmd#/}/usr/share/texmf-dist/web2c/fmtutil-hdr.cnf $FMTUTIL
++for file in ${pmd#/}/var/lib/texmf/arch/installedpkgs/*.fmts; do
+@@ -18 +19 @@
+-/usr/bin/fmtutil-sys --all --cnffile $FMTUTIL > /dev/null
++$(pacman-root-dir)/usr/bin/fmtutil-sys --all --cnffile $FMTUTIL > /dev/null

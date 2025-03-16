@@ -1,400 +1,297 @@
 # Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Maintainer: Caleb Maclennan <caleb@alerque.com>
 # Contributor: Rémy Oudompheng <remy@archlinux.org>
 
 pkgbase=texlive-texmf
-pkgname=(texlive-bibtexextra
-         texlive-core
-         texlive-fontsextra
-         texlive-formatsextra
-         texlive-games
-         texlive-humanities
-         texlive-langchinese
-         texlive-langcyrillic
-         texlive-langextra
-         texlive-langgreek
-         texlive-langjapanese
-         texlive-langkorean
-         texlive-latexextra
-         texlive-music
-         texlive-pictures
-         texlive-pstricks
-         texlive-publishers
-         texlive-science
-         texlive-doc
-         texlive-meta)
-_rev=66594
-pkgver=2023.$_rev
-pkgrel=5
+pkgname=(texlive-doc texlive-meta)
+# generate collections with ./list-collections
+_collections=( basic bibtexextra binextra context fontsextra fontsrecommended fontutils formatsextra games humanities langarabic langchinese langcjk langcyrillic langczechslovak langenglish langeuropean langfrench langgerman langgreek langitalian langjapanese langkorean langother langpolish langportuguese langspanish latex latexextra latexrecommended luatex mathscience metapost music pictures plaingeneric pstricks publishers xetex )
+for _coll in ${_collections[@]}; do
+  pkgname+=(texlive-$_coll)
+done
+_rev=74526
+pkgver=2025.0
+pkgrel=1
+pkgrel+=".1"
 pkgdesc='TeX Live - '
 license=(GPL)
 arch=(any)
+depends=(texlive-bin)
 makedepends=(subversion)
-url='http://tug.org/texlive/'
-source=(svn://tug.org/texlive/tags/texlive-2023.0/Master/texmf-dist#revision=$_rev
-        subpackages
-        09-texlive-fonts.conf.in
-        texmf.cnf.patch.in
-        texmfcnf.lua.patch.in
-        mktexlsr.hook.in
-        mktexlsr.script.in
-        texlive-updmap.hook.in
-        texlive-updmap.script.in
-        texlive-fmtutil.hook.in
-        texlive-fmtutil.script.in
-        texlive-core.fmts
-        texlive-formatsextra.fmts
-        texlive-langjapanese.fmts
-        texlive-latexextra.fmts
-        texlive-science.fmts
-        texlive-core.maps
-        texlive-fontsextra.maps
-        texlive-formatsextra.maps
-        texlive-games.maps
-        texlive-langchinese.maps
-        texlive-langcyrillic.maps
-        texlive-langextra.maps
-        texlive-langgreek.maps
-        texlive-langjapanese.maps
-        texlive-langkorean.maps
-        texlive-latexextra.maps
-        texlive-music.maps
-        texlive-pictures.maps
-        texlive-science.maps)
+url='https://tug.org/texlive/'
+source=(svn://tug.org/texlive/tags/texlive-$pkgver/Master/texmf-dist#revision=$_rev
+        svn://tug.org/texlive/tags/texlive-$pkgver/Master/tlpkg#revision=$_rev
+        svn://tug.org/texlive/tags/texlive-$pkgver/Master/bin/universal-darwin#revision=$_rev
+        09-texlive-fonts.conf
+        texmf.cnf.patch
+        texmfcnf.lua.patch
+        70-mktexlsr.hook
+        71-texlive-language.hook
+        texlive-language.script
+        72-texlive-fmtutil.hook
+        texlive-fmtutil.script
+        73-texlive-updmap.hook
+        texlive-updmap.script
+        80-mtxrun.hook
+        mtxrun.script)
 sha256sums=('SKIP'
-            '7b0476d473ac50d7f105181c28a377f147e7572c076b66cc6504f82066e69253'
+            'SKIP'
+            'SKIP'
             '6d17106d7470a6394ff6eada4527c1e7db9e6afa5bc850ba2ba54fbef7dbd6a0'
-            '1ff758b36de8fbbe6c3980b684d1e449e3f837a6964bf1917f09370a92e0af5a'
-            '1f1c440d0eeebb3ba9f2177e687ac3a4a92d42b3b29ac0afd651a882b9ff0ecc'
-            'a93242344a2f8d054b2e7a31a019aeba216621dee9e115ac5312c59201f07c15'
-            '8c26510b89c8ba205eb48979ba9ab1db45c783452bdc4bbfc36feb0ccada649a'
+            '0b66933b722a39748eb1131ccbc28dc55ab58ce11a7c132206b3ae0d449000f6'
+            'ab6fb06ee5f793978758ebd49477927a344c2906e4dce86d4c8cf6674828da30'
+            'd700e0321e9c973aba375df38b8648b5272eaf8f5a1f31c4454a6e36e16d0d04'
+            'e4177b8a128b08d9d9de717d7c13641969bfa80029107d61e6d30e9e0feb2286'
+            '59d502f9c14710112e9c092995cfdc14865a45c4a651e24d7b90f25796ad8cdb'
+            'e7a44d843513177b58349bc287be0fb58d407b7efaa024064e726d8cfc0ce91e'
+            'eaac8e6f3201db645d339fdb9675b889ae901bf9e55ca658901006f4a6827a64'
             '8f7bfd4cd0b74618247852d18be0e3217d1940d06872c0a9a5a3beb9396f9fe7'
-            '682eecbee359075e8c6fbbc53e55d13713d65e9b971673d455533bc224b82746'
-            '86169713f48e91641bd23c56282f20e422be9e4249ec874443db49b24de2fedc'
-            '0b15df9b1723fd9064cced2e57048ad297637202ae6c262563b82e8ef5b428c3'
-            '7da46b34158b7fd997e494adaffdc5778617706680ba8124343d9973c2b1e965'
-            '9a3fbec7f166156ec1483de769a8acff5c9146c699d74eec3f6bba5a0c4ffda5'
-            '32380c3559dcbec676638c7477c43344f92aa613051b190f5b88bf4e371032c3'
-            '828a9cf082b9a89a4aa0eec402a9c32b8056bb873e4a5dc92ce60aec2ea69435'
-            '1cbd5339f8cfa32214a749a408cf7136fd5acffaffcde6500a337d332c70c5c3'
-            'bbed1c20c91daca967e344505b9dd4e502569365709ce6b87be5510c2ebb98ef'
-            '4094810431f2496a2b8c6210520d8b363a030b90a26728e8514700554ac97b7a'
-            'f969b60fed3a4cbd3fedc9e88e9385ef418f81bf69f958e8998a1898069fd50e'
-            'a4e19b3d6cf8701565d8732c0ff3ee037510b6fb3af53257311bf0731112d72b'
-            'c8cc529153bc1db3b13ef5973a6f36161f89cf05bac695fa2d2eab1a75345195'
-            '313214980ace9c724766e9ffbfcfd3fb234fb97b3ff340508326f9712fc57770'
-            '5f7941ded76d37cf8d6d644edfb206345557905fee38e18ada0b3b98f8a8c0f7'
-            '1d808532a77ad46260660e87b74de23403ffdd51ca76d14a406d5719e4e02f26'
-            '315f6a076f693cb3d25d1a4502f780ef33222e2932069a5d1c636f9538532952'
-            'd948fbcd015ca101eb2ccf197f5a835e864a0c9b6be638de8355444ced378a9b'
-            'd53750a03a52472a1c7c5ba5142959ba382a5d69215471691c0b12c3663950ce'
-            '0b3cc045390e756eb9243c0acc99a48a9c02ddab4764f4a00f8c3170660f017f'
-            '847676e2322065219992ef249a68cddb26d71e192e8d59db58f264c5e11c8be9'
-            '1d9151c9cabc3521b4406731b0147d80e0bf600bdedaf55a1a49b8775165daa8')
+            'cb926773e5f8be3d62a6ce9b006679d9a5e23222755ba711cae056554b440a36'
+            '512b806dfb52e1912bb3f051a6a31b8ffcfb66f0e5f0b0f9cb68c0f2d37151b2'
+            '457bc0f5a7fbe106bb6fe892681d6807c1b444bbcc81dc06f1669003473e943e')
 options=(!strip) # Nothing to strip, save packaging time
 
 prepare() {
   local p1="s|%%PACMAN_ROOT%%|${pacman_root}|g"
   local p2="s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g"
 
-# yes, patch the patches
-  sed -e "$p1" -e "$p2" 09-texlive-fonts.conf.in  > 09-texlive-fonts.conf
-  sed -e "$p1" -e "$p2" texmf.cnf.patch.in        > texmf.cnf.patch
-  sed -e "$p1" -e "$p2" texmfcnf.lua.patch.in     > texmfcnf.lua.patch
-  sed -e "$p1" -e "$p2" mktexlsr.hook.in          > mktexlsr.hook
-  sed -e "$p1" -e "$p2" mktexlsr.script.in        > mktexlsr.script
-  sed -e "$p1" -e "$p2" texlive-updmap.hook.in    > texlive-updmap.hook
-  sed -e "$p1" -e "$p2" texlive-updmap.script.in  > texlive-updmap.script
-  sed -e "$p1" -e "$p2" texlive-fmtutil.hook.in   > texlive-fmtutil.hook
-  sed -e "$p1" -e "$p2" texlive-fmtutil.script.in > texlive-fmtutil.script
+  local _s; for _s in "${sources[@]}"; do
+    [[ -f "${_s}" ]] && sed -i -e "$p1" -e "$p2" "${_s}"
+  done
 
 # Customize configuration
   patch -d texmf-dist/web2c -p0 < texmf.cnf.patch
   patch -d texmf-dist/web2c -p0 < texmfcnf.lua.patch
 
-# Split files per package
-  . subpackages
-  for _pkg in bibtexextra core fontsextra formatsextra games humanities langchinese langcyrillic langextra langgreek \
-              langjapanese langkorean latexextra music pictures pstricks publishers science; do
-    mkdir -p texlive-$_pkg/texmf-dist
-    declare -n _pkgref="$_pkg"
-    for _dir in ${_pkgref[@]}; do
-      mkdir -p texlive-$_pkg/texmf-dist/$(dirname $_dir)
-      mv texmf-dist/$_dir texlive-$_pkg/texmf-dist/$(dirname $_dir)
+  # Copy files where format and maps will be extracted from
+  cp texmf-dist/web2c/{fmtutil.cnf,updmap.cfg,texmf.cnf} .
+  cp texmf-dist/tex/generic/config/language.{dat,dat.lua,def} .
+  
+  # Split files per package
+  for _coll in ${_collections[@]}; do
+    echo -ne "splitting collection ${_coll}"
+    # extract description
+    _desc=`sed -e "0,/^name collection-${_coll}$/d;/^$/Q" tlpkg/texlive.tlpdb | sed -ne 's|^shortdesc ||p'`
+    echo $_desc > pkgdesc-$_coll
+    # extract depends
+    _pkgs=`sed -e "0,/^name collection-${_coll}$/d;/^$/Q" tlpkg/texlive.tlpdb | sed -ne 's|^depend ||p'`
+    _prog=0
+    _total=`echo $_pkgs | wc -w`
+    for _pkg in $_pkgs; do
+      _prog=$(($_prog+1))
+      echo -ne "\rsplitting collection ${_coll} ($_prog/$_total)"
+      # collection depends are added as dependencies
+      if [[ $_pkg == collection-* ]]; then
+        echo ${_pkg/collection-/texlive-} >> depends-$_coll
+      else
+        echo $_pkg >> packages-$_coll
+        # move files to the corresponding subdir
+        _split=`sed -e "0,/^name ${_pkg}$/d;/^$/Q" tlpkg/texlive.tlpdb`
+        _files=`echo "$_split" | sed -e "0,/^runfiles/d;/^[a-z]/Q" | grep texmf-dist` || true
+        for _file in $_files; do
+          # some modules include docs in runfiles
+          [[ $_file == texmf-dist/doc/* ]] && continue
+          mkdir -p texlive-$_coll/$(dirname $_file)
+          mv $_file texlive-$_coll/$(dirname $_file)
+        done
+        # extract formats
+        _fmts=`echo "$_split" | grep "execute AddFormat"` || true
+        if [[ ! -z "$_fmts" ]]; then
+          echo "$_fmts" | while read -r _fmt; do
+            _name=`echo $_fmt | sed 's|.* name=\(\S*\).*|\1|'`
+            _engine=`echo $_fmt | sed 's|.* engine=\(\S*\).*|\1|'`
+            grep -E "(^| )$_name $_engine" fmtutil.cnf >> $_coll.fmts
+          done
+        fi
+        # extract maps
+        _maps=`echo "$_split" | grep -E "execute add(Kanji|Mixed|)Map"` || true
+        if [[ ! -z "$_maps" ]]; then
+          echo "$_maps" | while read -r _map; do
+            grep "${_map/execute add/}" updmap.cfg >> $_coll.maps
+          done
+        fi
+        # extract hyphen rules
+        _langs=`echo "$_split" | grep "execute AddHyphen"` || true
+        if [[ ! -z "$_langs" ]]; then
+          sed -e "0,/from ${_pkg}:/d;/\%/Q" language.dat >> $_coll.dat
+          sed -re "0,/from ${_pkg}:/d;/(^--|^})/Q" language.dat.lua >> $_coll.dat.lua
+          sed -e "0,/from ${_pkg}:/d;/\%/Q" language.def >> $_coll.def
+        fi
+        # extract linked scripts
+        if [[ ${_pkg} != psutils && "$_split" == *${_pkg}.ARCH* ]]; then
+          _links=`sed -e "0,/^name ${_pkg}.universal-darwin$/d;/^$/Q" tlpkg/texlive.tlpdb | grep "bin/universal-darwin" | sed -e 's|bin/universal-darwin||g'`
+          for _link in $_links; do
+            if [[ $(stat -f '%Y' universal-darwin/$_link) == */scripts/* ]]; then
+              mkdir -p ${_coll}-bin
+              cp -P universal-darwin/$_link ${_coll}-bin
+              ln -sf "$(readlink ${_coll}-bin/$_link | sed 's|..\/..|..\/share|')" ${_coll}-bin/$_link
+            fi
+          done
+        fi
+      fi
     done
+    echo
   done
-  mv texmf-dist/doc texlive-doc
+}
 
-# Remove files not meant to be installed
-  rm -fr texmf-dist/{.makepkg,.svn,source,scripts,README,ls-R}
+_package() {
+  pkgdesc+="`cat pkgdesc-$1`"
+  [[ -s depends-$1 ]] && depends+=(`cat depends-$1`)
+# jadetex depends on ulem and marvosym
+  [[ $1 == formatsextra ]] && depends+=(texlive-plaingeneric texlive-fontsrecommended texlive-latexrecommended)
+  [[ $1 == xetex ]] && depends+=(texlive-latex)
+  [[ $1 == latex || $1 == binextra ]] && depends+=(dvisvgm)
+  [[ $1 == context ]] && optdepends+=('luametatex: LuaMetaTeX engine')
+  [[ $1 == fontutils ]] && optdepends+=('ghostscript: for epstopdf')
+  [[ $1 == pictures ]] && optdepends+=('ghostscript: for epspdf')
+  [[ $1 == latexextra ]] && optdepends+=('java-runtime: for pdfannotextractor'
+                                         'python-pygments: for pygmentex')
+  [[ $1 == music ]] && optdepends+=('fontforge: for scripts from the lilyglyphs package')
+  if [[ $1 == basic ]]; then
+    depends+=(perl) # needed by fmtutil which runs from install hook
+    optdepends+=('perl-tk: for the tlmgr GUI'
+                 'biber: for bibliography processing')
+    conflicts=(texlive-core)
+    provides=(texlive-core)
+    replaces=(texlive-core)
+  fi
+  if [[ $1 == binextra ]]; then
+    optdepends+=('ed: for texconfig'
+                 'dialog: for texconfig'
+                 'java-runtime: for utilities like arara, texplate'
+                 'perl-tk: for texdoctk'
+                 'perl-yaml-tiny: for latexindent'
+                 'perl-file-homedir: for latexindent'
+                 'perl-ipc-system-simple: for latex-git-log'
+                 'python: for de-macro, dviasm, pythontex'
+                 'texlive-latexrecommended: for pdfjam'
+                 'wdiff: for texdiff')
+    conflicts=(git-latexdiff)
+    provides=(git-latexdiff)
+    replaces=(git-latexdiff)
+  fi
+  if [[ $1 == mathscience ]]; then
+    conflicts=(texlive-science)
+    provides=(texlive-science)
+    replaces=(texlive-science)
+  fi
+  if [[ $1 == langother ]]; then
+    conflicts=(texlive-langextra)
+    provides=(texlive-langextra)
+    replaces=(texlive-langextra)
+  fi
+  if [[ $1 == lang* ]]; then
+    groups=(texlive-lang)
+  else
+    groups=(texlive)
+  fi
+  for _pkg in `cat packages-$1`; do
+    [[ ! ${_collections[@]} =~ (^| )$_pkg($| ) ]] && provides+=(texlive-$_pkg)
+  done
 
-# Make sure the are no unpackaged files left
-  if [ $(find texmf-dist -type f | wc -l) != 0 ]; then
-    echo "Unpackaged leftover files:"
-    find texmf-dist -type f
-    echo "Move them to one of the subpackages or delete them"
-    exit 1
+  mkdir -p "$pkgdir"/${pacman_root}/usr/share
+  mv texlive-$1/texmf-dist "$pkgdir"/${pacman_root}/usr/share
+  
+  [[ -d $1-bin ]] && mv $1-bin "$pkgdir"/${pacman_root}/usr/bin
+
+  [[ -s $1.fmts ]] && install -Dm644 $1.fmts -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
+  [[ -s $1.maps ]] && install -Dm644 $1.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
+  [[ -s $1.dat ]] && install -Dm644 $1.dat -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
+  [[ -s $1.dat.lua ]] && install -Dm644 $1.dat.lua -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
+  [[ -s $1.def ]] && install -Dm644 $1.def -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
+  
+  if [[ $1 == basic ]]; then
+    backup=(${pacman_root#/}/etc/texmf/dvipdfmx/dvipdfmx.cfg
+            ${pacman_root#/}/etc/texmf/dvips/config/config.ps
+            ${pacman_root#/}/etc/texmf/tex/generic/tex-ini-files/pdftexconfig.tex
+            ${pacman_root#/}/etc/texmf/web2c/fmtutil.cnf
+            ${pacman_root#/}/etc/texmf/web2c/mktex.cnf
+            ${pacman_root#/}/etc/texmf/web2c/texmf.cnf
+            ${pacman_root#/}/etc/texmf/web2c/updmap-hdr.cfg
+            ${pacman_root#/}/etc/texmf/xdvi/XDvi)
+    install -Dm644 09-texlive-fonts.conf -t "$pkgdir"/${pacman_root}/usr/share/fontconfig/conf.avail/
+  # install pacman hooks
+    install -Dm644 7*.hook -t "$pkgdir"/${pacman_root}/usr/share/libalpm/hooks/
+    install -Dm755 texlive-fmtutil.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/texlive-fmtutil
+    install -Dm755 texlive-language.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/texlive-language
+    install -Dm755 texlive-updmap.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/texlive-updmap
+  # install tlpkg files needed by tlmgr and texconfig
+    install -Dm644 "$srcdir"/tlpkg/TeXLive/* -t "$pkgdir"/${pacman_root}/usr/share/perl5/vendor_perl/TeXLive/
+    install -Dm644 "$srcdir"/tlpkg/texlive.tlpdb -t "$pkgdir"/${pacman_root}/usr/share/tlpkg
+    install -Dm644 "$srcdir"/tlpkg/installer/config.guess -t "$pkgdir"/${pacman_root}/usr/share/tlpkg/installer
+  # remove files that will be autogenerated
+    rm -f "$pkgdir"/${pacman_root}/${pacman_root}/usr/share/texmf-dist/web2c/updmap.cfg
+    rm -f "$pkgdir"/${pacman_root}/${pacman_root}/usr/share/texmf-dist/web2c/fmtutil.cnf
+    rm -f "$pkgdir"/${pacman_root}/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.{dat,dat.lua,def}
+  # copy config files to $TEXMFCONFIG tree
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/dvipdfmx/dvipdfmx.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/dvipdfmx/
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/dvips/config/config.ps -t "$pkgdir"/${pacman_root}/etc/texmf/dvips/config/
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.us "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.dat
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.us.lua "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.dat.lua
+    echo "}" >> "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.dat.lua
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.us.def "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.def
+    echo "\uselanguage {USenglish} %%% This MUST be the last line of the file." >> "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.def
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/tex-ini-files/pdftexconfig.tex -t "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/tex-ini-files/
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/fmtutil-hdr.cnf "$pkgdir"/${pacman_root}/etc/texmf/web2c/fmtutil.cnf
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/mktex.cnf -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/texmf.cnf -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/updmap-hdr.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/xdvi/XDvi -t "$pkgdir"/${pacman_root}/etc/texmf/xdvi/
+  fi
+
+  if [[ $1 == binextra ]]; then
+    backup=(${pacman_root#/}/etc/texmf/chktex/chktexrc)
+  # copy config files to $TEXMFCONFIG tree
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/chktex/chktexrc -t "$pkgdir"/${pacman_root}/etc/texmf/chktex/
+  # install zsh completions
+    mkdir -p "$pkgdir"/${pacman_root}/usr/share/zsh/site-functions
+    TEXMFCNF="$srcdir" \
+    "$pkgdir"/${pacman_root}/usr/bin/texdoc --print-completion zsh > "$pkgdir"/${pacman_root}/usr/share/zsh/site-functions/_texdoc 2>/dev/null
+  fi
+
+  if [[ $1 == context ]]; then
+  # install pacman hooks
+    install -Dm644 80-mtxrun.hook -t "$pkgdir"/${pacman_root}/usr/share/libalpm/hooks/
+    install -Dm755 mtxrun.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/mtxrun
+
+  # set executable bit
+    chmod +x "$pkgdir"/${pacman_root}/usr/share/texmf-dist/scripts/context/lua/context.lua
+    chmod +x "$pkgdir"/${pacman_root}/usr/share/texmf-dist/scripts/context/lua/mtxrun.lua
+  fi
+
+  if [[ $1 == fontutils ]]; then
+    backup=(${pacman_root#/}/etc/texmf/ttf2pk/ttf2pk.cfg)
+  # copy config files to $TEXMFCONFIG tree
+    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/ttf2pk/ttf2pk.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/ttf2pk/
   fi
 }
-
-package_texlive-bibtexextra() {
-  pkgdesc+='additional BibTeX styles and bibliography databases'
-  groups=(texlive)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-}
-
-package_texlive-core() {
-  pkgdesc+='core distribution'
-  groups=(texlive)
-  depends=(texlive-bin dvisvgm)
-  optdepends=('texlive-langchinese: for the xeCJK style')
-  backup=(${pacman_root#/}/etc/texmf/web2c/texmf.cnf
-          ${pacman_root#/}/etc/texmf/chktex/chktexrc
-          ${pacman_root#/}/etc/texmf/dvipdfmx/dvipdfmx.cfg
-          ${pacman_root#/}/etc/texmf/dvips/config/config.ps
-          ${pacman_root#/}/etc/texmf/tex/generic/config/language.dat
-          ${pacman_root#/}/etc/texmf/tex/generic/config/language.def
-          ${pacman_root#/}/etc/texmf/tex/generic/tex-ini-files/pdftexconfig.tex
-          ${pacman_root#/}/etc/texmf/ttf2pk/ttf2pk.cfg
-          ${pacman_root#/}/etc/texmf/web2c/fmtutil.cnf
-          ${pacman_root#/}/etc/texmf/web2c/mktex.cnf
-          ${pacman_root#/}/etc/texmf/xdvi/XDvi)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.fmts -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-
-  install -Dm644 09-texlive-fonts.conf -t "$pkgdir"/${pacman_root}/usr/share/fontconfig/conf.avail/
-
-# install pacman hooks
-  install -Dm644 *.hook -t "$pkgdir"/${pacman_root}/usr/share/libalpm/hooks/
-  install -Dm755 mktexlsr.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/mktexlsr
-  install -Dm755 texlive-updmap.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/texlive-updmap
-  install -Dm755 texlive-fmtutil.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/texlive-fmtutil
-# remove upstream updmap.cfg: it contains too many maps
-   rm "${pkgdir}/${pacman_root}/usr/share/texmf-dist/web2c/updmap.cfg"
-# remove upstream fmtutil.cnf: it will be autogenerated
-   rm "${pkgdir}/${pacman_root}/usr/share/texmf-dist/web2c/fmtutil.cnf"
-# copy config files to $TEXMFCONFIG tree
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/chktex/chktexrc -t "$pkgdir"/${pacman_root}/etc/texmf/chktex/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/mktex.cnf -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/texmf.cnf -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/updmap-hdr.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/fmtutil-hdr.cnf "$pkgdir"/${pacman_root}/etc/texmf/web2c/fmtutil.cnf
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/dvips/config/config.ps -t "$pkgdir"/${pacman_root}/etc/texmf/dvips/config/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/dvipdfmx/dvipdfmx.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/dvipdfmx/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/tex-ini-files/pdftexconfig.tex -t "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/tex-ini-files/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.dat -t "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.def -t "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/ttf2pk/ttf2pk.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/ttf2pk/
-  install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/xdvi/XDvi -t "$pkgdir"/${pacman_root}/etc/texmf/xdvi/
-}
-
-package_texlive-fontsextra() {
-  pkgdesc+='all sorts of extra fonts'
-  groups=(texlive)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-formatsextra() {
-  pkgdesc+='collection of extra TeX formats'
-  groups=(texlive)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.fmts -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-games() {
-  pkgdesc+='setups for typesetting various board games, including chess'
-  groups=(texlive)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-humanities() {
-  pkgdesc+='packages for law, linguistics, social sciences, and humanities'
-  groups=(texlive)
-  depends=(texlive-latexextra)
-  optdepends=('texlive-pictures: for the qtree package')
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-}
-
-package_texlive-langchinese() {
-  pkgdesc+='fonts and macro packages to typeset Chinese texts'
-  groups=(texlive-lang)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-langcyrillic() {
-  pkgdesc+='fonts and macro packages to typeset Cyrillic texts'
-  groups=(texlive-lang)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-langextra() {
-  pkgdesc+='bundle of all extra language support'
-  groups=(texlive-lang)
-  depends=(texlive-latexextra)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-langgreek() {
-  pkgdesc+='fonts and support for typesetting Greek'
-  groups=(texlive-lang)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-langjapanese() {
-  pkgdesc+='fonts and macro packages to typeset Japanese texts'
-  groups=(texlive-lang)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.fmts -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-langkorean() {
-  pkgdesc+='fonts and macro packages to typeset Korean texts'
-  groups=(texlive-lang)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-latexextra() {
-  pkgdesc+='large collection of add-on packages for LaTeX'
-  groups=(texlive)
-  depends=(texlive-core)
-  optdepends=('inkscape: required for svg package'
-              'texlive-pictures: for the overpic package')
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.fmts -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-music() {
-  pkgdesc+='music typesetting packages'
-  groups=(texlive)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-pictures() {
-  pkgdesc+='packages for drawings graphics'
-  groups=(texlive)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
-
-package_texlive-pstricks() {
-  pkgdesc+='additional PSTricks packages'
-  groups=(texlive)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-}
-
-package_texlive-publishers() {
-  pkgdesc+='LaTeX classes and packages for specific publishers'
-  groups=(texlive)
-  depends=(texlive-core)
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-}
-
-package_texlive-science() {
-  pkgdesc+='typesetting for mathematics, natural and computer sciences'
-  groups=(texlive)
-  depends=(texlive-core)
-  optdepends=('texlive-latexextra: for the algorithm2e package'
-              'texlive-langgreek: for the textgreek style')
-
-  mkdir -p "$pkgdir"/${pacman_root}/usr/share/
-  mv $pkgname/texmf-dist "$pkgdir"/${pacman_root}/usr/share/
-
-  install -Dm644 $pkgname.fmts -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-  install -Dm644 $pkgname.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
-}
+  
+for _coll in ${_collections[@]}; do
+  eval "package_texlive-$_coll() {
+    _package $_coll
+  }"
+done
 
 package_texlive-doc() {
   pkgdesc+='documentation'
 
   mkdir -p "$pkgdir"/${pacman_root}/usr/share/doc
-  mv texlive-doc "$pkgdir"/${pacman_root}/usr/share/doc/texlive
+  mv texmf-dist/doc/{info,man} "$pkgdir"/${pacman_root}/usr/share
+  mv texmf-dist/doc "$pkgdir"/${pacman_root}/usr/share/doc/texlive
 # Symlink so texdoc can find it
   mkdir -p "$pkgdir"/${pacman_root}/usr/share/texmf-dist
   ln -s ${pacman_root}/usr/share/doc/texlive "$pkgdir"/${pacman_root}/usr/share/texmf-dist/doc
+# Fix conflicts with asymptote, psutils, dvisvgm, t1utils
+  rm "$pkgdir"/${pacman_root}/usr/share/info/asy-faq.info
+  rm "$pkgdir"/${pacman_root}/usr/share/man/man1/{asy,dvisvgm,epsffit,extractres,includeres,psbook,psjoin,psnup,psresize,psselect,pstops,psutils,t1ascii,t1asm,t1binary,t1disasm,t1mac,t1unmac}.1
+  rm -f "$pkgdir"/${pacman_root}/usr/share/man{,/man*}/{Makefile,*.pdf}
+# Fix permissions
+  find "$pkgdir" -type d -exec chmod 755 {} \;
 }
-
+ 
 package_texlive-meta() {
   pkgdesc='Metapackage to install Tex Live'
-  depends=(texlive-bibtexextra
-           texlive-core
-           texlive-fontsextra
-           texlive-formatsextra
-           texlive-games
-           texlive-humanities
-           texlive-latexextra
-           texlive-music
-           texlive-pictures
-           texlive-pstricks
-           texlive-publishers
-           texlive-science)
+  for _coll in ${_collections[@]}; do
+    [[ $_coll != lang* ]] && depends+=(texlive-$_coll)
+  done
 }
