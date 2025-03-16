@@ -1,0 +1,27 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -0,0 +1 @@
++
+@@ -6,0 +8 @@
++pkgrel+=".1"
+@@ -8 +10 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -32 +34 @@
+-    ./configure --prefix=/usr
++    ./configure --prefix=${pacman_root}/usr
+@@ -48 +50 @@
+-        "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
++        "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+@@ -50 +52 @@
+-        "$pkgdir"/usr/share/doc/$pkgname/AUTHORS
++        "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/AUTHORS
+@@ -52 +54 @@
+-        "$pkgdir"/usr/share/doc/$pkgname/README.md
++        "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/README.md
+@@ -54 +56 @@
+-        "$pkgdir"/usr/share/doc/$pkgname/ChangeLog
++        "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/ChangeLog
+@@ -56 +58 @@
+-        "$pkgdir"/usr/share/man/man1/libuv.1
++        "$pkgdir"/${pacman_root}/usr/share/man/man1/libuv.1

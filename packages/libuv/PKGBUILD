@@ -1,56 +1,59 @@
+
 # Maintainer: Felix Yan <felixonmars@archlinux.org>
 # Contributor: Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
 
 pkgname=libuv
-pkgver=1.44.2
+pkgver=1.50.0
 pkgrel=1
+pkgrel+=".1"
 pkgdesc="Multi-platform support library with a focus on asynchronous I/O"
 arch=('x86_64' 'arm64')
 url="https://github.com/libuv/libuv"
 license=('custom')
 depends=('glibc' 'libnsl')
-source=(https://dist.libuv.org/dist/v$pkgver/libuv-v$pkgver.tar.gz{,.sign}
-        'skip-udp-multicast-join.patch')
-sha512sums=('91197ff9303112567bbb915bbb88058050e2ad1c048815a3b57c054635d5dc7df458b956089d785475290132236cb0edcfae830f5d749de29a9a3213eeaf0b20'
-            'SKIP'
-            '912f8f38c25fb5013a36f95df3444d8477231c41189406b6f600b477062f295a2d665ce0086fc3b936a6666a8d89b86438405a87607975b27936a7ec0d32ecd1')
+makedepends=('git' 'python-sphinx')
+source=("git+https://github.com/libuv/libuv.git?signed#tag=v${pkgver}")
+sha512sums=('5d3c97f3d746c80874dac695fa7c5564d16cc1326e41d6a713f463f213e7a9bf3b65231d21c9f83c24d5d6175dcdb11f36bef59f5d5753a0794c730027695679')
 # PGP key IDs are available from https://github.com/libuv/libuv/blob/v1.x/MAINTAINERS.md
 validpgpkeys=('57353E0DBDAAA7E839B66A1AFF47D5E4AD8B4FDC'  # Colin Ihrig (@cjihrig)
+              '612F0EAD9401622379DF4402F28C3C8DA33C03BE'  # Santiago Gimeno
               'AEAD0A4B686767751A0E4AEF34A25FB128246514'
               'CFBB9CA9A5BEAFD70E2B3C5A79A67C55A3679C8B') # Jameson Nash (@vtjnash)
 
-pacman_root=$(pacman-root-dir)
-
 prepare() {
-    cd $pkgname-v$pkgver
-    patch -Np1 -i ../skip-udp-multicast-join.patch
-
+    cd $pkgname
     # Disable tests that fail on build.a.o (but pass locally)
+    sed -e '/udp_multicast_join/d' \
+        -e '/tcp_connect6_link_local/d' \
+        -i test/test-list.h
 }
 
 build() {
-    cd $pkgname-v$pkgver
+    cd $pkgname
     ./autogen.sh
     ./configure --prefix=${pacman_root}/usr
     make
+    make man -C docs
 }
 
 check() {
-    cd $pkgname-v$pkgver
+    cd $pkgname
     make check
 }
 
 package() {
-    cd $pkgname-v$pkgver
+    cd $pkgname
 
     make DESTDIR="$pkgdir" install
 
     install -Dm644 LICENSE \
-        "$pkgdir/${pacman_root}"/usr/share/licenses/$pkgname/LICENSE
+        "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
     install -Dm644 AUTHORS \
-        "$pkgdir/${pacman_root}"/usr/share/doc/$pkgname/AUTHORS
+        "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/AUTHORS
     install -Dm644 README.md \
-        "$pkgdir/${pacman_root}"/usr/share/doc/$pkgname/README.md
+        "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/README.md
     install -Dm644 ChangeLog \
-        "$pkgdir/${pacman_root}"/usr/share/doc/$pkgname/ChangeLog
+        "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname/ChangeLog
+    install -Dm644 docs/build/man/libuv.1 \
+        "$pkgdir"/${pacman_root}/usr/share/man/man1/libuv.1
 }
