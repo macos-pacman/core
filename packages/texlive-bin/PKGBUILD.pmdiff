@@ -1,0 +1,94 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -8,0 +9 @@
++pkgrel+=".3"
+@@ -10 +11 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -47 +48 @@
+-_commit=a681f4ec1afac3d5e82283a1dd78bed350b82054
++_commit=185be24413872a4530c338343f8168d70bb45077
+@@ -50 +51 @@
+-sha256sums=('68353b957b1b0daa2136c020fb9bab9c7ac8a19e1cbb37826cf74a2cc987efe2'
++sha256sums=('a782bce3fe71fc30a70d8ffa581d49b99ce197447ed02fa169d54023e075b9c6'
+@@ -62,0 +64,13 @@
++
++  # the relver is the unix timestamp, eg. 1742119845
++  # take digits 3-5, so '421'.
++  local rv=$(cat libs/luajit/LuaJIT-src/.relver | awk '{print substr($0,3,3)}')
++  echo "${rv}" > libs/luajit/LuaJIT-src/.relver
++
++  # god fucking dammit
++  local f; for f in libs/luajit/{version.ac,configure,native/configure}; do
++    sed -i -e "s/\b81742\b/${rv}/g" "$f"
++  done
++
++  # yeet the .git folder to force luajit to use the relver file.
++  rm -rf .git
+@@ -68,2 +82,2 @@
+-  mkdir -p build
+-  cd build
++  mkdir -p builddir
++  cd builddir
+@@ -73,5 +87,5 @@
+-  ../configure --prefix=/usr -C \
+-    --sysconfdir=/etc \
+-    --datarootdir=/usr/share \
+-    --datadir=/usr/share \
+-    --mandir=/usr/share/man \
++  ../configure --prefix=${pacman_root}/usr -C \
++    --sysconfdir=${pacman_root}/etc \
++    --datarootdir=${pacman_root}/usr/share \
++    --datadir=${pacman_root}/usr/share \
++    --mandir=${pacman_root}/usr/share/man \
+@@ -79 +92,0 @@
+-    --with-banner-add="/Arch Linux" \
+@@ -104,2 +117,2 @@
+-    --with-freetype2-libdir=/usr/lib \
+-    --with-freetype2-include=/usr/include/freetype2 \
++    --with-freetype2-libdir=${pacman_root}/usr/lib \
++    --with-freetype2-include=${pacman_root}/usr/include/freetype2 \
+@@ -113 +126 @@
+-  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
++  # sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+@@ -122 +135 @@
+-  cd texlive-source/build
++  cd texlive-source/builddir
+@@ -127 +140 @@
+-  rm -r "$pkgdir"/usr/share/man
++  rm -r "$pkgdir"/${pacman_root}/usr/share/man
+@@ -170,0 +184,3 @@
++  # kind of a hack
++  ignore_broken_dylibs=(${pacman_root#/}/usr/bin/synctex)
++
+@@ -173,5 +189,5 @@
+-  find utils/xindy -name Makefile -exec sed -i -e "s|^prefix =.\+$|prefix = $pkgdir/usr|" -e "s|^mandir =.\+$|mandir = \${prefix}/share/man|" -e "s|^datadir =.\+$|datadir = \${datarootdir}/texmf|" -e "s|^docdir =.\+$|docdir = \${datadir}/doc/xindy|" '{}' \;
+-
+-  cd build
+-  make DESTDIR="$pkgdir" texmf="$pkgdir"/usr/share/texmf install
+-  LD_PRELOAD="$pkgdir"/usr/lib/libkpathsea.so.6 \
++  find utils/xindy -name Makefile -exec sed -i -e "s|^prefix =.\+$|prefix = $pkgdir/${pacman_root}/usr|" -e "s|^mandir =.\+$|mandir = \${prefix}/share/man|" -e "s|^datadir =.\+$|datadir = \${datarootdir}/texmf|" -e "s|^docdir =.\+$|docdir = \${datadir}/doc/xindy|" '{}' \;
++
++  cd builddir
++  make DESTDIR="$pkgdir" texmf="$pkgdir"/${pacman_root}/usr/share/texmf install
++  DYLD_FALLBACK_LIBRARY_PATH="$pkgdir"/${pacman_root}/usr/lib/ \
+@@ -181 +197 @@
+-  rm -r "$pkgdir"/usr/share/texmf-dist
++  rm -r "$pkgdir"/${pacman_root}/usr/share/texmf-dist
+@@ -184 +200 @@
+-  rm -r "$pkgdir"/usr/share/{info,man}
++  rm -r "$pkgdir"/${pacman_root}/usr/share/{info,man}
+@@ -187,2 +203,2 @@
+-  for _link in $(ls "$pkgdir"/usr/bin); do
+-    [[ $(readlink -m "$pkgdir"/usr/bin/$_link) == */scripts/* ]] && _rmlinks+="$pkgdir/usr/bin/$_link "
++  for _link in $(ls "$pkgdir"/${pacman_root}/usr/bin); do
++    [[ $(stat -f '%Y' "$pkgdir"/${pacman_root}/usr/bin/$_link) == */scripts/* ]] && _rmlinks+="$pkgdir/${pacman_root}/usr/bin/$_link "
+@@ -193,4 +209,4 @@
+-  rm "$pkgdir"/usr/include/synctex/*
+-  rm "$pkgdir"/usr/lib/libsynctex.*
+-  rm "$pkgdir"/usr/lib/pkgconfig/synctex.pc
+-}
++  rm "$pkgdir"/${pacman_root}/usr/include/synctex/*
++  rm "$pkgdir"/${pacman_root}/usr/lib/libsynctex.*
++  rm "$pkgdir"/${pacman_root}/usr/lib/pkgconfig/synctex.pc
++}
