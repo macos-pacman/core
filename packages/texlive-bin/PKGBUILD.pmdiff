@@ -5,12 +5,6 @@
 @@ -10 +11 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
-@@ -47 +48 @@
--_commit=a681f4ec1afac3d5e82283a1dd78bed350b82054
-+_commit=185be24413872a4530c338343f8168d70bb45077
-@@ -50 +51 @@
--sha256sums=('68353b957b1b0daa2136c020fb9bab9c7ac8a19e1cbb37826cf74a2cc987efe2'
-+sha256sums=('a782bce3fe71fc30a70d8ffa581d49b99ce197447ed02fa169d54023e075b9c6'
 @@ -62,0 +64,13 @@
 +
 +  # the relver is the unix timestamp, eg. 1742119845
