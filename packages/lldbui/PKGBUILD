@@ -1,0 +1,41 @@
+# Maintainer: yuki <yuki@nowhere>
+
+pkgname=lldbui-git
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A lightweight native GUI for LLDB"
+arch=('x86_64' 'arm64')
+url="https://git.sr.ht/~dennis/lldbui"
+license=('MIT')
+makedepends=('rust')
+source=("git+https://git.sr.ht/~dennis/lldbui")
+sha512sums=('SKIP')
+
+prepare() {
+  cd "$srcdir/lldbui"
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+pkgver() {
+  cd "$srcdir/lldbui" || exit 1
+  git -c "core.abbrev=8" show -s "--format=%cd-%h" "--date=format:%Y%m%d-%H%M%S" | tr - .
+}
+
+build() {
+  cd lldbui
+  cargo build --release --locked --target-dir target
+}
+
+check() {
+  cd lldbui
+  cargo test
+}
+
+package() {
+  cd lldbui
+
+  install -Dm755 target/release/lldbui \
+    "$pkgdir"/${pacman_root}/usr/bin/lldbui
+  install -Dm644 LICENSE \
+    "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/LICENSE
+}
