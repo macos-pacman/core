@@ -3,55 +3,70 @@
 # Contributor: Pierre Schmitz <pierre@archlinux.de>
 
 pkgname=cmake
-pkgver=3.28.3
+pkgver=4.0.2
 pkgrel=1
 pkgrel+=".1"
 pkgdesc='A cross-platform open-source make system'
 arch=('x86_64' 'arm64')
 url="https://www.cmake.org/"
 license=('custom')
-depends=('curl' 'libarchive' 'jsoncpp' 'libjsoncpp.dylib' 'libuv' 'rhash' 'cppdap' 'libiconv')
-makedepends=('python-sphinx' 'nlohmann-json')
-optdepends=('qt6-base: cmake-gui')
-source=("https://www.cmake.org/files/v${pkgver%.*}/${pkgname}-${pkgver}.tar.gz"
+depends=(cppdap
+         curl
+         expat
+         gcc-libs
+         glibc
+         jsoncpp
+         libarchive
+         libuv
+         ncurses
+         rhash
+         zlib)
+makedepends=(git
+             nlohmann-json
+             python-sphinx)
+optdepends=(
+  'make: for unix Makefile generator'
+  'ninja: for ninja generator'
+)
+source=(git+https://gitlab.kitware.com/cmake/cmake.git#tag=v$pkgver?signed
         "toolchain.patch"
         "default.cmake.in")
-sha512sums=('66e923925b764e1fe3d150c69dab3e0abd9e0c90d8e30cab63c3a1f70c3e37df0a5e3ff12b378eeae3bdc6608495f41399e6f81602e26b513b19fa19ff6c48fc'
-            'd34e4c271c7ce55dddb87cfc6ca918d2b970253ace26584b1942933d3adc0ccb4092792aca6c8d59b33bb9111df169715bb91fe3ed1b802b7589c9ce95a66bb5'
+sha512sums=('SKIP'
+            '5332033482571a21e7807db2b2768977cb057f4a68680a26264ce1caa09a89831f7d5455e4517c71cd7f098917ccccdfe48062383ee772bfbbaa47f149996db8'
             'c576f7db2a5bd217877e6f09c184fc3fa30fb0f774a8706aa695f44e94d574d37f8b79f60cf9b127e14bae7f4ea78aa9bfe11e925e43dfc2228b9bc78e196875')
+validpgpkeys=(CBA23971357C2E6590D9EFD3EC8FEF3A7BFB4EDA) # Brad King <brad.king@kitware.com>
 
 prepare() {
-  cd ${pkgname}-${pkgver}
-  patch -Np1 -i ../toolchain.patch
+  cd $pkgname
+  git cherry-pick -n a869b79c5921412c91fb71a761748ae5f7d3fb23 # Fix FindHDF5 for HDF5 built with cmake
 
+  patch -Np1 -i ../toolchain.patch
   sed "s|%%PACMAN_ROOT%%|${pacman_root}|g" ../default.cmake.in > default.cmake
 }
 
 build() {
-  cd ${pkgname}-${pkgver}
+  cd ${pkgname}
   ./bootstrap --prefix=${pacman_root}/usr \
     --mandir=/share/man \
     --docdir=/share/doc/cmake \
     --datadir=/share/cmake \
-    --system-libs \
     --sphinx-man \
     --sphinx-html \
+    --system-libs \
     --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN) \
     -- \
     -DCMAKE_BUILD_TYPE:STRING=Release \
     -DCMAKE_TOOLCHAIN_FILE="" \
     -DCMAKE_RANLIB="/usr/bin/ranlib" \
     -DCMAKE_AR="/usr/bin/ar"
-
   make
 }
 
 package() {
-  cd ${pkgname}-${pkgver}
+  cd ${pkgname}
   make DESTDIR="${pkgdir}" install
 
   rm -r "$pkgdir"/${pacman_root}/usr/share/doc/cmake/html/_sources
-
-  install -Dm644 Copyright.txt "${pkgdir}/${pacman_root}"/usr/share/licenses/${pkgname}/LICENSE
-  install -Dm644 default.cmake "${pkgdir}/${pacman_root}/usr/share/cmake/"
+  install -Dm644 LICENSE.rst -t "${pkgdir}"/${pacman_root}/usr/share/licenses/$pkgname
+  install -Dm644 default.cmake "${pkgdir}"/${pacman_root}/usr/share/cmake/
 }

@@ -6,7 +6,7 @@ index 013a87b..c0cb06b 100644
          this->AddCacheEntry("CMAKE_TOOLCHAIN_FILE", envToolchain,
                              "The CMake toolchain file",
                              cmStateEnums::FILEPATH);
-+      } else {
++      } else if (cmSystemTools::FileExists("/opt/pacman/usr/share/cmake/default.cmake", /* isFile: */ true)) {
 +        this->AddCacheEntry("CMAKE_TOOLCHAIN_FILE",
 +                            "/opt/pacman/usr/share/cmake/default.cmake",
 +                            "The CMake toolchain file",
