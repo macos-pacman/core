@@ -1,9 +1,9 @@
 # Maintainer: zhiayang <zhiayang@nowhere>
 
 pkgname=pmutils
-pkgver=0.7.8
+pkgver=0.7.9
 pkgrel=1
-_commit='84e19d9a3f9c8c3e3f867fb99bb53f1f16596272'
+_commit='b9c26eda56ce92f2466e852b0f379b48a1466394'
 pkgdesc="Repository management scripts for macos-pacman"
 url="https://github.com/macos-pacman/pmutils"
 license=('Apache')
