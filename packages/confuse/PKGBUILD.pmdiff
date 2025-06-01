@@ -1,0 +1,13 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -10,0 +11 @@
++pkgrel+=".1"
+@@ -12 +13 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -22 +23 @@
+-  ./configure --prefix=/usr --enable-shared
++  ./configure --prefix=${pacman_root}/usr --enable-shared
+@@ -34 +35 @@
+-  install -D -m 644 -t "${pkgdir}/usr/share/licenses/${pkgname}/" LICENSE
++  install -D -m 644 -t "${pkgdir}/${pacman_root}/usr/share/licenses/${pkgname}/" LICENSE
