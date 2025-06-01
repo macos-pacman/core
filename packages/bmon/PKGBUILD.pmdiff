@@ -1,0 +1,22 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -5,0 +6 @@
++pkgrel+=".1"
+@@ -7 +8 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -10 +11 @@
+-depends=('ncurses' 'libnl' 'confuse')
++depends=('ncurses' 'confuse')
+@@ -19 +20,5 @@
+-  ./configure --prefix=/usr --sysconfdir=/etc
++  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc
++
++  # fix build error: https://github.com/tgraf/bmon/issues/89
++  sed -i -e 's|#define __unused__|//#define __unused__|g' include/bmon/bmon.h
++  sed -i -e 's/__unused__//g' src/in_proc.c src/out_curses.c
+@@ -29,2 +34,2 @@
+-  install -d "${pkgdir}"/usr/share/licenses/$pkgname
+-  cp LICENSE.{BSD,MIT} "${pkgdir}"/usr/share/licenses/$pkgname
++  install -d "${pkgdir}"/${pacman_root}/usr/share/licenses/$pkgname
++  cp LICENSE.{BSD,MIT} "${pkgdir}"/${pacman_root}/usr/share/licenses/$pkgname

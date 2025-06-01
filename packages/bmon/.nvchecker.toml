@@ -1,0 +1,4 @@
+[bmon]
+source = "git"
+git = "https://github.com/tgraf/bmon.git"
+prefix = "v"

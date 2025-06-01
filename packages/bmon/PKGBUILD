@@ -1,0 +1,36 @@
+# Maintainer: Jaroslav Lichtblau <svetlemodry@archlinux.org>
+
+pkgname=bmon
+pkgver=4.0
+pkgrel=5
+pkgrel+=".1"
+pkgdesc="Portable bandwidth monitor and rate estimator"
+arch=('x86_64' 'arm64')
+url="https://github.com/tgraf/bmon/"
+license=('MIT' 'BSD')
+depends=('ncurses' 'confuse')
+makedepends=('autoconf')
+source=($pkgname-$pkgver.tar.gz::https://github.com/tgraf/$pkgname/archive/v$pkgver.tar.gz)
+sha256sums=('d5e503ff6b116c681ebf4d10e238604dde836dceb9c0008eb92416a96c87ca40')
+
+build() {
+  cd "${srcdir}"/$pkgname-$pkgver
+
+  ./autogen.sh
+  ./configure --prefix=${pacman_root}/usr --sysconfdir=${pacman_root}/etc
+
+  # fix build error: https://github.com/tgraf/bmon/issues/89
+  sed -i -e 's|#define __unused__|//#define __unused__|g' include/bmon/bmon.h
+  sed -i -e 's/__unused__//g' src/in_proc.c src/out_curses.c
+  make
+}
+
+package() {
+  cd "${srcdir}"/$pkgname-$pkgver
+
+  make DESTDIR="${pkgdir}" install
+
+# Licenses
+  install -d "${pkgdir}"/${pacman_root}/usr/share/licenses/$pkgname
+  cp LICENSE.{BSD,MIT} "${pkgdir}"/${pacman_root}/usr/share/licenses/$pkgname
+}
