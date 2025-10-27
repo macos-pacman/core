@@ -1,59 +1,57 @@
---- PKGBUILD.new	2025-10-27 20:52:23.364711911 +0800
-+++ PKGBUILD	2025-10-27 20:50:49.064426087 +0800
-@@ -12,7 +12,7 @@
- pkgver=25.0.0
- pkgrel=1
- pkgdesc='Evented I/O for V8 javascript ("Current" release)'
+--- PKGBUILD
++++ PKGBUILD
+@@ -13,0 +14 @@
++pkgrel+=".1"
+@@ -15 +16 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
- url='https://nodejs.org/'
- license=('MIT')
- depends=(
-@@ -33,8 +33,8 @@
- )
- makedepends=(
-   'git'
+@@ -22 +22,0 @@
+-#  'http-parser'
+@@ -27,0 +28 @@
++#  'llhttp'
+@@ -36 +36,0 @@
 -  'procps-ng'
-   'python'
+@@ -37,0 +38 @@
 +  'pkgconf'
- )
- optdepends=('npm: nodejs package manager')
- options=('!lto')
-@@ -50,8 +50,9 @@
- 
- _set_flags() {
-   # /usr/lib/libnode.so uses malloc_usable_size, which is incompatible with fortification level 3
--  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
--  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+@@ -42 +43 @@
+-sha512sums=('65e60064edfc254ab0bfd4b6dd6b6a5047bbf2e2c1e69f2c120f4b5c8f8274493c971db47b9646bbb4bcd10a08831f0a6ec21ffe82d5382095ff2d2b7f811d77')
++sha512sums=('1cc74927dec9958c579b64a414de64167ac5375af3e1c9fc956199bd10fa3ad373bc6d1d1b264fc69811989e9eaad4a9b3539e4ee340fc882cd8d701b99b752d')
+@@ -47,0 +49 @@
++  '5BE8A3F6C8A5C01D106C0AD820B1A390B168D356' # Antoine du Hamel <antoine.duhamel@rosa.be>
+@@ -49,0 +52,7 @@
++_set_flags() {
++  # /usr/lib/libnode.so uses malloc_usable_size, which is incompatible with fortification level 3
 +  # CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
 +  # CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
 +  :
- }
- 
- build() {
-@@ -59,7 +60,7 @@
-   cd node
- 
-   ./configure \
++}
++
+@@ -50,0 +60 @@
++  _set_flags
+@@ -52,3 +61,0 @@
+-  # /usr/lib/libnode.so uses malloc_usable_size, which is incompatible with fortification level 3
+-  export CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+-  export CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+@@ -57 +64 @@
 -    --prefix=/usr \
 +    --prefix=${pacman_root}/usr \
-     --without-npm \
-     --with-intl=system-icu \
-     --shared-brotli \
-@@ -92,14 +93,14 @@
-   rm test/parallel/test-http2-priority-event.js
-   rm test/parallel/test-http2-reset-flood.js
-   rm test/parallel/test-tls-ocsp-callback.js
+@@ -77,0 +85 @@
++  _set_flags
+@@ -79 +87,11 @@
 -  make test-only
++  rm test/parallel/test-http-outgoing-end-cork.js
++  rm test/parallel/test-http2-client-set-priority.js
++  rm test/parallel/test-http2-client-unescaped-path.js
++  rm test/parallel/test-http2-max-invalid-frames.js
++  rm test/parallel/test-http2-misbehaving-flow-control.js
++  rm test/parallel/test-http2-misbehaving-flow-control-paused.js
++  rm test/parallel/test-http2-multi-content-length.js
++  rm test/parallel/test-http2-priority-event.js
++  rm test/parallel/test-http2-reset-flood.js
++  rm test/parallel/test-tls-ocsp-callback.js
 +  make test-only || :
- }
- 
- package() {
-   _set_flags
-   cd node
-   make DESTDIR="$pkgdir" install
+@@ -82,0 +101 @@
++  _set_flags
+@@ -85 +104 @@
 -  install -Dm644 LICENSE -t "$pkgdir"/usr/share/licenses/nodejs/
 +  install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/nodejs/
- }
- 
- # vim:set ts=2 sw=2 et:
