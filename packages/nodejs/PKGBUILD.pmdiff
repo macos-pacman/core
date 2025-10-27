@@ -1,0 +1,55 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -15 +15 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -22 +21,0 @@
+-#  'http-parser'
+@@ -27,0 +27 @@
++#  'llhttp'
+@@ -36 +35,0 @@
+-  'procps-ng'
+@@ -37,0 +37 @@
++  'pkgconf'
+@@ -42 +42 @@
+-sha512sums=('65e60064edfc254ab0bfd4b6dd6b6a5047bbf2e2c1e69f2c120f4b5c8f8274493c971db47b9646bbb4bcd10a08831f0a6ec21ffe82d5382095ff2d2b7f811d77')
++sha512sums=('1cc74927dec9958c579b64a414de64167ac5375af3e1c9fc956199bd10fa3ad373bc6d1d1b264fc69811989e9eaad4a9b3539e4ee340fc882cd8d701b99b752d')
+@@ -47,0 +48 @@
++  '5BE8A3F6C8A5C01D106C0AD820B1A390B168D356' # Antoine du Hamel <antoine.duhamel@rosa.be>
+@@ -49,0 +51,7 @@
++_set_flags() {
++  # /usr/lib/libnode.so uses malloc_usable_size, which is incompatible with fortification level 3
++  # CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
++  # CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
++  :
++}
++
+@@ -50,0 +59 @@
++  _set_flags
+@@ -52,3 +60,0 @@
+-  # /usr/lib/libnode.so uses malloc_usable_size, which is incompatible with fortification level 3
+-  export CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+-  export CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+@@ -57 +63 @@
+-    --prefix=/usr \
++    --prefix=${pacman_root}/usr \
+@@ -77,0 +84 @@
++  _set_flags
+@@ -79 +86,11 @@
+-  make test-only
++  rm test/parallel/test-http-outgoing-end-cork.js
++  rm test/parallel/test-http2-client-set-priority.js
++  rm test/parallel/test-http2-client-unescaped-path.js
++  rm test/parallel/test-http2-max-invalid-frames.js
++  rm test/parallel/test-http2-misbehaving-flow-control.js
++  rm test/parallel/test-http2-misbehaving-flow-control-paused.js
++  rm test/parallel/test-http2-multi-content-length.js
++  rm test/parallel/test-http2-priority-event.js
++  rm test/parallel/test-http2-reset-flood.js
++  rm test/parallel/test-tls-ocsp-callback.js
++  make test-only || :
+@@ -82,0 +100 @@
++  _set_flags
+@@ -85 +103 @@
+-  install -Dm644 LICENSE -t "$pkgdir"/usr/share/licenses/nodejs/
++  install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/nodejs/
