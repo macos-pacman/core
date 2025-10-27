@@ -1,0 +1,27 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".5"
+@@ -17 +18 @@
+-  yarn
++  # yarn
+@@ -29,4 +30,6 @@
+-  local mod_dir=/usr/lib/node_modules/$pkgname
+-  install -d  "$pkgdir"/{usr/bin,$mod_dir/bin}
+-  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/usr/bin/$pkgname
+-  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/usr/bin/${pkgname}pkg
++  local mod_dir=${pacman_root}/usr/lib/node_modules/$pkgname
++  mkdir -p "$pkgdir/$mod_dir"
++
++  install -d  "$pkgdir"/{${pacman_root}/usr/bin,$mod_dir/bin}
++  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/${pacman_root}/usr/bin/$pkgname
++  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/${pacman_root}/usr/bin/${pkgname}pkg
+@@ -45,4 +48,4 @@
+-  cp -r lib node_modules package.json "$pkgdir"/$mod_dir
+-  install -t "$pkgdir"/$mod_dir/bin bin/$pkgname.js
+-  install -Dm644 -t "$pkgdir"/usr/share/doc/$pkgname README.md
+-  install -Dm644 -t "$pkgdir"/usr/share/licenses/$pkgname LICENSE
++  cp -r lib node_modules package.json "$pkgdir"/$mod_dir/
++  install -vt "$pkgdir"/$mod_dir/bin bin/$pkgname.js
++  install -Dm644 -t "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname README.md
++  install -Dm644 -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname LICENSE

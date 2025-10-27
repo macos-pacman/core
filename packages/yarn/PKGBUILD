@@ -1,0 +1,52 @@
+# Maintainer: Daniel M. Capella <polyzen@archlinux.org>
+# Contributor: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Contributor: Jan Koppe <post@jankoppe.de>
+
+pkgname=yarn
+pkgver=1.22.22
+pkgrel=2
+pkgrel+=".5"
+pkgdesc='Fast, reliable, and secure dependency management'
+arch=(any)
+url=https://classic.yarnpkg.com/
+license=(BSD-2-Clause)
+depends=(nodejs)
+makedepends=(
+  git
+  jq
+  ripgrep
+  # yarn
+)
+source=("git+https://github.com/${pkgname}pkg/$pkgname.git#tag=v$pkgver")
+b2sums=('7099c5c6b409b10717a5d4811e62f79fb3b9cb4a9610d4081032ba2e27d6595a518a72070af3a32389dce44d555c68fc691cbb080b8b58bf8184e347828bde89')
+
+build() {
+  cd $pkgname
+  yarn --frozen-lockfile
+  yarn build
+}
+
+package() {
+  local mod_dir=${pacman_root}/usr/lib/node_modules/$pkgname
+  mkdir -p "$pkgdir/$mod_dir"
+
+  install -d  "$pkgdir"/{${pacman_root}/usr/bin,$mod_dir/bin}
+  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/${pacman_root}/usr/bin/$pkgname
+  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/${pacman_root}/usr/bin/${pkgname}pkg
+
+  cd $pkgname
+  # Prune unnecessary packages
+  cp package.json{,.bak}
+  read -ra devDependencies < <(jq -r '.devDependencies | keys | join(" ")' package.json)
+  yarn remove --frozen-lockfile "${devDependencies[@]}"
+  mv package.json{.bak,}
+
+  # Import userland punycode
+  readarray -t punycode_importers < <(rg -t js -l "require\('punycode'\)" node_modules)
+  sed -i "s,require('punycode'),require('punycode/')," "${punycode_importers[@]}"
+
+  cp -r lib node_modules package.json "$pkgdir"/$mod_dir/
+  install -vt "$pkgdir"/$mod_dir/bin bin/$pkgname.js
+  install -Dm644 -t "$pkgdir"/${pacman_root}/usr/share/doc/$pkgname README.md
+  install -Dm644 -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname LICENSE
+}
