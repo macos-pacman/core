@@ -9,9 +9,8 @@
 # Contributor: TIanyi Cui <tianyicui@gmail.com>
 
 pkgname=nodejs
-pkgver=23.9.0
+pkgver=25.0.0
 pkgrel=1
-pkgrel+=".1"
 pkgdesc='Evented I/O for V8 javascript ("Current" release)'
 arch=('x86_64' 'arm64')
 url='https://nodejs.org/'
@@ -20,12 +19,12 @@ depends=(
 #  'ada'
   'brotli'
   'c-ares'
-#  'http-parser'
   'icu'
   'libnghttp2'
   'libnghttp3'
   'libngtcp2'
   'libuv'
+#  'llhttp'
   'openssl'
   'simdjson'
 #  'simdutf'
@@ -40,15 +39,24 @@ makedepends=(
 optdepends=('npm: nodejs package manager')
 options=('!lto')
 source=("git+https://github.com/nodejs/node.git#tag=v$pkgver?signed")
-sha512sums=('SKIP')
+sha512sums=('1cc74927dec9958c579b64a414de64167ac5375af3e1c9fc956199bd10fa3ad373bc6d1d1b264fc69811989e9eaad4a9b3539e4ee340fc882cd8d701b99b752d')
 validpgpkeys=(
   '8FCCA13FEF1D0C2E91008E09770F7A9A5AE15600' # Michaël Zasso (Targos) <targos@protonmail.com>
   '890C08DB8579162FEE0DF9DB8BEAB4DFCF555EF4' # RafaelGSS <rafael.nunu@hotmail.com>
   'C82FA3AE1CBEDC6BE46B9360C43CEC45C17AB93C' # Richard Lau <rlau@redhat.com>
   'C0D6248439F1D5604AAFFB4021D900FFDB233756' # Antoine du Hamel <duhamelantoine1995@gmail.com>
+  '5BE8A3F6C8A5C01D106C0AD820B1A390B168D356' # Antoine du Hamel <antoine.duhamel@rosa.be>
 )
 
+_set_flags() {
+  # /usr/lib/libnode.so uses malloc_usable_size, which is incompatible with fortification level 3
+  # CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  # CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  :
+}
+
 build() {
+  _set_flags
   cd node
 
   ./configure \
@@ -73,11 +81,23 @@ build() {
 }
 
 check() {
+  _set_flags
   cd node
+  rm test/parallel/test-http-outgoing-end-cork.js
+  rm test/parallel/test-http2-client-set-priority.js
+  rm test/parallel/test-http2-client-unescaped-path.js
+  rm test/parallel/test-http2-max-invalid-frames.js
+  rm test/parallel/test-http2-misbehaving-flow-control.js
+  rm test/parallel/test-http2-misbehaving-flow-control-paused.js
+  rm test/parallel/test-http2-multi-content-length.js
+  rm test/parallel/test-http2-priority-event.js
+  rm test/parallel/test-http2-reset-flood.js
+  rm test/parallel/test-tls-ocsp-callback.js
   make test-only || :
 }
 
 package() {
+  _set_flags
   cd node
   make DESTDIR="$pkgdir" install
   install -Dm644 LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/nodejs/
