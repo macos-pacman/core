@@ -4,7 +4,7 @@
 pkgname=npm
 pkgver=11.6.2
 pkgrel=1
-pkgrel+=".1"
+pkgrel+=".2"
 pkgdesc='JavaScript package manager'
 arch=(any)
 url=https://www.npmjs.com
@@ -42,7 +42,7 @@ check() {
 package() {
   local mod_dir=${pacman_root}/usr/lib/node_modules/$pkgname
 
-  install -d "$pkgdir"/${pacman_root}/{usr/{bin,share/{bash-completion/completions,licenses/$pkgname}},$mod_dir}
+  install -d "$pkgdir"/{${pacman_root}/usr/{bin,share/{bash-completion/completions,licenses/$pkgname}},$mod_dir}
   ln -s $mod_dir/bin/$pkgname-cli.js "$pkgdir"/${pacman_root}/usr/bin/$pkgname
   ln -s $mod_dir/bin/npx-cli.js "$pkgdir"/${pacman_root}/usr/bin/npx
   ln -s $mod_dir/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
