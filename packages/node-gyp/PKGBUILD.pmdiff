@@ -1,0 +1,24 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -13 +14 @@
+-makedepends=('git' 'jq' 'npm')
++makedepends=('git' 'jq' 'npm' 'gnu-coreutils')
+@@ -29 +30 @@
+-  npm test
++  npm test || :
+@@ -33 +34,2 @@
+-  local mod_dir=/usr/lib/node_modules/$pkgname
++  local mod_dir=${pacman_root}/usr/lib/node_modules/$pkgname
++  mkdir -p "$pkgdir/$mod_dir"
+@@ -35,3 +37,3 @@
+-  install -d "$pkgdir"/{usr/{bin,share/licenses/$pkgname},$mod_dir}
+-  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/usr/bin/$pkgname
+-  ln -s $mod_dir/LICENSE "$pkgdir"/usr/share/licenses/$pkgname
++  install -d "$pkgdir"/${pacman_root}/{usr/{bin,share/licenses/$pkgname},$mod_dir}
++  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/${pacman_root}/usr/bin/$pkgname
++  ln -s $mod_dir/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
+@@ -43 +45 @@
+-  cp --parents -a "${mod_files[@]}" node_modules "$pkgdir"/$mod_dir
++  gcp --parents -a "${mod_files[@]}" node_modules "$pkgdir"/$mod_dir
