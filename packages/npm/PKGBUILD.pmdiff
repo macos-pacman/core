@@ -1,0 +1,120 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -1,2 +1 @@
+-# Maintainer: Daniel M. Capella <polyzen@archlinux.org>
+-# Contributor: Felix Yan <felixonmars@archlinux.org>
++# Maintainer: Felix Yan <felixonmars@archlinux.org>
+@@ -7,18 +6,19 @@
+-pkgdesc='JavaScript package manager'
+-arch=(any)
+-url=https://www.npmjs.com
+-license=(Artistic-2.0)
+-depends=(
+-  node-gyp
+-  'nodejs>=20.17.0'
+-  nodejs-nopt
+-  semver
+-)
+-makedepends=(
+-  git
+-  jq
+-)
+-options=(!zipman)
+-optdepends=("git: for dependencies using Git URL's")
+-source=("npm-cli::git+https://github.com/npm/cli.git#tag=v$pkgver")
+-b2sums=('a17b0544bb3c8172d624914725b274265af45dd4d775b4a73ca70e4fc0ff2c579f8ddff3b574343b605f3fd66359c2bf62eb6389e364ac3b413c9a6a9d5b2c03')
++pkgdesc='A package manager for javascript'
++arch=('any')
++url='https://www.npmjs.com/'
++license=('custom:Artistic')
++depends=('nodejs' 'node-gyp' 'nodejs-nopt' 'semver')
++# libgl: TODO
++# libvips: for sharp (doc build) (disabled as current version of gatsby imports a broken sharp)
++# libxi: for cwebp (doc build)
++makedepends=('python')
++options=('!emptydirs')
++source=("https://github.com/npm/cli/archive/v$pkgver/$pkgname-$pkgver.tar.gz")
++sha512sums=('5133c15d6564d3eee8f0dba2ca95a535c3c9096111f2c0c00cfd830d3b3915b906624ffe3d6c4de02c2c06c4c8e4f8b5f435a8697e843eb6c29eb7b758e403b7')
++
++prepare() {
++  cd cli-$pkgver
++  # 'deps' was added as a dep for many Makefile targets since 8.6 but it's not easy to fix.
++  # Let's skip and do it ourselves instead.
++  sed -i 's|node bin/npm-cli.js run resetdeps|true|' Makefile
++}
+@@ -27,11 +27,3 @@
+-  cd npm-cli
+-  node scripts/resetdeps.js
+-  node . run build -w docs
+-}
+-
+-check() {
+-  cd npm-cli
+-  # Windows shims test failure
+-  mv test/bin/windows-shims.js{,.bak}
+-  node . run test --ignore-scripts -- --no-coverage
+-  mv test/bin/windows-shims.js{.bak,}
++  cd cli-$pkgver
++  node . i --ignore-scripts --no-audit --no-fund
++  NODE_PATH=${pacman_root}/usr/lib/node_modules make
+@@ -41 +33,2 @@
+-  local mod_dir=/usr/lib/node_modules/$pkgname
++  cd cli-$pkgver
++  node bin/npm-cli.js install -g -f --prefix="$pkgdir/${pacman_root}/usr" $(node bin/npm-cli.js pack | tail -1)
+@@ -43,4 +36,3 @@
+-  install -d "$pkgdir"/{usr/{bin,share/{bash-completion/completions,licenses/$pkgname}},$mod_dir}
+-  ln -s $mod_dir/bin/$pkgname-cli.js "$pkgdir"/usr/bin/$pkgname
+-  ln -s $mod_dir/bin/npx-cli.js "$pkgdir"/usr/bin/npx
+-  ln -s $mod_dir/LICENSE "$pkgdir"/usr/share/licenses/$pkgname
++  # Non-deterministic race in npm gives 777 permissions to random directories.
++  # See https://github.com/npm/npm/issues/9359 for details.
++  chmod -R u=rwX,go=rX "$pkgdir"
+@@ -48,9 +40,3 @@
+-  cd npm-cli
+-  mapfile -t mod_files < <(node . pack --ignore-scripts --dry-run --json | jq -r .[].files.[].path)
+-  cp --parents -a "${mod_files[@]}" "$pkgdir"/$mod_dir
+-  node . completion > "$pkgdir"/usr/share/bash-completion/completions/npm
+-  echo 'globalconfig=/etc/npmrc' > "$pkgdir"/$mod_dir/npmrc
+-
+-  cd "$pkgdir"/$mod_dir
+-  # Remove superfluous scripts
+-  rm -r bin/{node-gyp-bin,np{m,x}{,.{cmd,ps1}}}
++  # npm installs package.json owned by build user
++  # https://bugs.archlinux.org/task/63396
++  # chown -R root:root "$pkgdir"
+@@ -59 +45,6 @@
+-  rm -r node_modules/{node-gyp,nopt,semver}
++  _npmdir="$pkgdir"/${pacman_root}/usr/lib/node_modules/$pkgname
++  rm -r "$_npmdir"/node_modules/{,.bin/}semver
++  rm -r "$_npmdir"/node_modules/{,.bin/}node-gyp
++  rm -r "$_npmdir"/node_modules/{,.bin/}nopt
++  sed -i 's|../../node_modules/node-gyp/bin/node-gyp.js|../../../node-gyp/bin/node-gyp.js|' \
++    "$_npmdir"/bin/node-gyp-bin/node-gyp
+@@ -61,7 +52,2 @@
+-  cd man
+-  # Workaround for https://github.com/npm/cli/issues/780
+-  local name page sec title
+-  for page in man5/folders.5 man5/install.5 man7/*.7; do
+-    sec=${page##*.}
+-    name=$(basename "$page" ."$sec")
+-    title=${name@U}
++  install -dm755 "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions
++  node "$srcdir"/cli-$pkgver/bin/npm-cli.js completion > "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions/npm
+@@ -69,2 +55 @@
+-    sed -Ei "s/^\.TH \"$title\"/.TH \"NPM-$title\"/" "$page"
+-    sed -Ei 's/^(\.TH "NPM-'"$title"'" "[^"]+") "[^"]+"/\1 ""/' "$page"
++  mv "$pkgdir"/${pacman_root}/usr/lib/node_modules/npm/man "$pkgdir"/${pacman_root}/usr/share/
+@@ -72,12 +57 @@
+-    mv "$page" "${page/\///npm-}"
+-  done
+-
+-  gzip --no-name man?/*
+-
+-  # Support both `man` and `npm help`
+-  local dest sec_dir
+-  for sec_dir in man?; do
+-    dest="$pkgdir"/usr/share/man/$sec_dir
+-    install -d "$dest"
+-    ln -rs "$sec_dir"/* "$dest"
+-  done
++  install -Dm644 "$srcdir"/cli-$pkgver/LICENSE -t "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname/
