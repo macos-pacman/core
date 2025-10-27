@@ -1,10 +1,13 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -5,0 +6 @@
-+pkgrel+=".1"
++pkgrel+=".2"
 @@ -7 +8 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
+@@ -20 +21 @@
+-sha256sums=('8ac7c97073d5079f54ad66d04381ec75e1169c2e20bfe9b6500bc81304da3faf')
++sha256sums=('d2d15490605858d3dd42e90d25e0fde31c53446b7d3cde9ef334449236927916')
 @@ -25,2 +26,2 @@
 -    -DCMAKE_BUILD_TYPE='None' \
 -    -DCMAKE_INSTALL_PREFIX='/usr' \
