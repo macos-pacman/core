@@ -4,7 +4,7 @@
 pkgname=npm
 pkgver=11.6.2
 pkgrel=1
-pkgrel+=".0"
+pkgrel+=".1"
 pkgdesc='JavaScript package manager'
 arch=(any)
 url=https://www.npmjs.com
@@ -18,6 +18,7 @@ depends=(
 makedepends=(
   git
   jq
+  gnu-coreutils
 )
 options=(!zipman)
 optdepends=("git: for dependencies using Git URL's")
@@ -47,8 +48,11 @@ package() {
   ln -s $mod_dir/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
 
   cd npm-cli
+
   mapfile -t mod_files < <(node . pack --ignore-scripts --dry-run --json | jq -r .[].files.[].path)
-  rsync -Ra "${mod_files[@]}" "$pkgdir"/$mod_dir
+  mkdir -p "$pkgdir"/$mod_dir/
+  gcp --parents -a "${mod_files[@]}" "$pkgdir"/$mod_dir
+
   node . completion > "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions/npm
   echo 'globalconfig=/etc/npmrc' > "$pkgdir"/$mod_dir/npmrc
 
@@ -80,6 +84,6 @@ package() {
   for sec_dir in man?; do
     dest="$pkgdir"/${pacman_root}/usr/share/man/$sec_dir
     install -d "$dest"
-    ln -rs "$sec_dir"/* "$dest"
+    gln -rs "$sec_dir"/* "$dest"
   done
 }

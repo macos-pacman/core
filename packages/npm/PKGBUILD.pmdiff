@@ -1,11 +1,13 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -6,0 +7 @@
-+pkgrel+=".0"
-@@ -41 +42 @@
++pkgrel+=".1"
+@@ -19,0 +21 @@
++  gnu-coreutils
+@@ -41 +43 @@
 -  local mod_dir=/usr/lib/node_modules/$pkgname
 +  local mod_dir=${pacman_root}/usr/lib/node_modules/$pkgname
-@@ -43,4 +44,4 @@
+@@ -43,4 +45,4 @@
 -  install -d "$pkgdir"/{usr/{bin,share/{bash-completion/completions,licenses/$pkgname}},$mod_dir}
 -  ln -s $mod_dir/bin/$pkgname-cli.js "$pkgdir"/usr/bin/$pkgname
 -  ln -s $mod_dir/bin/npx-cli.js "$pkgdir"/usr/bin/npx
@@ -14,11 +16,18 @@
 +  ln -s $mod_dir/bin/$pkgname-cli.js "$pkgdir"/${pacman_root}/usr/bin/$pkgname
 +  ln -s $mod_dir/bin/npx-cli.js "$pkgdir"/${pacman_root}/usr/bin/npx
 +  ln -s $mod_dir/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
-@@ -50,2 +51,2 @@
+@@ -48,0 +51 @@
++
+@@ -50,2 +53,4 @@
 -  cp --parents -a "${mod_files[@]}" "$pkgdir"/$mod_dir
 -  node . completion > "$pkgdir"/usr/share/bash-completion/completions/npm
-+  rsync -Ra "${mod_files[@]}" "$pkgdir"/$mod_dir
++  mkdir -p "$pkgdir"/$mod_dir/
++  gcp --parents -a "${mod_files[@]}" "$pkgdir"/$mod_dir
++
 +  node . completion > "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions/npm
-@@ -80 +81 @@
+@@ -80 +85 @@
 -    dest="$pkgdir"/usr/share/man/$sec_dir
 +    dest="$pkgdir"/${pacman_root}/usr/share/man/$sec_dir
+@@ -82 +87 @@
+-    ln -rs "$sec_dir"/* "$dest"
++    gln -rs "$sec_dir"/* "$dest"
