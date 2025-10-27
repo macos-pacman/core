@@ -1,7 +1,7 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -7,0 +8 @@
-+pkgrel+=".1"
++pkgrel+=".2"
 @@ -13 +14 @@
 -makedepends=('git' 'jq' 'npm')
 +makedepends=('git' 'jq' 'npm' 'gnu-coreutils')
@@ -16,7 +16,7 @@
 -  install -d "$pkgdir"/{usr/{bin,share/licenses/$pkgname},$mod_dir}
 -  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/usr/bin/$pkgname
 -  ln -s $mod_dir/LICENSE "$pkgdir"/usr/share/licenses/$pkgname
-+  install -d "$pkgdir"/${pacman_root}/{usr/{bin,share/licenses/$pkgname},$mod_dir}
++  install -d "$pkgdir"/{${pacman_root}/usr/{bin,share/licenses/$pkgname},$mod_dir}
 +  ln -s $mod_dir/bin/$pkgname.js "$pkgdir"/${pacman_root}/usr/bin/$pkgname
 +  ln -s $mod_dir/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
 @@ -43 +45 @@
