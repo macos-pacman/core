@@ -1,0 +1,20 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -41 +41 @@
+-  local mod_dir=/usr/lib/node_modules/$pkgname
++  local mod_dir=${pacman_root}/usr/lib/node_modules/$pkgname
+@@ -43,4 +43,4 @@
+-  install -d "$pkgdir"/{usr/{bin,share/{bash-completion/completions,licenses/$pkgname}},$mod_dir}
+-  ln -s $mod_dir/bin/$pkgname-cli.js "$pkgdir"/usr/bin/$pkgname
+-  ln -s $mod_dir/bin/npx-cli.js "$pkgdir"/usr/bin/npx
+-  ln -s $mod_dir/LICENSE "$pkgdir"/usr/share/licenses/$pkgname
++  install -d "$pkgdir"/${pacman_root}/{usr/{bin,share/{bash-completion/completions,licenses/$pkgname}},$mod_dir}
++  ln -s $mod_dir/bin/$pkgname-cli.js "$pkgdir"/${pacman_root}/usr/bin/$pkgname
++  ln -s $mod_dir/bin/npx-cli.js "$pkgdir"/${pacman_root}/usr/bin/npx
++  ln -s $mod_dir/LICENSE "$pkgdir"/${pacman_root}/usr/share/licenses/$pkgname
+@@ -51 +51 @@
+-  node . completion > "$pkgdir"/usr/share/bash-completion/completions/npm
++  node . completion > "$pkgdir"/${pacman_root}/usr/share/bash-completion/completions/npm
+@@ -80 +80 @@
+-    dest="$pkgdir"/usr/share/man/$sec_dir
++    dest="$pkgdir"/${pacman_root}/usr/share/man/$sec_dir
