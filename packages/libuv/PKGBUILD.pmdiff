@@ -3,10 +3,13 @@
 @@ -0,0 +1 @@
 +
 @@ -6,0 +8 @@
-+pkgrel+=".1"
++pkgrel+=".2"
 @@ -8 +10 @@
 -arch=('x86_64')
 +arch=('x86_64' 'arm64')
+@@ -14 +16 @@
+-sha512sums=('5d3c97f3d746c80874dac695fa7c5564d16cc1326e41d6a713f463f213e7a9bf3b65231d21c9f83c24d5d6175dcdb11f36bef59f5d5753a0794c730027695679')
++sha512sums=('196beb17bf58c60415666d1d81f9415bb38c4e889368af0b377d70eb43db0471e44eee3582706d5ec82229cd0c27e4ce4fe7f5766ca698dfbe28401f0f0a1d42')
 @@ -32 +34 @@
 -    ./configure --prefix=/usr
 +    ./configure --prefix=${pacman_root}/usr
