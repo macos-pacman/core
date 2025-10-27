@@ -1,0 +1,8 @@
+--- 0002-bootstrap-Change-bash-completion-dir.patch
++++ 0002-bootstrap-Change-bash-completion-dir.patch
+@@ -11 +11 @@
+-index 8ce5e8a70759..8c40948f95f4 100644
++index 17775d549259..f998c3ed4a4c 100644
+@@ -14 +14 @@
+-@@ -1215,7 +1215,7 @@ fn run(self, builder: &Builder<'_>) -> Option<GeneratedTarball> {
++@@ -1193,7 +1193,7 @@ fn run(self, builder: &Builder<'_>) -> Option<GeneratedTarball> {

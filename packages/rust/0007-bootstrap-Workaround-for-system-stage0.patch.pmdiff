@@ -1,0 +1,8 @@
+--- 0007-bootstrap-Workaround-for-system-stage0.patch
++++ 0007-bootstrap-Workaround-for-system-stage0.patch
+@@ -12 +12 @@
+-index 30cbcc05c429..0b5f1b55a43e 100644
++index f6efb23e8d86..1b9359f619e8 100644
+@@ -15 +15 @@
+-@@ -796,7 +796,10 @@ fn run(self, builder: &Builder<'_>) {
++@@ -807,7 +807,10 @@ fn run(self, builder: &Builder<'_>) {

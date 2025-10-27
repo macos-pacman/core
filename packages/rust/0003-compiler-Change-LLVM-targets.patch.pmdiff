@@ -1,0 +1,8 @@
+--- 0003-compiler-Change-LLVM-targets.patch
++++ 0003-compiler-Change-LLVM-targets.patch
+@@ -26 +26 @@
+-index 8f624e0fb2fc..28f819efaa2a 100644
++index 87e4b0a17aad..f821b06fcb0e 100644
+@@ -29 +29 @@
+-@@ -2353,6 +2353,12 @@ pub fn parse_target_triple(early_dcx: &EarlyDiagCtxt, matches: &getopts::Matches
++@@ -2262,6 +2262,12 @@ pub fn parse_target_triple(early_dcx: &EarlyDiagCtxt, matches: &getopts::Matches

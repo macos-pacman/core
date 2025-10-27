@@ -1,0 +1,14 @@
+--- 0001-bootstrap-Change-libexec-dir.patch
++++ 0001-bootstrap-Change-libexec-dir.patch
+@@ -12 +12 @@
+-index 5cfaa6a7c770..8ce5e8a70759 100644
++index e0f632eda0e2..17775d549259 100644
+@@ -15 +15 @@
+-@@ -440,7 +440,7 @@ fn prepare_image(builder: &Builder<'_>, compiler: Compiler, image: &Path) {
++@@ -432,7 +432,7 @@ fn prepare_image(builder: &Builder<'_>, compiler: Compiler, image: &Path) {
+@@ -25 +25 @@
+-index f5fa33b98f3b..45ad5e6799f5 100644
++index 248ee4196b8c..5c5e5d22c848 100644
+@@ -28 +28 @@
+-@@ -1152,7 +1152,7 @@ fn run(self, builder: &Builder<'_>) -> Option<ToolBuildResult> {
++@@ -983,7 +983,7 @@ fn run(self, builder: &Builder<'_>) -> Option<ToolBuildResult> {

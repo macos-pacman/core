@@ -1,1 +1,22 @@
-{"untracked": true}
+{
+  "upstream_commit": "9902a85129fa9c206d4036c1c261408fa3489952",
+  "diff_files": [
+    "0001-bootstrap-Change-libexec-dir.patch.pmdiff",
+    "0002-bootstrap-Change-bash-completion-dir.patch.pmdiff",
+    "0003-compiler-Change-LLVM-targets.patch.pmdiff",
+    "0007-bootstrap-Workaround-for-system-stage0.patch.pmdiff",
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "0004-compiler-Use-ld.lld-by-default.patch",
+    "0005-compiler-Use-aarch64-linux-gnu-gcc-to-link-aarch64-t.patch",
+    "0006-compiler-Swap-primary-and-secondary-lib-dirs.patch",
+    "0008-bootstrap-Workaround-for-1.90.0-stage0.patch",
+    "LICENSE",
+    "REUSE.toml"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

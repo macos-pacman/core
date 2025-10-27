@@ -11,8 +11,8 @@
 
 pkgbase=rust
 pkgname=(rust rust-wasm rust-src)
-pkgver=1.84.1
-pkgrel=1
+pkgver=1.89.0
+pkgrel=0
 pkgdesc="Systems programming language focused on safety, speed and concurrency"
 url=https://www.rust-lang.org/
 arch=('x86_64' 'arm64')
@@ -45,16 +45,37 @@ makedepends=(
 )
 source=(
   "https://static.rust-lang.org/dist/rustc-$pkgver-src.tar.gz"{,.asc}
+
+  # Patch bootstrap so that rust-analyzer-proc-macro-srv
+  # is in /usr/lib instead of /usr/libexec
   0001-bootstrap-Change-libexec-dir.patch
+
+  # Put bash completions where they belong
   0002-bootstrap-Change-bash-completion-dir.patch
+
+  # Use our *-pc-linux-gnu targets, making LTO with clang simpler
+  0003-compiler-Change-LLVM-targets.patch
+
+  # Use our wasm-ld
   0004-compiler-Use-wasm-ld-for-wasm-targets.patch
+
+  # Prefer "lib" over "lib64"
+  0006-compiler-Swap-primary-and-secondary-lib-dirs.patch
+
+  # Fix build with system rustc
+  # https://github.com/rust-lang/rust/issues/143735
+  0007-bootstrap-Workaround-for-system-stage0.patch
+
   disable-time-machine-fuckery.patch
 )
-b2sums=('c0952f44632813e6ddfd36754bbbc498511cd80a1dd613f41f027b363fbd97bdf825013262438fac56bbc88c53ec557103119b4d60e7be5cd58b3ec51f1fc2c2'
+b2sums=('5cc32e9e7f766ec3631f369c1b60d4a9bcb39c21ede5ef6364cccf32d0d4105cab3fd10dfdf5f38db304db0dc771ae783303ed94d6277013770b59ee569a48c1'
         'SKIP'
-        'd3ed7043e288c78ac4007b267448457db0972905037754b67249d81be0889f47c4d93573c24d730907c31ec44e80ce696fbf50f98521eadee92c003d2324a1a3'
-        '6afaf5bff729618aa35d84f20b1447694c887b84a406f55344864b9e8dce72f80467412c128b5309d5b962b605ca396b77a52f275dd35681ab50cbedc68f873a'
-        '23f399d5ea776df5dba1ec42a96020a7ae3b18f5a83121d90ca0256a90027529135bac751373a31480860c0dbad30598833a7da43d1e7f25ce5b6d5d945ce550'
+        '17e7f6e73936137507e387cd2761b0b98f9457391e4f534beb872effaa9f442e72351bb39d5e34963d9f18a31fd9f07139cfbde4df9c4c1d8cc6e5d3a7f2c8f7'
+        'fed39e683a0fa4b7730c629f2453bccb70d2b37329ee8853e0c8e8cbc07a227a6c15bdf81c7285a2a2debeffde24ef14abcfccee6383024ac6bff7405e725482'
+        '1f664dc8156ebe48ae49e7651312ca8879b40fb65471bd9e4180e84fc8b2f6e94b50b7ff7db598e8f298058fae7bcc591532fe087084330650c69df131d2bb85'
+        '2317343e6b986d1ec1fb6d035fb6d8933245704b5be1b3e4a032ad14300d8a338087c52e53a6dff4ceda52232ce7f21dd8ad536c9d4da04faee6a9b79a9670b6'
+        '8be938ad0016244e86707396ee147fdff7a7ee4d2a776607ff316a9264512faba99d03a7a6b5ba48744c3ae93b09a2eaede567554142a30570346e177131099f'
+        'f7f43c42856be95b658963275f6ebd94a500f24f23c925e3d9e5fe917f6d509bfd75d2fca072c987e93cd7d5a3776800ba633406cd77fe387b39252b5b7dfbc2'
         '6ea472d7d8afd0688dac305decb818b3779277b87058cb8f9207adc01881e7b51474f8c52fc4c21247060ede2614a54183446b0290987db02bb83a0233149b06')
 validpgpkeys=(
   108F66205EAEB0AAA8DD5E1C85AB96E6FA1BE5FE  # Rust Language (Tag and Release Signing Key) <rust-key@rust-lang.org>
@@ -78,9 +99,9 @@ prepare() {
   # disable time machine fuckery
   patch -Np1 -i ../disable-time-machine-fuckery.patch
 
-  cat >config.toml <<END
-change-id = 131075
-profile = "user"
+  cat >bootstrap.toml <<END
+change-id = 142379
+profile = "dist"
 
 [llvm]
 link-shared = true
@@ -107,7 +128,9 @@ tools = [
   "rust-demangler",
   "rust-analyzer-proc-macro-srv",
 ]
-sanitizers = true
+
+# TODO: re-enable sanitisers
+sanitizers = false
 profiler = true
 
 # Generating docs fails with the wasm32-* targets
@@ -301,7 +324,9 @@ package_rust() {
 
   _libs=("${pkgdir}/${pacman_root}/usr/lib/rustlib/${_arch}/lib/librustc-stable_rt."{tsan,asan,lsan}.dylib)
   for _lib in "${_libs[@]}"; do
+    if [ -f "${_lib}" ]; then
       codesign --force -s - "${_lib}"
+    fi
   done
 }
 
