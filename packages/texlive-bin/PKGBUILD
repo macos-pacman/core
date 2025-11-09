@@ -53,6 +53,13 @@ sha256sums=('842fc0a45cb4d363253eefcaae1f88be7b8446def80d78cce251dad32d3802ec'
             'c2d6a8b14dd8197874c1d894e70df80ad076f28ee4d1cff81e3b7811d9264fb9')
 
 prepare() {
+  local p1="s|%%PACMAN_ROOT%%|${pacman_root}|g"
+  local p2="s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g"
+
+  local _s; for _s in "${sources[@]}"; do
+    [[ -f "${_s}" ]] && sed -i -e "$p1" -e "$p2" "${_s}"
+  done
+
   cd texlive-source
 
 # bibtex-x needs kpathsea flags
