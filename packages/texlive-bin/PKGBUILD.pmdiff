@@ -1,10 +1,13 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -8,0 +9 @@
-+pkgrel+=".3"
++pkgrel+=".4"
 @@ -10 +11 @@
 -arch=(x86_64)
 +arch=('x86_64' 'arm64')
+@@ -52 +53 @@
+-            'c2d6a8b14dd8197874c1d894e70df80ad076f28ee4d1cff81e3b7811d9264fb9')
++            'ea2f731b39f8945f13e9a5e796bbb41a7efe007473b8344d07fd63f2a277f2e2')
 @@ -54,0 +56,7 @@
 +  local p1="s|%%PACMAN_ROOT%%|${pacman_root}|g"
 +  local p2="s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g"
