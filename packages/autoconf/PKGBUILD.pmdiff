@@ -1,15 +1,17 @@
 --- PKGBUILD
 +++ PKGBUILD
-@@ -20,0 +21,6 @@
+@@ -7,0 +8 @@
++pkgrel+=".3"
+@@ -20,0 +22,6 @@
 +prepare() {
 +	# use glibtoolize on macos
 +	sed -i -e 's/libtoolize/glibtoolize/g' $pkgname-$pkgver/bin/autoreconf.in
 +	sed -i -e 's/libtoolize/glibtoolize/g' $pkgname-$pkgver/man/autoreconf.1
 +}
 +
-@@ -23 +29 @@
+@@ -23 +30 @@
 -	./configure --prefix=/usr
 +	./configure --prefix=${pacman_root}/usr
-@@ -38 +44 @@
+@@ -38 +45 @@
 -	install -Dm644 COPYING.EXCEPTION "$pkgdir"/usr/share/licenses/autoconf/COPYING.EXCEPTION
 +	install -Dm644 COPYING.EXCEPTION "$pkgdir/${pacman_root}"/usr/share/licenses/autoconf/COPYING.EXCEPTION
