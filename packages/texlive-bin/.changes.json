@@ -1,0 +1,16 @@
+{
+  "upstream_commit": "593754e25aeb97536c5c268c6419c25aa4b77247",
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "lua-root.patch.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "LICENSE",
+    "REUSE.toml",
+    "ptex-debug-print.patch"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

@@ -1,0 +1,5 @@
+--- lua-root.patch
++++ lua-root.patch
+@@ -10 +10 @@
+-+#define LUA_ROOT       "/usr/"
+++#define LUA_ROOT       "%%PACMAN_ROOT%%/usr/"
