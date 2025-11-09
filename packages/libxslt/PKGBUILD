@@ -3,14 +3,20 @@
 # Contributor: John Proctor <jproctor@prium.net>
 
 pkgbase=libxslt
-pkgname=(libxslt libxslt-docs)
-pkgver=1.1.37
-pkgrel=3
+pkgname=(
+  libxslt
+  libxslt-docs
+)
+pkgver=1.1.42
+pkgrel=2
+pkgrel+=".1"
 pkgdesc="XML stylesheet transformation library"
 url="https://gitlab.gnome.org/GNOME/libxslt/-/wikis/home"
 arch=('x86_64' 'arm64')
-license=(custom:MIT)
+license=(MIT)
 depends=(
+  bash
+  glibc
   libgcrypt
   libxml2
   xz
@@ -18,39 +24,41 @@ depends=(
 makedepends=(
   git
   python
+  pkgconf
+  autoconf
+  libtool
+  automake
 )
 checkdepends=(
   docbook-xml
 )
-_commit=5eca7fb65b7337409a02f9f94fde608edf7d1b0a  # tags/v1.1.37^0
-source=("git+https://gitlab.gnome.org/GNOME/libxslt.git#commit=$_commit"
-        0001-Make-generate-id-deterministic.patch)
-sha256sums=('SKIP'
-            '605e0a0b2ca385a90226bc5b141d3f6bfeade13e43ab39f8dea863505d7cbf18')
-
-pkgver() {
-  cd libxslt
-  git describe --tags | sed 's/-rc/rc/;s/^v//;s/[^-]*-g/r&/;s/-/+/g'
-}
+source=(
+  "git+https://gitlab.gnome.org/GNOME/libxslt.git#tag=v$pkgver"
+  0001-runtest-Print-output-causing-failure.patch
+)
+b2sums=('70549d4ad6784c41bc8f947db0f689399a0c6b4a1d91e1a8e67772f942192a391eebc58b64069500dd76b4c06bc4bd682b66945112298c7bc3f1af90e41ce804'
+        'b63a1f2bf704d4561cc30734cee980534fb0586234b7b593d57d9c70fe59abd72610b6d825ab136d4d1dd7540bbfb6b8a6edc95618c15cc79e5a4bbd8f6341ee')
 
 prepare() {
   cd libxslt
 
-  # Make xsltproc output reproducible for packages which use it to generate documentation
-  git apply -3 ../0001-Make-generate-id-deterministic.patch
+  # Make test failures easier to fix
+  git apply -3 ../0001-runtest-Print-output-causing-failure.patch
 
   NOCONFIGURE=1 ./autogen.sh
 }
 
 build() {
-  cd libxslt
-
-  ./configure \
-    --prefix=${pacman_root}/usr \
-    --sysconfdir=${pacman_root}/etc \
-    --localstatedir=${pacman_root}/var \
-    --with-python=${pacman_root}/usr/bin/python \
+  local configure_options=(
+    --prefix=${pacman_root}/usr
+    --sysconfdir=${pacman_root}/etc
+    --localstatedir=${pacman_root}/var
     --disable-static
+    --with-python=${pacman_root}/usr/bin/python
+  )
+
+  cd libxslt
+  ./configure "${configure_options[@]}"
   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
   make
 }
@@ -65,11 +73,10 @@ package_libxslt() {
   provides=(lib{,e}xslt.dylib)
 
   cd libxslt
-
   make DESTDIR="$pkgdir" install
 
-  mkdir -p ../doc/usr/share
-  mv "$pkgdir"/${pacman_root}/usr/share/{doc,gtk-doc} ../doc/usr/share/
+  mkdir -p ../doc/${pacman_root}/usr/share
+  mv "$pkgdir"/${pacman_root}/usr/share/{doc,gtk-doc} ../doc/${pacman_root}/usr/share/
 
   install -Dm644 Copyright -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
 }
@@ -78,8 +85,7 @@ package_libxslt-docs() {
   pkgdesc+=" (documentation)"
   depends=()
 
-  mkdir -p $pkgdir/${pacman_root}
-  mv doc/* "$pkgdir/${pacman_root}/"
+  mv doc/* "$pkgdir"
 
   install -Dm644 libxslt/Copyright -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
 }

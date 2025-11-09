@@ -1,0 +1,36 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -11,0 +12 @@
++pkgrel+=".1"
+@@ -14 +15 @@
+-arch=(x86_64)
++arch=('x86_64' 'arm64')
+@@ -25,0 +27,4 @@
++  pkgconf
++  autoconf
++  libtool
++  automake
+@@ -48,3 +53,3 @@
+-    --prefix=/usr
+-    --sysconfdir=/etc
+-    --localstatedir=/var
++    --prefix=${pacman_root}/usr
++    --sysconfdir=${pacman_root}/etc
++    --localstatedir=${pacman_root}/var
+@@ -52 +57 @@
+-    --with-python=/usr/bin/python
++    --with-python=${pacman_root}/usr/bin/python
+@@ -68 +73 @@
+-  provides=(lib{,e}xslt.so)
++  provides=(lib{,e}xslt.dylib)
+@@ -73,2 +78,2 @@
+-  mkdir -p ../doc/usr/share
+-  mv "$pkgdir"/usr/share/{doc,gtk-doc} -t ../doc/usr/share
++  mkdir -p ../doc/${pacman_root}/usr/share
++  mv "$pkgdir"/${pacman_root}/usr/share/{doc,gtk-doc} ../doc/${pacman_root}/usr/share/
+@@ -76 +81 @@
+-  install -Dm644 Copyright -t "$pkgdir/usr/share/licenses/$pkgname"
++  install -Dm644 Copyright -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
+@@ -85 +90 @@
+-  install -Dm644 libxslt/Copyright -t "$pkgdir/usr/share/licenses/$pkgname"
++  install -Dm644 libxslt/Copyright -t "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname"
