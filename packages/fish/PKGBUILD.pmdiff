@@ -1,0 +1,19 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -10,0 +11 @@
++pkgrel+=".1"
+@@ -13 +14 @@
+-arch=('x86_64')
++arch=('x86_64' 'arm64')
+@@ -17 +18 @@
+-checkdepends=('expect' 'procps-ng')
++checkdepends=('expect')
+@@ -29 +30 @@
+-backup=(etc/fish/config.fish)
++backup=(${pacman_root#/}/etc/fish/config.fish)
+@@ -42,2 +43,3 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr
+-    -DCMAKE_INSTALL_SYSCONFDIR=/etc
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
++    -DCMAKE_INSTALL_SYSCONFDIR=${pacman_root}/etc
++    -DCURSES_LIBRARY=${pacman_root}/usr/lib/libncursesw.dylib

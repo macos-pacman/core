@@ -1,0 +1,11 @@
+--- fish.install
++++ fish.install
+@@ -2,2 +2,2 @@
+-  grep -qe '^/usr/bin/fish$' etc/shells || echo '/usr/bin/fish' >> etc/shells
+-  grep -qe '^/bin/fish$' etc/shells || echo '/bin/fish' >> etc/shells
++  pacman_root=$(pacman-root-dir)
++  grep -qe "^${pacman_root}/usr/bin/fish$" etc/shells || echo "${pacman_root}/usr/bin/fish" >> etc/shells
+@@ -11 +11,2 @@
+-  sed -ri -e '\|^/usr/bin/fish$|d' -e '\|^/bin/fish$|d' etc/shells
++  pacman_root=$(pacman-root-dir)
++  sed -ri -e "\|^${pacman_root}/usr/bin/fish$|d" etc/shells

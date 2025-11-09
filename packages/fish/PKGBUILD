@@ -6,50 +6,63 @@
 # Contributor: Jan Fader <jan.fader@web.de>
 
 pkgname=fish
-pkgver=3.6.1
-pkgrel=2
-pkgrel+=".2"
+pkgver=4.1.2
+pkgrel=1
+pkgrel+=".1"
 pkgdesc='Smart and user friendly shell intended mostly for interactive use'
 url='https://fishshell.com/'
 arch=('x86_64' 'arm64')
-license=('GPL2')
+license=('GPL-2.0-only AND BSD-3-Clause AND ISC AND MIT AND PSF-2.0')
 depends=('glibc' 'gcc-libs' 'ncurses' 'pcre2')
-optdepends=('python: man page completion parser / web config tool'
-            'pkgfile: command-not-found hook')
-makedepends=('cmake')
+makedepends=('cmake' 'git' 'jq' 'rust' 'python-sphinx')
 checkdepends=('expect')
-_backup="${pacman_root}/etc/fish/config.fish"
-backup=("${_backup#/}")
-source=(https://github.com/fish-shell/fish-shell/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.xz{,.asc})
-validpgpkeys=(003837986104878835FA516D7A67D962D88A709A) # David Adam <zanchey@gmail.com>
-sha256sums=('55402bb47ca6739d8aba25e41780905b5ce1bce0a5e0dd17dca908b5bc0b49b2'
-            'SKIP')
-sha512sums=('ee6f5c7699307d515f111c8c4f1633d9eb9703e045a93cfc2fcec722a03cca4ab25e4e09f6fd94ff2d07180d8b37c6ab733323bb2645065fdeb4e94771347597'
-            'SKIP')
+optdepends=(
+  'python: man page completion parser / web config tool'
+  'pkgfile: command-not-found hook'
+  'groff: --help for built-in commmands'
+  'mandoc: --help for built-in commmands (alternative)'
+  'xsel: X11 clipboard integration'
+  'xclip: X11 clipboard integration (alternative)'
+  'wl-clipboard: Wayland clipboard integration'
+)
+options=(!lto)
+install=fish.install
+backup=(${pacman_root#/}/etc/fish/config.fish)
+source=("${pkgname}::git+https://github.com/fish-shell/fish-shell#tag=${pkgver}")
+#validpgpkeys=(003837986104878835FA516D7A67D962D88A709A) # David Adam <zanchey@gmail.com>
+sha512sums=('88c80ab493fb0244a45f3f2bfe1a3351fbcdff004ac3ef268d584be6c9fa9e78f54ccd30f6e609ac6254e1afd2752f9e059d03925ffdd0ceda5115055b731d8e')
+b2sums=('88389da810288e8740228f76640fc311d73b91c9fd7d1453e4fa2e42d3350ee9098d82fafede96897ff438a50b4fd163cb04f08ddfd821ecc4f7b41df11af765')
 
 build() {
-  cd ${pkgname}-${pkgver}
+  cd ${pkgname}
+
   export CXXFLAGS+=" ${CPPFLAGS}"
-  cmake \
-    -B build \
-    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
-    -DCMAKE_INSTALL_SYSCONFDIR=${pacman_root}/etc \
-    -DCURSES_LIBRARY=${pacman_root}/usr/lib/libncursesw.dylib \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCURSES_USE_NCURSES=True \
-    -DBUILD_DOCS=False \
+
+  local cmake_options=(
+    -B build
+    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr
+    -DCMAKE_INSTALL_SYSCONFDIR=${pacman_root}/etc
+    -DCURSES_LIBRARY=${pacman_root}/usr/lib/libncursesw.dylib
+    -DCMAKE_BUILD_TYPE=Release
+    -DBUILD_DOCS=True
+    -DFISH_USE_SYSTEM_PCRE2=ON
+    -DWITH_GETTEXT=ON
     -Wno-dev
+  )
+  cmake "${cmake_options[@]}"
+
   make -C build VERBOSE=1
 }
 
 check() {
-  cd ${pkgname}-${pkgver}
-  make -C build test
+  cd ${pkgname}
+  make test
 }
 
 package() {
-  cd ${pkgname}-${pkgver}
-  make -C build DESTDIR="${pkgdir}" install
+  cd ${pkgname}
+
+  DESTDIR="$pkgdir" cmake --install build
 }
 
 # vim: ts=2 sw=2 et:

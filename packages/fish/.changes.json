@@ -1,0 +1,15 @@
+{
+  "upstream_commit": "1d658c332d1369c71508de8b9ce0660f6c09e2cf",
+  "diff_files": [
+    "PKGBUILD.pmdiff",
+    "fish.install.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "LICENSE",
+    "REUSE.toml"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}

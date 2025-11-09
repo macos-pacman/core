@@ -1,0 +1,15 @@
+post_install() {
+  pacman_root=$(pacman-root-dir)
+  grep -qe "^${pacman_root}/usr/bin/fish$" etc/shells || echo "${pacman_root}/usr/bin/fish" >> etc/shells
+}
+
+post_upgrade() {
+  post_install
+}
+
+pre_remove() {
+  pacman_root=$(pacman-root-dir)
+  sed -ri -e "\|^${pacman_root}/usr/bin/fish$|d" etc/shells
+}
+
+# vim:set ts=2 sw=2 et:
