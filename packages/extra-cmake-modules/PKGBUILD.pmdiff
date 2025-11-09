@@ -1,0 +1,7 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -7,0 +8 @@
++pkgrel+=".1"
+@@ -30 +31 @@
+-    -DCMAKE_INSTALL_PREFIX=/usr \
++    -DCMAKE_INSTALL_PREFIX=${pacman_root}/usr \
