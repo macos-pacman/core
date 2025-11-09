@@ -1,0 +1,16 @@
+{
+  "upstream_commit": "9aa0ae9cf14a792641dc64d6c0d750f1d9982c1f",
+  "diff_files": [
+    "PKGBUILD.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "LICENSE",
+    "REUSE.toml",
+    "post.install",
+    "rustup-profile.sh"
+  ],
+  "ignore_files": [
+    ".SRCINFO"
+  ]
+}
