@@ -1,8 +1,0 @@
---- 72-texlive-fmtutil.hook
-+++ 72-texlive-fmtutil.hook
-@@ -12 +12 @@
--Target = var/lib/texmf/arch/installedpkgs/*
-+Target = %%PACMAN_ROOT_REL%%/var/lib/texmf/arch/installedpkgs/*
-@@ -17 +17 @@
--Exec = /usr/share/libalpm/scripts/texlive-fmtutil
-+Exec = %%PACMAN_ROOT%%/usr/share/libalpm/scripts/texlive-fmtutil

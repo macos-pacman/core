@@ -1,8 +1,0 @@
---- mtxrun.script
-+++ mtxrun.script
-@@ -3 +3 @@
--(cd /etc/texmf && /usr/bin/mtxrun.lua --generate >/dev/null)
-+(cd $(pacman-root-dir)/etc/texmf && $(pacman-root-dir)/usr/bin/mtxrun.lua --generate >/dev/null)
-@@ -6 +6 @@
--for item in /var/lib/texmf/luatex-cache/context/*/trees/*.lua; do
-+for item in $(pacman-root-dir)/var/lib/texmf/luatex-cache/context/*/trees/*.lua; do

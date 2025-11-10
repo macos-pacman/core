@@ -1,5 +1,0 @@
---- list-collections
-+++ list-collections
-@@ -3 +3 @@
--collections=`grep "name collection-" /usr/share/tlpkg/texlive.tlpdb | sed -e 's|name collection-||g;/texworks/d;/wintools/d' | tr "\n" " "`
-+collections=`grep "name collection-" $(pacman-root-dir)/usr/share/tlpkg/texlive.tlpdb | sed -e 's|name collection-||g;/texworks/d;/wintools/d' | tr "\n" " "`
