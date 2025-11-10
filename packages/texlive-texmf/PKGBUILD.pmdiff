@@ -1,0 +1,185 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -14,0 +15 @@
++pkgrel+=".1"
+@@ -23 +24 @@
+-        svn://tug.org/texlive/tags/texlive-$pkgver/Master/bin/x86_64-linux#revision=$_rev
++        svn://tug.org/texlive/tags/texlive-$pkgver/Master/bin/universal-darwin#revision=$_rev
+@@ -40,12 +41,12 @@
+-            '5e79c40cf3ab93348fc89e97890198601767ea2c8fea89ea76088c17a2b35962'
+-            '04fe1843336ee0707794497a7179abc31d5fc5148119e5b9b5f6c5de0962fa59'
+-            '758c6593be7d0ee7e50095d08401a9fd3ea16db2f6b8bf22a8682fa82334a24f'
+-            '95f6540c49b11f1ece8010d76b53ca90efd61e1831530562bfcde4350f6c1db1'
+-            'e6d399faee55ba461cf7e617f2369f5c516de292b28afc6665c9e3fe2b821973'
+-            'c64c2a6371e94b0f67799c0ac84ea74d8edbc181b26672aa15b8132ec5fbabc3'
+-            '9b99f197c71149b03355f7c24ee1e07f54a1262bb030756fe660b9aa715a184f'
+-            'f96e9f815fa0a4b85e677f2a9215d9106b8abe46eceb3f3e36a6c76eda3e4a85'
+-            '2141c0842668fb937fd21ca2fae39b642c9665656e404a0d4ee7bdc477bf51fe'
+-            'ee6e76192a5ad880a2152cd7900b86c8465239fb228045a2f8360b0d7a449f4a'
+-            'f6bb67db32d37ca15eba88bd15d8b9882c61915f98bc8d7c3c21a66c8cf8f019'
+-            '98b730e917281227e29077ba5689ad78baee0af3859b55966b2604c6a85f1305'
++            '6d17106d7470a6394ff6eada4527c1e7db9e6afa5bc850ba2ba54fbef7dbd6a0'  # 09-texlive-fonts.conf
++            '0b66933b722a39748eb1131ccbc28dc55ab58ce11a7c132206b3ae0d449000f6'  # texmf.cnf.patch
++            'ab6fb06ee5f793978758ebd49477927a344c2906e4dce86d4c8cf6674828da30'  # texmfcnf.lua.patch
++            'd700e0321e9c973aba375df38b8648b5272eaf8f5a1f31c4454a6e36e16d0d04'  # 70-mktexlsr.hook
++            'e4177b8a128b08d9d9de717d7c13641969bfa80029107d61e6d30e9e0feb2286'  # 71-texlive-language.hook
++            '59d502f9c14710112e9c092995cfdc14865a45c4a651e24d7b90f25796ad8cdb'  # texlive-language.script
++            'e7a44d843513177b58349bc287be0fb58d407b7efaa024064e726d8cfc0ce91e'  # 72-texlive-fmtutil.hook
++            'eaac8e6f3201db645d339fdb9675b889ae901bf9e55ca658901006f4a6827a64'  # texlive-fmtutil.script
++            '8f7bfd4cd0b74618247852d18be0e3217d1940d06872c0a9a5a3beb9396f9fe7'  # 73-texlive-updmap.hook
++            'cb926773e5f8be3d62a6ce9b006679d9a5e23222755ba711cae056554b440a36'  # texlive-updmap.script
++            '512b806dfb52e1912bb3f051a6a31b8ffcfb66f0e5f0b0f9cb68c0f2d37151b2'  # 80-mtxrun.hook
++            '457bc0f5a7fbe106bb6fe892681d6807c1b444bbcc81dc06f1669003473e943e'  # mtxrun.script
+@@ -55,0 +57,7 @@
++  local p1="s|%%PACMAN_ROOT%%|${pacman_root}|g"
++  local p2="s|%%PACMAN_ROOT_REL%%|${pacman_root#/}|g"
++
++  local _s; for _s in "${sources[@]}"; do
++    [[ -f "${_s}" ]] && sed -i -e "$p1" -e "$p2" "${_s}"
++  done
++
+@@ -119 +127 @@
+-          _links=`sed -e "0,/^name ${_pkg}.x86_64-linux$/d;/^$/Q" tlpkg/texlive.tlpdb | grep "bin/x86_64-linux" | sed -e 's|bin/x86_64-linux||g'`
++          _links=`sed -e "0,/^name ${_pkg}.universal-darwin$/d;/^$/Q" tlpkg/texlive.tlpdb | grep "bin/universal-darwin" | sed -e 's|bin/universal-darwin||g'`
+@@ -121 +129 @@
+-            if [[ $(readlink -m x86_64-linux/$_link) == */scripts/* ]]; then
++            if [[ $(stat -f '%Y' universal-darwin/$_link) == */scripts/* ]]; then
+@@ -123 +131 @@
+-              cp -P x86_64-linux/$_link ${_coll}-bin
++              cp -P universal-darwin/$_link ${_coll}-bin
+@@ -189,2 +197,2 @@
+-  mkdir -p "$pkgdir"/usr/share
+-  mv texlive-$1/texmf-dist "$pkgdir"/usr/share
++  mkdir -p "$pkgdir"/${pacman_root}/usr/share
++  mv texlive-$1/texmf-dist "$pkgdir"/${pacman_root}/usr/share
+@@ -192,7 +200,7 @@
+-  [[ -d $1-bin ]] && mv $1-bin "$pkgdir"/usr/bin
+-
+-  [[ -s $1.fmts ]] && install -Dm644 $1.fmts -t "$pkgdir"/var/lib/texmf/arch/installedpkgs
+-  [[ -s $1.maps ]] && install -Dm644 $1.maps -t "$pkgdir"/var/lib/texmf/arch/installedpkgs
+-  [[ -s $1.dat ]] && install -Dm644 $1.dat -t "$pkgdir"/var/lib/texmf/arch/installedpkgs
+-  [[ -s $1.dat.lua ]] && install -Dm644 $1.dat.lua -t "$pkgdir"/var/lib/texmf/arch/installedpkgs
+-  [[ -s $1.def ]] && install -Dm644 $1.def -t "$pkgdir"/var/lib/texmf/arch/installedpkgs
++  [[ -d $1-bin ]] && mv $1-bin "$pkgdir"/${pacman_root}/usr/bin
++
++  [[ -s $1.fmts ]] && install -Dm644 $1.fmts -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
++  [[ -s $1.maps ]] && install -Dm644 $1.maps -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
++  [[ -s $1.dat ]] && install -Dm644 $1.dat -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
++  [[ -s $1.dat.lua ]] && install -Dm644 $1.dat.lua -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
++  [[ -s $1.def ]] && install -Dm644 $1.def -t "$pkgdir"/${pacman_root}/var/lib/texmf/arch/installedpkgs
+@@ -201,9 +209,9 @@
+-    backup=(etc/texmf/dvipdfmx/dvipdfmx.cfg
+-            etc/texmf/dvips/config/config.ps
+-            etc/texmf/tex/generic/tex-ini-files/pdftexconfig.tex
+-            etc/texmf/web2c/fmtutil.cnf
+-            etc/texmf/web2c/mktex.cnf
+-            etc/texmf/web2c/texmf.cnf
+-            etc/texmf/web2c/updmap-hdr.cfg
+-            etc/texmf/xdvi/XDvi)
+-    install -Dm644 09-texlive-fonts.conf -t "$pkgdir"/usr/share/fontconfig/conf.avail/
++    backup=(${pacman_root#/}/etc/texmf/dvipdfmx/dvipdfmx.cfg
++            ${pacman_root#/}/etc/texmf/dvips/config/config.ps
++            ${pacman_root#/}/etc/texmf/tex/generic/tex-ini-files/pdftexconfig.tex
++            ${pacman_root#/}/etc/texmf/web2c/fmtutil.cnf
++            ${pacman_root#/}/etc/texmf/web2c/mktex.cnf
++            ${pacman_root#/}/etc/texmf/web2c/texmf.cnf
++            ${pacman_root#/}/etc/texmf/web2c/updmap-hdr.cfg
++            ${pacman_root#/}/etc/texmf/xdvi/XDvi)
++    install -Dm644 09-texlive-fonts.conf -t "$pkgdir"/${pacman_root}/usr/share/fontconfig/conf.avail/
+@@ -211,4 +219,4 @@
+-    install -Dm644 7*.hook -t "$pkgdir"/usr/share/libalpm/hooks/
+-    install -Dm755 texlive-fmtutil.script "$pkgdir"/usr/share/libalpm/scripts/texlive-fmtutil
+-    install -Dm755 texlive-language.script "$pkgdir"/usr/share/libalpm/scripts/texlive-language
+-    install -Dm755 texlive-updmap.script "$pkgdir"/usr/share/libalpm/scripts/texlive-updmap
++    install -Dm644 7*.hook -t "$pkgdir"/${pacman_root}/usr/share/libalpm/hooks/
++    install -Dm755 texlive-fmtutil.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/texlive-fmtutil
++    install -Dm755 texlive-language.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/texlive-language
++    install -Dm755 texlive-updmap.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/texlive-updmap
+@@ -216,3 +224,3 @@
+-    install -Dm644 "$srcdir"/tlpkg/TeXLive/* -t "$pkgdir"/usr/share/perl5/vendor_perl/TeXLive/
+-    install -Dm644 "$srcdir"/tlpkg/texlive.tlpdb -t "$pkgdir"/usr/share/tlpkg
+-    install -Dm644 "$srcdir"/tlpkg/installer/config.guess -t "$pkgdir"/usr/share/tlpkg/installer
++    install -Dm644 "$srcdir"/tlpkg/TeXLive/* -t "$pkgdir"/${pacman_root}/usr/share/perl5/vendor_perl/TeXLive/
++    install -Dm644 "$srcdir"/tlpkg/texlive.tlpdb -t "$pkgdir"/${pacman_root}/usr/share/tlpkg
++    install -Dm644 "$srcdir"/tlpkg/installer/config.guess -t "$pkgdir"/${pacman_root}/usr/share/tlpkg/installer
+@@ -220,3 +228,3 @@
+-    rm "$pkgdir"/usr/share/texmf-dist/web2c/updmap.cfg
+-    rm "$pkgdir"/usr/share/texmf-dist/web2c/fmtutil.cnf
+-    rm "$pkgdir"/usr/share/texmf-dist/tex/generic/config/language.{dat,dat.lua,def}
++    rm "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/updmap.cfg
++    rm "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/fmtutil.cnf
++    rm "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.{dat,dat.lua,def}
+@@ -224,13 +232,13 @@
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/dvipdfmx/dvipdfmx.cfg -t "$pkgdir"/etc/texmf/dvipdfmx/
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/dvips/config/config.ps -t "$pkgdir"/etc/texmf/dvips/config/
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/tex/generic/config/language.us "$pkgdir"/etc/texmf/tex/generic/config/language.dat
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/tex/generic/config/language.us.lua "$pkgdir"/etc/texmf/tex/generic/config/language.dat.lua
+-    echo "}" >> "$pkgdir"/etc/texmf/tex/generic/config/language.dat.lua
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/tex/generic/config/language.us.def "$pkgdir"/etc/texmf/tex/generic/config/language.def
+-    echo "\uselanguage {USenglish} %%% This MUST be the last line of the file." >> "$pkgdir"/etc/texmf/tex/generic/config/language.def
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/tex/generic/tex-ini-files/pdftexconfig.tex -t "$pkgdir"/etc/texmf/tex/generic/tex-ini-files/
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/web2c/fmtutil-hdr.cnf "$pkgdir"/etc/texmf/web2c/fmtutil.cnf
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/web2c/mktex.cnf -t "$pkgdir"/etc/texmf/web2c/
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/web2c/texmf.cnf -t "$pkgdir"/etc/texmf/web2c/
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/web2c/updmap-hdr.cfg -t "$pkgdir"/etc/texmf/web2c/
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/xdvi/XDvi -t "$pkgdir"/etc/texmf/xdvi/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/dvipdfmx/dvipdfmx.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/dvipdfmx/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/dvips/config/config.ps -t "$pkgdir"/${pacman_root}/etc/texmf/dvips/config/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.us "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.dat
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.us.lua "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.dat.lua
++    echo "}" >>    "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.dat.lua
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/config/language.us.def "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.def
++    echo "\uselanguage {USenglish} %%% This MUST be the last line of the file." >> "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/config/language.def
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/tex/generic/tex-ini-files/pdftexconfig.tex -t "$pkgdir"/${pacman_root}/etc/texmf/tex/generic/tex-ini-files/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/fmtutil-hdr.cnf "$pkgdir"/${pacman_root}/etc/texmf/web2c/fmtutil.cnf
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/mktex.cnf -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/texmf.cnf -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/web2c/updmap-hdr.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/web2c/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/xdvi/XDvi -t "$pkgdir"/${pacman_root}/etc/texmf/xdvi/
+@@ -240 +248 @@
+-    backup=(etc/texmf/chktex/chktexrc)
++    backup=(${pacman_root#/}/etc/texmf/chktex/chktexrc)
+@@ -242 +250 @@
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/chktex/chktexrc -t "$pkgdir"/etc/texmf/chktex/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/chktex/chktexrc -t "$pkgdir"/${pacman_root}/etc/texmf/chktex/
+@@ -244 +252 @@
+-    mkdir -p "$pkgdir"/usr/share/zsh/site-functions
++    mkdir -p "$pkgdir"/${pacman_root}/usr/share/zsh/site-functions
+@@ -246 +254 @@
+-    "$pkgdir"/usr/bin/texdoc --print-completion zsh > "$pkgdir"/usr/share/zsh/site-functions/_texdoc 2>/dev/null
++    "$pkgdir"/${pacman_root}/usr/bin/texdoc --print-completion zsh > "$pkgdir"/${pacman_root}/usr/share/zsh/site-functions/_texdoc 2>/dev/null
+@@ -251,2 +259,2 @@
+-    install -Dm644 80-mtxrun.hook -t "$pkgdir"/usr/share/libalpm/hooks/
+-    install -Dm755 mtxrun.script "$pkgdir"/usr/share/libalpm/scripts/mtxrun
++    install -Dm644 80-mtxrun.hook -t "$pkgdir"/${pacman_root}/usr/share/libalpm/hooks/
++    install -Dm755 mtxrun.script "$pkgdir"/${pacman_root}/usr/share/libalpm/scripts/mtxrun
+@@ -255,2 +263,2 @@
+-    chmod +x "$pkgdir"/usr/share/texmf-dist/scripts/context/lua/context.lua
+-    chmod +x "$pkgdir"/usr/share/texmf-dist/scripts/context/lua/mtxrun.lua
++    chmod +x "$pkgdir"/${pacman_root}/usr/share/texmf-dist/scripts/context/lua/context.lua
++    chmod +x "$pkgdir"/${pacman_root}/usr/share/texmf-dist/scripts/context/lua/mtxrun.lua
+@@ -260 +268 @@
+-    backup=(etc/texmf/ttf2pk/ttf2pk.cfg)
++    backup=(${pacman_root#/}/etc/texmf/ttf2pk/ttf2pk.cfg)
+@@ -262 +270 @@
+-    install -Dm644 "$pkgdir"/usr/share/texmf-dist/ttf2pk/ttf2pk.cfg -t "$pkgdir"/etc/texmf/ttf2pk/
++    install -Dm644 "$pkgdir"/${pacman_root}/usr/share/texmf-dist/ttf2pk/ttf2pk.cfg -t "$pkgdir"/${pacman_root}/etc/texmf/ttf2pk/
+@@ -275,3 +283,3 @@
+-  mkdir -p "$pkgdir"/usr/share/doc
+-  mv texmf-dist/doc/{info,man} "$pkgdir"/usr/share
+-  mv texmf-dist/doc "$pkgdir"/usr/share/doc/texlive
++  mkdir -p "$pkgdir"/${pacman_root}/usr/share/doc
++  mv texmf-dist/doc/{info,man} "$pkgdir"/${pacman_root}/usr/share
++  mv texmf-dist/doc "$pkgdir"/${pacman_root}/usr/share/doc/texlive
+@@ -279,2 +287,2 @@
+-  mkdir -p "$pkgdir"/usr/share/texmf-dist
+-  ln -s /usr/share/doc/texlive "$pkgdir"/usr/share/texmf-dist/doc
++  mkdir -p "$pkgdir"/${pacman_root}/usr/share/texmf-dist
++  ln -s ${pacman_root}/usr/share/doc/texlive "$pkgdir"/${pacman_root}/usr/share/texmf-dist/doc
+@@ -282,3 +290,3 @@
+-  rm "$pkgdir"/usr/share/info/asy-faq.info
+-  rm "$pkgdir"/usr/share/man/man1/{asy,dvisvgm,epsffit,extractres,includeres,psbook,psjoin,psnup,psresize,psselect,pstops,psutils,t1ascii,t1asm,t1binary,t1disasm,t1mac,t1unmac}.1
+-  rm -f "$pkgdir"/usr/share/man{,/man*}/{Makefile,*.pdf}
++  rm "$pkgdir"/${pacman_root}/usr/share/info/asy-faq.info
++  rm "$pkgdir"/${pacman_root}/usr/share/man/man1/{asy,dvisvgm,epsffit,extractres,includeres,psbook,psjoin,psnup,psresize,psselect,pstops,psutils,t1ascii,t1asm,t1binary,t1disasm,t1mac,t1unmac}.1
++  rm -f "$pkgdir"/${pacman_root}/usr/share/man{,/man*}/{Makefile,*.pdf}

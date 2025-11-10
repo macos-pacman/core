@@ -1,7 +1,26 @@
 {
   "upstream_commit": "9f2a1ff0cd08504f4802457601be781f1c3da3a3",
-  "diff_files": [],
-  "clean_files": [],
+  "diff_files": [
+    "09-texlive-fonts.conf.pmdiff",
+    "70-mktexlsr.hook.pmdiff",
+    "71-texlive-language.hook.pmdiff",
+    "72-texlive-fmtutil.hook.pmdiff",
+    "73-texlive-updmap.hook.pmdiff",
+    "80-mtxrun.hook.pmdiff",
+    "PKGBUILD.pmdiff",
+    "list-collections.pmdiff",
+    "mtxrun.script.pmdiff",
+    "texlive-fmtutil.script.pmdiff",
+    "texlive-language.script.pmdiff",
+    "texlive-updmap.script.pmdiff",
+    "texmf.cnf.patch.pmdiff",
+    "texmfcnf.lua.patch.pmdiff"
+  ],
+  "clean_files": [
+    ".nvchecker.toml",
+    "LICENSE",
+    "REUSE.toml"
+  ],
   "ignore_files": [
     ".SRCINFO"
   ]
