@@ -1,6 +1,6 @@
 pkgname=wezterm-git
 pkgver=20240205.070437.39d2b6ca
-pkgrel=2
+pkgrel=3
 pkgdesc="A GPU-accelerated cross-platform terminal emulator and multiplexer"
 arch=('x86_64' 'arm64')
 url="https://wezfurlong.org/wezterm/"
@@ -9,7 +9,7 @@ depends=('openssl' 'libssh2')
 makedepends=('rust' 'cargo' 'git' 'cargo-nextest')
 pkgrel+=".6"
 source=("wezterm::git+https://github.com/wez/wezterm.git"
-        'https://patch-diff.githubusercontent.com/raw/wez/wezterm/pull/3579.diff' # upstream doesn't even want to comment on this PR
+        'https://patch-diff.githubusercontent.com/raw/wez/wezterm/pull/3579.patch' # upstream doesn't even want to comment on this PR
         'alt-click-mouse.patch'   # not even gonna bother to PR this. author seems like they don't care about this feature.
         'search-from-current-viewport.patch'
         'stop-resetting-the-selection-when-contents-change.patch'
@@ -17,7 +17,7 @@ source=("wezterm::git+https://github.com/wez/wezterm.git"
         'fix-capslock-modifier-viewport-scroll.patch'
 )
 sha512sums=('SKIP'
-            '29ff217648db78ea4faf0708f76de5d38d7789eccd136a61c5d1c9213d626a642fd2058411d12da3d707f52da6c558dc71a0bf60827294e76570b08fbbd1fe05'
+            'a231e18f5153ec428628d7ff9aeb6ddfd98580505e9b3e004294e2eeb283b89ab44edc1739811cc91fd9f0001194e5ee8440bfdc6516abde87471cab2eb55e16'
             'd3475c13598b76a79966c1a0b426f31befdd0029715ff1db39ac3a89f5dac00c00e237ac5f05e9b5d72c68a3aadc71c4cde1f34cdb374f5d0812c113667b8911'
             'e5026f63005ad0aa1af65b2d777c9c6e0836f1274611a43cff0b229821974bc1de7f734beb27315be5b0443b6b5447bbd2a49fc96503b2e74248a65bf01b6f3d'
             '58c0ed47476304e39310e5bf625cb399da5186cb4d4fe501db6588ec45e70ec71afcd3785854c44e52c0b6ea95359ff95956970b7cd3f36077a3011c46e35aaf'
@@ -36,7 +36,7 @@ pkgver() {
 
 build() {
   cd wezterm
-  git apply --3way -Np1 ../3579.diff
+  git apply --3way -Np1 ../3579.patch
   git apply --3way -Np1 ../alt-click-mouse.patch
   git apply --3way -Np1 ../search-from-current-viewport.patch
   git apply --3way -Np1 ../hide-scrollbar-in-alt-screen.patch
