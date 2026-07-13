@@ -1,10 +1,20 @@
 {
-  "upstream_commit": "7d1a916b64a9297952e493ce92ee1086ff610148",
+  "upstream_commit": "2f5726c4bc3457ef553b6342e9c3224539e86a6d",
   "diff_files": [
     "PKGBUILD.pmdiff"
   ],
   "clean_files": [
-    "aalib.m4.patch",
+    ".nvchecker.toml",
+    "LICENSE",
+    "REUSE.toml",
+    "aalib-aalinuxkbd-return.patch",
+    "aalib-c99.patch",
+    "aalib-fix-aarender.patch",
+    "aalib-free-offset-pointer.patch",
+    "aalib-key-down-OOB.patch",
+    "aalib-m4.patch",
+    "aalib-mouse.patch",
+    "aalib-opaque-ncurses-fix.patch",
     "aclocal-fixes.patch"
   ],
   "ignore_files": [

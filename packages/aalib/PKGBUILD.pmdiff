@@ -1,27 +1,28 @@
 --- PKGBUILD
 +++ PKGBUILD
 @@ -7,0 +8 @@
-+pkgrel+=".10"
++pkgrel+=".1"
 @@ -9 +10 @@
--arch=('x86_64')
-+arch=('x86_64' 'arm64')
-@@ -12,3 +13,2 @@
--depends=('glibc' 'gpm' 'libx11' 'ncurses' 'slang')
--optdepends=('xorg-fonts-misc: x11 driver'
--            'xorg-mkfontscale: x11 driver')
-+depends=('glibc' 'ncurses' 'slang')
-+makedepends=('autoconf' 'automake' 'libtool')
-@@ -17 +17,2 @@
--        'aalib.m4.patch')
-+        'aalib.m4.patch'
-+        'fix-people-who-cannot-write-software.patch')
-@@ -20 +21,2 @@
--            '0202545881ec34bd637c04b5896b9b3093609530cc4f85e1d5ffe9a3136d9483')
-+            '0202545881ec34bd637c04b5896b9b3093609530cc4f85e1d5ffe9a3136d9483'
-+            'df3e9b1af54a5a3f3f767fcb40e6686e5f59918681d82d575fe82c8d4449d9e7')
-@@ -31,0 +34,2 @@
-+  patch -Np1 -i ../fix-people-who-cannot-write-software.patch
+-arch=(x86_64)
++arch=(x86_64 arm64)
+@@ -14,2 +14,0 @@
+-  gpm
+-  libx11
+@@ -18,4 +16,0 @@
+-)
+-optdepends=(
+-  'xorg-fonts-misc: x11 driver'
+-  'xorg-mkfontscale: x11 driver'
+@@ -85,0 +81,2 @@
++  sed -i 's/#include <malloc.h>/#include <stdlib.h>/g' src/*.c
 +
-@@ -37 +41 @@
--  ./configure --prefix=/usr --with-curses-driver
-+  ./configure --prefix=${pacman_root}/usr --with-curses-driver --without-x
+@@ -92,4 +89,5 @@
+-    --prefix=/usr \
+-    --sysconfdir=/etc \
+-    --localstatedir=/var \
+-    --with-curses-driver
++    --prefix=${pacman_root}/usr \
++    --sysconfdir=${pacman_root}/etc \
++    --localstatedir=${pacman_root}/var \
++    --with-curses-driver \
++    --without-x
