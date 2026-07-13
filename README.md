@@ -1,3 +1,17 @@
+# ARCHIVED / DISCONTINUED / ABANDONED
+
+Arch Linux upstream moves too fast for this project to be viable. As you can see from the commit history,
+my packages have been out of date for a few years at this point, and I don't have the energy to maintain it
+when my patch-and-rebase strategy breaks every few weeks.
+
+I'm just going to suck it up and use the software written by the guy who can't invert a binary tree, and
+currently maintained by a guy who doesn't think users should have options or any control over their packages.
+
+Such is life.
+
+
+
+
 # macOS / Pacman
 
 A collection of PKGBUILDs to build packages on macOS.
