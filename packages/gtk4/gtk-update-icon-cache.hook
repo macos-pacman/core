@@ -1,0 +1,13 @@
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = %%PACMAN_ROOT_REL%%/usr/share/icons/*/
+Target = !%%PACMAN_ROOT_REL%%/usr/share/icons/*/?*
+
+[Action]
+Description = Updating icon theme caches...
+When = PostTransaction
+Exec = %%PACMAN_ROOT%%/usr/share/libalpm/scripts/gtk-update-icon-cache
+NeedsTargets

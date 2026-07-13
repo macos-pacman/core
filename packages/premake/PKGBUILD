@@ -1,0 +1,30 @@
+# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Contributor: revel <revelΘmuub·net>
+# Contributor: Marcos J. S. Magalhaes <mjsmagalhaes ^dot^ insc _at_ gmail ~dot~ com>
+
+pkgname=premake
+pkgver=5.0beta2
+_pkgver=5.0.0-beta2
+pkgrel=1
+pkgrel+=".2"
+pkgdesc="A simple build configuration and project generation tool"
+arch=('x86_64' 'arm64')
+url="https://premake.github.io/"
+license=('BSD')
+depends=('glibc')
+source=("https://github.com/premake/premake-core/releases/download/v${_pkgver}/premake-${_pkgver}-src.zip")
+sha512sums=('6913293aa29c2bfd2ac07ed40210da2f6b0ed853f3a24dcf66715748647a12502defb96ba3591a5e0515a808c5ea7013c41e29c3d18bb715d336c72a9bd151e3')
+
+build() {
+  export CFLAGS+=" -Wno-implicit-function-declaration "
+  cd "premake-$_pkgver-src/build/gmake2.macosx"
+
+  make config=release
+}
+
+package() {
+  cd "premake-$_pkgver-src"
+
+  install -Dm755 "bin/release/premake5" "${pkgdir}/${pacman_root}/usr/bin/premake5"
+  install -Dm644 LICENSE.txt "$pkgdir/${pacman_root}/usr/share/licenses/$pkgname/LICENSE"
+}

@@ -1,0 +1,23 @@
+# Maintainer: yuki <yuki@nowhere>
+
+pkgname=dumb_dummy_package
+pkgver=1.0.0
+pkgrel=1
+pkgrel+=".10"
+pkgdesc="A dummy package"
+arch=('any')
+license=('MIT')
+url="https://example.org"
+source=()
+sha256sums=()
+
+build() {
+  mkdir -p ${pkgname}
+  cd ${pkgname}
+  dd if=/dev/random of=dummy-bs bs=1M count=10
+}
+
+package() {
+  cd ${pkgname}
+  install -Dm644 dummy-bs ${pkgdir}/${pacman_root}/usr/share/
+}

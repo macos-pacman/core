@@ -1,0 +1,13 @@
+diff --git a/contrib/libzip/mkstemp.c b/contrib/libzip/mkstemp.c
+index 8731c99..b636bf3 100644
+--- a/contrib/libzip/mkstemp.c
++++ b/contrib/libzip/mkstemp.c
+@@ -43,6 +43,8 @@
+ #endif
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <unistd.h>
++
+ 
+ #ifndef O_BINARY
+ #define O_BINARY 0

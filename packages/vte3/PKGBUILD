@@ -1,0 +1,140 @@
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Maintainer: Fabian Bornschein <fabiscafe@archlinux.org>
+# Contributor: Ionut Biru <ibiru@archlinux.org>
+
+pkgbase=vte3
+pkgname=(
+  vte-common
+  vte3
+  vte4
+  vte-docs
+)
+pkgver=0.74.2
+pkgrel=1
+pkgdesc="Virtual Terminal Emulator widget"
+url="https://wiki.gnome.org/Apps/Terminal/VTE"
+arch=('x86_64' 'arm64')
+license=(
+  LGPL-3.0-or-later
+  GPL-3.0-or-later
+)
+makedepends=(
+  cairo
+  fribidi
+  gi-docgen
+  git
+  gnutls
+  gobject-introspection
+  gperf
+  gtk3
+  gtk4
+  meson
+  pcre2
+  vala
+)
+options=(!lto)
+_commit=3f66edbf598129bafde3baa91ccfb345056418c3  # tags/0.74.2^0
+source=("git+https://gitlab.gnome.org/GNOME/vte.git#commit=$_commit")
+b2sums=('SKIP')
+
+pkgver() {
+  cd vte
+  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
+}
+
+prepare() {
+  cd vte
+}
+
+build() {
+  local meson_options=(
+    -D b_lto=false
+    -D docs=true
+  )
+
+  arch-meson vte build "${meson_options[@]}"
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p "$(dirname "$f")" || :
+  done
+}
+
+package_vte-common() {
+  pkgdesc+=" (common files)"
+  depends=(sh)
+
+  meson install -C build --destdir "$pkgdir"
+
+  cd "$pkgdir"
+
+  _pick gtk3 ${pacman_root#/}/usr/bin/vte-2.91
+  _pick gtk3 ${pacman_root#/}/usr/include/vte-2.91
+  _pick gtk3 ${pacman_root#/}/usr/lib/libvte-2.91.*dylib
+  _pick gtk3 ${pacman_root#/}/usr/lib/pkgconfig/vte-2.91.pc
+  _pick gtk3 ${pacman_root#/}/usr/lib/girepository-1.0/Vte-2.91.typelib
+  _pick gtk3 ${pacman_root#/}/usr/share/gir-1.0/Vte-2.91.gir
+  _pick gtk3 ${pacman_root#/}/usr/share/glade
+  _pick gtk3 ${pacman_root#/}/usr/share/vala/vapi/vte-2.91.{deps,vapi}
+
+  _pick gtk4 ${pacman_root#/}/usr/bin/vte-2.91-gtk4
+  _pick gtk4 ${pacman_root#/}/usr/include/vte-2.91-gtk4
+  _pick gtk4 ${pacman_root#/}/usr/lib/libvte-2.91-gtk4.*dylib
+  _pick gtk4 ${pacman_root#/}/usr/lib/pkgconfig/vte-2.91-gtk4.pc
+  _pick gtk4 ${pacman_root#/}/usr/lib/girepository-1.0/Vte-3.91.typelib
+  _pick gtk4 ${pacman_root#/}/usr/share/gir-1.0/Vte-3.91.gir
+  _pick gtk4 ${pacman_root#/}/usr/share/vala/vapi/vte-2.91-gtk4.{deps,vapi}
+
+  _pick docs ${pacman_root#/}/usr/share/doc
+}
+
+
+package_vte3() {
+  pkgdesc+=" (GTK3)"
+  depends=(
+    cairo
+    fribidi
+    gnutls
+    gtk3
+    pcre2
+    systemd
+    vte-common
+  )
+  provides+=(libvte-2.91.dylib)
+
+  mv gtk3/* "$pkgdir"
+}
+
+package_vte4() {
+  pkgdesc+=" (GTK4)"
+  depends=(
+    cairo
+    fribidi
+    gnutls
+    gtk4
+    pcre2
+    systemd
+    vte-common
+  )
+  provides+=(libvte-2.91-gtk4.dylib)
+
+  mv gtk4/* "$pkgdir"
+}
+
+package_vte-docs() {
+  pkgdesc+=" (documentation)"
+
+  mv docs/* "$pkgdir"
+}
+
+# vim:set sw=2 sts=-1 et:

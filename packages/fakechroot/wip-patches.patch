@@ -1,0 +1,546 @@
+diff --git a/scripts/chroot.fakechroot.sh b/scripts/chroot.fakechroot.sh
+index 78e6f49..411f75f 100644
+--- a/scripts/chroot.fakechroot.sh
++++ b/scripts/chroot.fakechroot.sh
+@@ -2,8 +2,8 @@
+ 
+ # chroot
+ #
+-# Wrapper for chroot command which sets additional LD_LIBRARY_PATH for fake
+-# chroot environment.  It copies original LD_LIBRARY_PATH and adds prefix to
++# Wrapper for chroot command which sets additional DYLD_LIBRARY_PATH for fake
++# chroot environment.  It copies original DYLD_LIBRARY_PATH and adds prefix to
+ # each directory for this variable.
+ #
+ # (c) 2011, 2013, 2016 Piotr Roszatycki <dexter@debian.org>, LGPL
+@@ -39,9 +39,9 @@ fakechroot_chroot_chroot="${FAKECHROOT_CMD_ORIG:-chroot}"
+ 
+ fakechroot_chroot_base="$FAKECHROOT_BASE_ORIG"
+ 
+-# records the content of LD_LIBRARY_PATH at first chroot invocation
+-if [ -z "$fakechroot_chroot_base" -a -n "$LD_LIBRARY_PATH" ]; then
+-    FAKECHROOT_LDLIBPATH="$LD_LIBRARY_PATH"
++# records the content of DYLD_LIBRARY_PATH at first chroot invocation
++if [ -z "$fakechroot_chroot_base" -a -n "$DYLD_LIBRARY_PATH" ]; then
++    FAKECHROOT_LDLIBPATH="$DYLD_LIBRARY_PATH"
+     export FAKECHROOT_LDLIBPATH
+ fi
+ 
+@@ -71,7 +71,7 @@ if [ -d "$fakechroot_chroot_newroot" ]; then
+ 
+     fakechroot_chroot_paths=
+ 
+-    # append newroot to each directory from original LD_LIBRARY_PATH
++    # append newroot to each directory from original DYLD_LIBRARY_PATH
+     fakechroot_chroot_IFS_bak="$IFS" IFS=:
+     for fakechroot_chroot_d in $FAKECHROOT_LDLIBPATH; do
+         fakechroot_chroot_paths="${fakechroot_chroot_paths:+$fakechroot_chroot_paths:}$fakechroot_chroot_newroot/${fakechroot_chroot_d#/}"
+@@ -112,7 +112,7 @@ fi
+ if [ -n "$fakechroot_chroot_newroot" ] && [ $fakechroot_chroot_n -le $# ]; then
+     if ( test "$1" = "${@:1:$((1+0))}" ) 2>/dev/null; then
+         # shell with arrays and built-in expr
+-        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
++        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= DYLD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+             "$fakechroot_chroot_chroot" "${@:1:$(($fakechroot_chroot_n - 1))}" "$fakechroot_chroot_final_newroot" "${@:$(($fakechroot_chroot_n + 1))}"
+         exit $?
+     else
+@@ -135,13 +135,13 @@ if [ -n "$fakechroot_chroot_newroot" ] && [ $fakechroot_chroot_n -le $# ]; then
+             set -- "$@" "$fakechroot_chroot_arg"
+         done
+ 
+-        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
++        env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= DYLD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+             "$fakechroot_chroot_chroot" "$@"
+         exit $?
+     fi
+ else
+     # original arguments
+-    env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= LD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
++    env -u FAKECHROOT_BASE_ORIG FAKECHROOT_CMD_ORIG= DYLD_LIBRARY_PATH="$fakechroot_chroot_paths" FAKECHROOT_BASE="$fakechroot_chroot_base" \
+         "$fakechroot_chroot_chroot" "$@"
+     exit $?
+ fi
+diff --git a/scripts/env.fakechroot.sh b/scripts/env.fakechroot.sh
+index a942059..88526f0 100644
+--- a/scripts/env.fakechroot.sh
++++ b/scripts/env.fakechroot.sh
+@@ -51,7 +51,7 @@ while [ $# -gt 0 ]; do
+         --unset=*)
+             fakechroot_env_key=${1#--unset=}
+             case "$fakechroot_env_key" in
+-                LD_LIBRARY_PATH|LD_PRELOAD) ;;
++                DYLD_LIBRARY_PATH|DYLD_INSERT_LIBRARIES) ;;
+                 *) unset $fakechroot_env_key
+             esac
+             shift
+@@ -59,7 +59,7 @@ while [ $# -gt 0 ]; do
+         -u|--unset)
+             fakechroot_env_key=$2
+             case "$fakechroot_env_key" in
+-                LD_LIBRARY_PATH|LD_PRELOAD) ;;
++                DYLD_LIBRARY_PATH|DYLD_INSERT_LIBRARIES) ;;
+                 *) unset $fakechroot_env_key
+             esac
+             shift 2
+@@ -106,7 +106,7 @@ else
+             fakechroot_env_key="${fakechroot_env_key#export }"
+             fakechroot_env_key="${fakechroot_env_key%%=*}"
+             case "$fakechroot_env_key" in
+-                FAKEROOTKEY|FAKED_MODE|FAKECHROOT|FAKECHROOT_*|LD_LIBRARY_PATH|LD_PRELOAD) ;;
++                FAKEROOTKEY|FAKED_MODE|FAKECHROOT|FAKECHROOT_*|DYLD_LIBRARY_PATH|DYLD_INSERT_LIBRARIES) ;;
+                 *) echo $fakechroot_env_key
+             esac
+         done`
+diff --git a/scripts/fakechroot.sh b/scripts/fakechroot.sh
+index d743eff..a7c1314 100644
+--- a/scripts/fakechroot.sh
++++ b/scripts/fakechroot.sh
+@@ -6,7 +6,6 @@
+ #
+ # (c) 2011, 2013 Piotr Roszatycki <dexter@debian.org>, LGPL
+ 
+-
+ FAKECHROOT_VERSION=@VERSION@
+ 
+ 
+@@ -70,9 +69,9 @@ fi
+ # fakechroot doesn't work with CDPATH correctly
+ unset CDPATH
+ 
+-
++set -x
+ # Default settings
+-fakechroot_lib=libfakechroot.so
++fakechroot_lib=libfakechroot.dylib
+ fakechroot_paths=@libpath@
+ fakechroot_sysconfdir=@sysconfdir@
+ fakechroot_confdir=
+@@ -90,7 +89,6 @@ else
+     fakechroot_echo=@ECHO@
+ fi
+ 
+-
+ # Get options
+ fakechroot_getopttest=`getopt --version`
+ case $fakechroot_getopttest in
+@@ -167,17 +165,17 @@ if [ -n "$FAKECHROOT_ELFLOADER" ]; then
+ fi
+ 
+ 
+-# Swap libfakechroot and libfakeroot in LD_PRELOAD if needed
++# Swap libfakechroot and libfakeroot in DYLD_INSERT_LIBRARIES if needed
+ # libfakeroot must come first
+ # an alternate fakeroot library may be given
+ # in the FAKEROOT_ALT_LIB environment variable
+ if [ -n "$FAKEROOT_ALT_LIB" ]; then
+     lib_libfakeroot="$FAKEROOT_ALT_LIB"
+ else
+-    lib_libfakeroot="libfakeroot-sysv.so"
++    lib_libfakeroot="libfakeroot-sysv.dylib"
+ fi
+ 
+-for preload in $(echo "$LD_PRELOAD" | tr ':' ' '); do
++for preload in $(echo "$DYLD_INSERT_LIBRARIES" | tr ':' ' '); do
+     case "$preload" in
+         "$lib_libfakeroot")
+             lib_libfakeroot_to_preload="$preload"
+@@ -190,10 +188,10 @@ done
+ 
+ 
+ # Make sure the preload is available
+-fakechroot_paths="$fakechroot_paths${LD_LIBRARY_PATH:+${fakechroot_paths:+:}$LD_LIBRARY_PATH}"
++fakechroot_paths="$fakechroot_paths${DYLD_LIBRARY_PATH:+${fakechroot_paths:+:}$DYLD_LIBRARY_PATH}"
+ fakechroot_lib="${lib_libfakeroot_to_preload:+${lib_libfakeroot_to_preload}:}$fakechroot_lib${lib_to_preload:+:$lib_to_preload}"
+ 
+-fakechroot_detect=`LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" FAKECHROOT_DETECT=1 $fakechroot_echo 2>&1`
++fakechroot_detect=`DYLD_LIBRARY_PATH="$fakechroot_paths" DYLD_INSERT_LIBRARIES="$fakechroot_lib" FAKECHROOT_DETECT=1 $fakechroot_echo 2>&1`
+ case "$fakechroot_detect" in
+     fakechroot*)
+         fakechroot_libfound=yes
+@@ -247,17 +245,17 @@ fakechroot_cmd=${fakechroot_cmd_wrapper:-$1}
+ 
+ # Execute command
+ if [ -z "$*" ]; then
+-    LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" ${SHELL:-/bin/sh}
++    DYLD_LIBRARY_PATH="$fakechroot_paths" DYLD_INSERT_LIBRARIES="$fakechroot_lib" ${SHELL:-/bin/sh}
+     exit $?
+ else
+     if [ -n "$fakechroot_cmd" ]; then
+         # Call substituted command
+         shift
+-        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$fakechroot_cmd" "$@"
++        DYLD_LIBRARY_PATH="$fakechroot_paths" DYLD_INSERT_LIBRARIES="$fakechroot_lib" "$fakechroot_cmd" "$@"
+         exit $?
+     else
+         # Call original command
+-        LD_LIBRARY_PATH="$fakechroot_paths" LD_PRELOAD="$fakechroot_lib" "$@"
++        DYLD_LIBRARY_PATH="$fakechroot_paths" DYLD_INSERT_LIBRARIES="$fakechroot_lib" "$@"
+         exit $?
+     fi
+ fi
+diff --git a/src/__opendir2.c b/src/__opendir2.c
+index f7a4eef..a305ea6 100644
+--- a/src/__opendir2.c
++++ b/src/__opendir2.c
+@@ -197,9 +197,9 @@ __opendir_common(int fd, const char *name, int flags)
+             (dirp = malloc(sizeof(DIR) + sizeof(struct _telldir))) == NULL)
+                 goto fail;
+ 
+-        dirp->dd_td = (struct _telldir *)((char *)dirp + sizeof(DIR));
+-        LIST_INIT(&dirp->dd_td->td_locq);
+-        dirp->dd_td->td_loccnt = 0;
++        dirp->__dd_td = (struct _telldir *)((char *)dirp + sizeof(DIR));
++        LIST_INIT(&dirp->__dd_td->td_locq);
++        dirp->__dd_td->td_loccnt = 0;
+ 
+         /*
+          * Use the system page size if that is a multiple of DIRBLKSIZ.
+@@ -254,7 +254,7 @@ __opendir_common(int fd, const char *name, int flags)
+                                 ddptr = buf + (len - space);
+                         }
+ 
+-                        n = _getdirentries(fd, ddptr, space, &dirp->dd_seek);
++                        n = _getdirentries(fd, ddptr, space, &dirp->__dd_seek);
+                         if (n > 0) {
+                                 ddptr += n;
+                                 space -= n;
+@@ -286,7 +286,7 @@ __opendir_common(int fd, const char *name, int flags)
+                  * There is now a buffer full of (possibly) duplicate
+                  * names.
+                  */
+-                dirp->dd_buf = buf;
++                dirp->__dd_buf = buf;
+ 
+                 /*
+                  * Go round this loop twice...
+@@ -355,27 +355,27 @@ __opendir_common(int fd, const char *name, int flags)
+                         }
+                 }
+ 
+-                dirp->dd_len = len;
+-                dirp->dd_size = ddptr - dirp->dd_buf;
++                dirp->__dd_len = len;
++                dirp->__dd_size = ddptr - dirp->__dd_buf;
+         } else {
+-                dirp->dd_len = incr;
+-                dirp->dd_size = 0;
+-                dirp->dd_buf = malloc(dirp->dd_len);
+-                if (dirp->dd_buf == NULL)
++                dirp->__dd_len = incr;
++                dirp->__dd_size = 0;
++                dirp->__dd_buf = malloc(dirp->__dd_len);
++                if (dirp->__dd_buf == NULL)
+                         goto fail;
+-                dirp->dd_seek = 0;
++                dirp->__dd_seek = 0;
+                 flags &= ~DTF_REWIND;
+         }
+ 
+-        dirp->dd_loc = 0;
+-        dirp->dd_fd = fd;
+-        dirp->dd_flags = flags;
+-        dirp->dd_lock = NULL;
++        dirp->__dd_loc = 0;
++        dirp->__dd_fd = fd;
++        dirp->__dd_flags = flags;
++        memset(&dirp->__dd_lock, 0, sizeof(dirp->__dd_lock));
+ 
+         /*
+          * Set up seek point for rewinddir.
+          */
+-        dirp->dd_rewind = telldir(dirp);
++        dirp->__padding = telldir(dirp);
+ 
+         return (dirp);
+ 
+diff --git a/src/__statfs.c b/src/__statfs.c
+index 75aae70..6f3fe92 100644
+--- a/src/__statfs.c
++++ b/src/__statfs.c
+@@ -22,7 +22,8 @@
+ 
+ #ifdef HAVE___STATFS
+ 
+-#include <sys/statfs.h>
++#include <sys/param.h>
++#include <sys/mount.h>
+ #include "libfakechroot.h"
+ 
+ 
+diff --git a/src/fstatat64.c b/src/fstatat64.c
+index 1863372..b765eb9 100644
+--- a/src/fstatat64.c
++++ b/src/fstatat64.c
+@@ -20,7 +20,7 @@
+ 
+ #include <config.h>
+ 
+-#ifdef HAVE_FSTATAT64
++#if defined(HAVE_FSTATAT64) && !defined(__APPLE__)
+ 
+ #define _ATFILE_SOURCE
+ #define _POSIX_C_SOURCE 200809L
+diff --git a/src/fts.c b/src/fts.c
+index e69e1b7..5f3aa56 100644
+--- a/src/fts.c
++++ b/src/fts.c
+@@ -34,6 +34,8 @@
+ 
+ #if !defined FTS64_C__ || (defined FTS64_C__ && HAVE_FTS64_OPEN)
+ 
++#include <sys/types.h>
++
+ #define _ATFILE_SOURCE
+ #define _BSD_SOURCE
+ #define _XOPEN_SOURCE 500
+@@ -66,8 +68,9 @@
+ # define ALIGN(p) (((unsigned long int) (p) + ALIGNBYTES) & ~ALIGNBYTES)
+ #endif
+ 
++#ifndef FTS_MAXLEVEL
+ #define FTS_MAXLEVEL 0x7fff
+-
++#endif
+ #ifndef _D_ALLOC_NAMLEN
+ # ifdef HAVE_STRUCT_DIRENT_D_NAMLEN
+ #  define _D_EXACT_NAMLEN(d) ((d)->d_namlen)
+diff --git a/src/ftw.c b/src/ftw.c
+index a9abc85..3e58b3f 100644
+--- a/src/ftw.c
++++ b/src/ftw.c
+@@ -18,6 +18,7 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#if 0
+ #ifndef FAKECHROOT
+ # include <config.h>
+ #endif
+@@ -78,13 +79,13 @@ char *alloca ();
+ #define open_not_cancel_2(name, flags) \
+   __libc_open (name, flags)
+ #define openat_not_cancel(fd, name, flags, mode) \
+-  __openat (fd, name, flags, mode)
++  openat (fd, name, flags, mode)
+ #define openat_not_cancel_3(fd, name, flags) \
+-  __openat (fd, name, flags, 0)
++  openat (fd, name, flags, 0)
+ #define openat64_not_cancel(fd, name, flags, mode) \
+-  __openat64 (fd, name, flags, mode)
++  openat (fd, name, flags, mode)
+ #define openat64_not_cancel_3(fd, name, flags) \
+-  __openat64 (fd, name, flags, 0)
++  openat (fd, name, flags, 0)
+ #define close_not_cancel(fd) \
+   __close (fd)
+ #define close_not_cancel_no_status(fd) \
+@@ -196,6 +197,8 @@ int rpl_lstat (const char *, struct stat *);
+ # endif
+ # define FTW_FUNC_T __ftw_func_t
+ # define NFTW_FUNC_T __nftw_func_t
++typedef int (*__ftw_func_t) (const char *, const struct stat *, int);
++typedef int (*__nftw_func_t) (const char *, const struct stat *, int, struct FTW *);
+ #endif
+ 
+ #define macro_stringify(name) macro_stringify2(name)
+@@ -939,3 +942,4 @@ compat_symbol (libc, NFTW_OLD_NAME, NFTW_NAME, GLIBC_2_1);
+ #else
+ typedef int empty_translation_unit;
+ #endif
++#endif
+diff --git a/src/lstat64.c b/src/lstat64.c
+index a332d7c..6e44a38 100644
+--- a/src/lstat64.c
++++ b/src/lstat64.c
+@@ -17,7 +17,7 @@
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ */
+ 
+-
++#if 0
+ #include <config.h>
+ 
+ #if defined(HAVE_LSTAT64) && (!defined(HAVE___LXSTAT64) || NEW_GLIBC)
+@@ -25,6 +25,7 @@
+ #define _LARGEFILE64_SOURCE
+ #define _BSD_SOURCE
+ #define _DEFAULT_SOURCE
++#include <sys/types.h>
+ #include <sys/stat.h>
+ #include <limits.h>
+ #include <stdlib.h>
+@@ -65,3 +66,4 @@ wrapper(lstat64, int, (const char * file_name, struct stat64 * buf))
+ #else
+ typedef int empty_translation_unit;
+ #endif
++#endif
+diff --git a/src/passwd.c b/src/passwd.c
+index d4cee86..20b5199 100644
+--- a/src/passwd.c
++++ b/src/passwd.c
+@@ -37,7 +37,9 @@
+  * as potentially configured in /etc/nsswitch.conf.
+  */
+ 
++#if __has_include(<gnu/libc-version.h>)
+ #include <gnu/libc-version.h>
++#endif
+ #if __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 32)
+ 
+ #include <stdlib.h>
+diff --git a/src/popen.c b/src/popen.c
+index fe72066..4936de4 100644
+--- a/src/popen.c
++++ b/src/popen.c
+@@ -52,6 +52,8 @@
+ 
+ #include "libfakechroot.h"
+ 
++pid_t vfork(void);
++
+ #define _MUTEX_LOCK(a)
+ #define _MUTEX_UNLOCK(a)
+ 
+diff --git a/src/setenv.c b/src/setenv.c
+index 1edf0b6..3267f17 100644
+--- a/src/setenv.c
++++ b/src/setenv.c
+@@ -43,12 +43,15 @@
+    modified for uClibc by Erik Andersen <andersen@codepoet.org>
+ */
+ 
+-#include <features.h>
++// #include <features.h>
+ #include <errno.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
+ 
++extern char** environ;
++#define __environ environ
++
+ 
+ /* If this variable is not a null pointer we allocated the current
+    environment.  */
+diff --git a/src/stat64.c b/src/stat64.c
+index 993ce80..53b7060 100644
+--- a/src/stat64.c
++++ b/src/stat64.c
+@@ -17,7 +17,7 @@
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ */
+ 
+-
++#if 0
+ #include <config.h>
+ 
+ #if defined(HAVE_STAT64) && (!defined(HAVE___XSTAT64) || NEW_GLIBC)
+@@ -44,3 +44,4 @@ wrapper(stat64, int, (const char * file_name, struct stat64 * buf))
+ #else
+ typedef int empty_translation_unit;
+ #endif
++#endif
+diff --git a/src/statfs64.c b/src/statfs64.c
+index 94f9887..b39e563 100644
+--- a/src/statfs64.c
++++ b/src/statfs64.c
+@@ -17,7 +17,7 @@
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ */
+ 
+-
++#if 0
+ #include <config.h>
+ 
+ #ifdef HAVE_STATFS64
+@@ -39,3 +39,4 @@ wrapper(statfs64, int, (const char * path, struct statfs64 * buf))
+ #else
+ typedef int empty_translation_unit;
+ #endif
++#endif
+diff --git a/src/system.c b/src/system.c
+index 50e1838..4e6f6cd 100644
+--- a/src/system.c
++++ b/src/system.c
+@@ -31,6 +31,7 @@
+ #include <signal.h>
+ #include "libfakechroot.h"
+ 
++pid_t vfork(void);
+ 
+ /* #include <sys/types.h> */
+ /* #include <stdlib.h> */
+diff --git a/test/bin/fakechroot b/test/bin/fakechroot
+index 122c991..dcf61a4 100755
+--- a/test/bin/fakechroot
++++ b/test/bin/fakechroot
+@@ -3,7 +3,7 @@
+ pwd=`dirname $0`
+ abs_top_srcdir=${abs_top_srcdir:-`cd ".." 2>/dev/null && pwd -P`}
+ 
+-PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
++PATH="$(pacman-root-dir)/usr/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+ export PATH
+ 
+ cmd_subst=""
+@@ -24,5 +24,5 @@ done
+ 
+ FAKECHROOT_CMD_SUBST="`echo $cmd_subst | tr ' ' ':'`${FAKECHROOT_CMD_SUBST:+:$FAKECHROOT_CMD_SUBST}"
+ 
+-"$abs_top_srcdir/scripts/env.fakechroot" - FAKECHROOT_CMD_SUBST="$FAKECHROOT_CMD_SUBST" HOME="$HOME" PATH="$PATH" SHELL="$SHELL" "$abs_top_srcdir/scripts/fakechroot" -c "$abs_top_srcdir/scripts" -l "$abs_top_srcdir/src/.libs/libfakechroot.so" "$@"
++"$abs_top_srcdir/scripts/env.fakechroot" - FAKECHROOT_CMD_SUBST="$FAKECHROOT_CMD_SUBST" HOME="$HOME" PATH="$PATH" SHELL="$SHELL" "$abs_top_srcdir/scripts/fakechroot" -c "$abs_top_srcdir/scripts" -l "$abs_top_srcdir/src/.libs/libfakechroot.dylib" "$@"
+ exit $?
+diff --git a/test/src/test-clearenv.c b/test/src/test-clearenv.c
+index e64413c..e799709 100644
+--- a/test/src/test-clearenv.c
++++ b/test/src/test-clearenv.c
+@@ -3,13 +3,16 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
++extern char** environ;
++
+ int main (int argc, char *argv[]) {
+     if (argc != 2) {
+         fprintf(stderr, "Usage: %s command\n", argv[0]);
+         exit(2);
+     }
+ 
+-    clearenv();
++    // clearenv();
++    environ = NULL;
+ 
+     if (system(argv[1]) == -1) {
+         perror("system");
+diff --git a/test/src/test-mkdtemp.c b/test/src/test-mkdtemp.c
+index 6511de6..72e810b 100644
+--- a/test/src/test-mkdtemp.c
++++ b/test/src/test-mkdtemp.c
+@@ -1,5 +1,6 @@
+ #define _BSD_SOURCE
+ #define _DEFAULT_SOURCE
++#include <unistd.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ 
+diff --git a/test/src/test-mkstemp.c b/test/src/test-mkstemp.c
+index d3c2c69..dcaa537 100644
+--- a/test/src/test-mkstemp.c
++++ b/test/src/test-mkstemp.c
+@@ -1,5 +1,6 @@
+ #define _BSD_SOURCE
+ #define _DEFAULT_SOURCE
++#include <unistd.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ 
+diff --git a/test/src/test-mkstemps.c b/test/src/test-mkstemps.c
+index 205eed8..7a96e18 100644
+--- a/test/src/test-mkstemps.c
++++ b/test/src/test-mkstemps.c
+@@ -1,4 +1,5 @@
+ #define _GNU_SOURCE
++#include <unistd.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ 
