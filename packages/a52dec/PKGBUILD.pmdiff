@@ -1,0 +1,15 @@
+--- PKGBUILD
++++ PKGBUILD
+@@ -11 +11 @@
+-arch=(x86_64)
++arch=(x86_64 arm64)
+@@ -27,3 +27,3 @@
+-    --prefix=/usr \
+-    --sysconfdir=/etc \
+-    --localstatedir=/var \
++    --prefix=${pacman_root}/usr \
++    --sysconfdir=${pacman_root}/etc \
++    --localstatedir=${pacman_root}/var \
+@@ -37 +37 @@
+-  install -Dm644 -t "$pkgdir/usr/include/a52dec/" liba52/a52_internal.h
++  install -Dm644 -t "$pkgdir/${pacman_root}/usr/include/a52dec/" liba52/a52_internal.h
